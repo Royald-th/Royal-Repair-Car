@@ -774,8 +774,8 @@
    CONFIG — แก้ค่าเหล่านี้ให้ตรงกับของคุณ
    ============================================================ */
 const CONFIG = {
-  LIFF_ID: '2009307051-5UV6LT8a',                          // LIFF ID จาก LINE Developers
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbxXMkVqqmTvvCeYTq58wYb7Vl8QrVKoUXgiqEqv3FgvoTfrH6tA3UCxLznWpFBO5U_7Aw/exec',   // URL จาก Deploy > Web App ใน GAS
+  LIFF_ID: 'YOUR_LIFF_ID',                          // LIFF ID จาก LINE Developers
+  GAS_URL: 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL',   // URL จาก Deploy > Web App ใน GAS
 };
 
 /* ============================================================
@@ -977,6 +977,7 @@ function renderRepairTable() {
   const paged = jobs.slice((currentPage-1)*PAGE_SIZE, currentPage*PAGE_SIZE);
 
   // table
+  const tbody = document.getElementById('repair-tbody');
   if (!paged.length) { tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted">ไม่มีรายการที่ตรงกัน</td></tr>'; }
   else {
     tbody.innerHTML = paged.map(j => `
