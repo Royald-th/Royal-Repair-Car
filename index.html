@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="th">
 <head>
 <meta charset="UTF-8">
@@ -750,8 +750,8 @@
    CONFIG — แก้ค่าเหล่านี้ให้ตรงกับของคุณ
    ============================================================ */
 const CONFIG = {
-  LIFF_ID: '2009307051-5UV6LT8a',                          // LIFF ID จาก LINE Developers
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbxXMkVqqmTvvCeYTq58wYb7Vl8QrVKoUXgiqEqv3FgvoTfrH6tA3UCxLznWpFBO5U_7Aw/exec',   // URL จาก Deploy > Web App ใน GAS
+  LIFF_ID: 'YOUR_LIFF_ID',                          // LIFF ID จาก LINE Developers
+  GAS_URL: 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL',   // URL จาก Deploy > Web App ใน GAS
 };
 
 /* ============================================================
@@ -774,18 +774,45 @@ async function initLiff() {
     await liff.init({ liffId: CONFIG.LIFF_ID });
     if (!liff.isLoggedIn()) { liff.login(); return; }
 
-    const profile = await liff.getProfile();
-    const lineUid  = profile.userId;
-    const lineAvatar = profile.pictureUrl || 'https://via.placeholder.com/44';
+    const profile    = await liff.getProfile();
+    const lineUid    = profile.userId;
+    const lineAvatar = profile.pictureUrl  || 'https://via.placeholder.com/44';
+    const lineName   = profile.displayName || 'ผู้ใช้งาน';
 
-    // ดึง user จาก GAS
+    // ลองดึง user จาก Sheet ก่อน
     const res = await gasCall('getUser', { lineUid });
+
     if (res.status === 'ok' && res.user) {
+      // --- มีในระบบแล้ว: อัปเดตชื่อและรูปล่าสุดจาก LINE ---
       currentUser = { ...res.user, avatar: lineAvatar };
+      // อัปเดต avatar ใน Sheet (ไม่บล็อก)
+      gasCall('updateUserAvatar', { lineUid, avatar: lineAvatar, name: lineName });
       bootApp();
+
     } else {
-      showLoading(false);
-      showToast('ไม่พบข้อมูลผู้ใช้ในระบบ กรุณาติดต่อผู้ดูแล', 'error');
+      // --- ยังไม่มีในระบบ: สมัครอัตโนมัติ role = user ---
+      const regRes = await gasCall('registerUser', {
+        lineUid,
+        name:   lineName,
+        avatar: lineAvatar,
+        role:   'user',
+        dept:   '',
+      });
+
+      if (regRes.status === 'ok') {
+        currentUser = {
+          lineUid,
+          name:   lineName,
+          avatar: lineAvatar,
+          role:   'user',
+          dept:   '',
+        };
+        showToast('ลงทะเบียนเข้าสู่ระบบสำเร็จ ยินดีต้อนรับ! 🎉');
+        bootApp();
+      } else {
+        showLoading(false);
+        showToast('ไม่สามารถลงทะเบียนได้: ' + (regRes.message || ''), 'error');
+      }
     }
   } catch (e) {
     showLoading(false);
