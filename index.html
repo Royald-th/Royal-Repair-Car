@@ -1,314 +1,1353 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Repair System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <style>
-        :root { --main-green: #1b5e20; }
-        body { background: #f8f9fa; font-family: 'Sarabun', sans-serif; }
-        .sidebar { width: 260px; height: 100vh; background: var(--main-green); color: #fff; position: fixed; }
-        .content { margin-left: 260px; padding: 25px; transition: 0.3s; }
-        .nav-link { color: #ffffffb3; cursor: pointer; display: flex; align-items: center; padding: 12px 20px; }
-        .nav-link:hover, .nav-link.active { color: #fff; background: rgba(255,255,255,0.15); border-radius: 8px; }
-        .card-stat { border-radius: 15px; border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        @media (max-width: 768px) {
-            .sidebar { width: 0; transform: translateX(-100%); }
-            .content { margin-left: 0; }
-            .sidebar.show { width: 260px; transform: translateX(0); z-index: 1000; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบแจ้งซ่อมรถยนต์</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  :root {
+    --primary: #2E7D32;
+    --primary-dark: #1B5E20;
+    --primary-light: #4CAF50;
+    --primary-xlight: #E8F5E9;
+    --accent: #FF8F00;
+    --accent-light: #FFF8E1;
+    --danger: #C62828;
+    --danger-light: #FFEBEE;
+    --warning: #F57F17;
+    --warning-light: #FFFDE7;
+    --info: #01579B;
+    --info-light: #E1F5FE;
+    --success: #2E7D32;
+    --success-light: #E8F5E9;
+    --gray-50: #FAFAFA;
+    --gray-100: #F5F5F5;
+    --gray-200: #EEEEEE;
+    --gray-300: #E0E0E0;
+    --gray-400: #BDBDBD;
+    --gray-500: #9E9E9E;
+    --gray-600: #757575;
+    --gray-700: #616161;
+    --gray-800: #424242;
+    --gray-900: #212121;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.1);
+    --shadow-md: 0 4px 12px rgba(0,0,0,.12);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,.14);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --radius-lg: 16px;
+    --transition: .2s ease;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Sarabun', sans-serif;
+    background: var(--gray-100);
+    color: var(--gray-900);
+    min-height: 100vh;
+  }
+  h1,h2,h3,h4,h5,h6,.brand-text { font-family: 'Prompt', sans-serif; }
+
+  /* ======= NAVBAR ======= */
+  .navbar-custom {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+    padding: 0 1rem;
+    height: 64px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.2);
+    position: sticky; top:0; z-index: 1050;
+  }
+  .navbar-custom .brand-text { color:#fff; font-size:1.15rem; font-weight:600; letter-spacing:.3px; }
+  .navbar-custom .nav-link { color:rgba(255,255,255,.85) !important; font-size:.9rem; padding:.4rem .7rem !important; border-radius:6px; transition:var(--transition); }
+  .navbar-custom .nav-link:hover, .navbar-custom .nav-link.active { color:#fff !important; background:rgba(255,255,255,.15); }
+  .user-avatar { width:36px; height:36px; border-radius:50%; border:2px solid rgba(255,255,255,.5); object-fit:cover; cursor:pointer; }
+  .user-info-text { color:#fff; font-size:.82rem; line-height:1.2; }
+  .user-role-badge { background:rgba(255,255,255,.2); color:#fff; font-size:.7rem; padding:1px 6px; border-radius:20px; }
+
+  /* ======= SIDEBAR (desktop) ======= */
+  .app-wrapper { display:flex; min-height: calc(100vh - 64px); }
+  .sidebar {
+    width:240px; min-width:240px; background:#fff;
+    border-right:1px solid var(--gray-200);
+    padding:1rem 0;
+    position:sticky; top:64px; height:calc(100vh - 64px);
+    overflow-y:auto;
+    transition: width .3s ease;
+  }
+  .sidebar-section-label { font-size:.7rem; font-weight:700; color:var(--gray-500); letter-spacing:.8px; text-transform:uppercase; padding:.5rem 1.2rem .2rem; }
+  .sidebar-item {
+    display:flex; align-items:center; gap:.7rem;
+    padding:.65rem 1.2rem; margin:.1rem .5rem;
+    border-radius:var(--radius-sm); cursor:pointer;
+    color:var(--gray-700); font-size:.9rem;
+    transition:var(--transition); text-decoration:none;
+  }
+  .sidebar-item:hover { background:var(--primary-xlight); color:var(--primary); }
+  .sidebar-item.active { background:var(--primary-xlight); color:var(--primary); font-weight:600; }
+  .sidebar-item .material-icons { font-size:1.2rem; }
+  .sidebar-item .badge-count { margin-left:auto; background:var(--accent); color:#fff; font-size:.7rem; border-radius:20px; padding:1px 7px; }
+
+  .main-content { flex:1; padding:1.5rem; overflow-x:hidden; }
+
+  /* ======= CARDS ======= */
+  .stat-card {
+    background:#fff; border-radius:var(--radius); padding:1.25rem 1.5rem;
+    box-shadow:var(--shadow-sm); border:1px solid var(--gray-200);
+    display:flex; align-items:center; gap:1rem;
+    transition:var(--transition);
+  }
+  .stat-card:hover { box-shadow:var(--shadow-md); transform:translateY(-2px); }
+  .stat-icon { width:52px; height:52px; border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:center; }
+  .stat-icon .material-icons { font-size:1.6rem; }
+  .stat-value { font-size:1.8rem; font-weight:700; line-height:1; }
+  .stat-label { font-size:.82rem; color:var(--gray-500); margin-top:.2rem; }
+
+  /* ======= TABLE ======= */
+  .data-table-wrapper { background:#fff; border-radius:var(--radius); box-shadow:var(--shadow-sm); border:1px solid var(--gray-200); overflow:hidden; }
+  .data-table-header { padding:1rem 1.25rem; border-bottom:1px solid var(--gray-200); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.5rem; }
+  .data-table-header h6 { font-family:'Prompt',sans-serif; font-size:.95rem; font-weight:600; color:var(--gray-800); }
+  .table { margin:0; font-size:.85rem; }
+  .table thead th { background:var(--gray-50); color:var(--gray-600); font-weight:600; font-size:.78rem; letter-spacing:.3px; text-transform:uppercase; padding:.75rem 1rem; white-space:nowrap; border-bottom:1px solid var(--gray-200); }
+  .table tbody td { padding:.75rem 1rem; vertical-align:middle; border-bottom:1px solid var(--gray-100); }
+  .table tbody tr:hover { background:var(--gray-50); }
+  .table tbody tr:last-child td { border-bottom:none; }
+
+  /* ======= STATUS BADGES ======= */
+  .badge-status { font-size:.75rem; padding:.3rem .7rem; border-radius:20px; font-weight:600; white-space:nowrap; }
+  .status-waiting   { background:#FFF3E0; color:#E65100; }
+  .status-approved  { background:#E8F5E9; color:#2E7D32; }
+  .status-rejected  { background:#FFEBEE; color:#C62828; }
+  .status-revise    { background:#F3E5F5; color:#6A1B9A; }
+  .status-repairing { background:#E3F2FD; color:#1565C0; }
+  .status-done      { background:#E8F5E9; color:#1B5E20; }
+
+  /* ======= BUTTONS ======= */
+  .btn-primary-custom {
+    background:linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color:#fff; border:none; border-radius:var(--radius-sm);
+    padding:.55rem 1.2rem; font-size:.88rem; font-weight:600;
+    font-family:'Sarabun',sans-serif; cursor:pointer;
+    transition:var(--transition); display:inline-flex; align-items:center; gap:.4rem;
+  }
+  .btn-primary-custom:hover { opacity:.92; box-shadow:0 4px 12px rgba(46,125,50,.35); transform:translateY(-1px); color:#fff; }
+  .btn-primary-custom:active { transform:translateY(0); }
+  .btn-outline-custom { background:#fff; color:var(--primary); border:1.5px solid var(--primary); border-radius:var(--radius-sm); padding:.5rem 1.1rem; font-size:.88rem; font-weight:600; font-family:'Sarabun',sans-serif; cursor:pointer; transition:var(--transition); display:inline-flex; align-items:center; gap:.4rem; }
+  .btn-outline-custom:hover { background:var(--primary-xlight); }
+  .btn-sm-icon { width:32px; height:32px; border-radius:6px; border:none; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; transition:var(--transition); }
+  .btn-sm-icon .material-icons { font-size:1rem; }
+
+  /* ======= MODAL OVERRIDES ======= */
+  .modal-content { border:none; border-radius:var(--radius-lg); box-shadow:var(--shadow-lg); }
+  .modal-header-custom {
+    background:linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+    color:#fff; padding:1rem 1.5rem; border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .modal-header-custom .modal-title { font-family:'Prompt',sans-serif; font-size:1rem; font-weight:600; display:flex; align-items:center; gap:.5rem; }
+  .modal-header-custom .btn-close-white { background:rgba(255,255,255,.2); border:none; border-radius:6px; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#fff; transition:var(--transition); }
+  .modal-header-custom .btn-close-white:hover { background:rgba(255,255,255,.35); }
+  .modal-body { padding:1.5rem; }
+  .modal-footer { padding:.75rem 1.5rem; border-top:1px solid var(--gray-200); background:var(--gray-50); border-radius:0 0 var(--radius-lg) var(--radius-lg); }
+
+  /* ======= FORM ======= */
+  .form-label { font-size:.85rem; font-weight:600; color:var(--gray-700); margin-bottom:.3rem; }
+  .form-label .req { color:var(--danger); margin-left:2px; }
+  .form-control, .form-select {
+    border:1.5px solid var(--gray-300); border-radius:var(--radius-sm);
+    padding:.5rem .85rem; font-size:.88rem; font-family:'Sarabun',sans-serif;
+    transition:var(--transition);
+  }
+  .form-control:focus, .form-select:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(46,125,50,.12); outline:none; }
+  .input-group-text { background:var(--gray-100); border:1.5px solid var(--gray-300); border-right:none; color:var(--gray-500); }
+
+  /* ======= USER PROFILE CARD ======= */
+  .profile-card-sm { display:flex; align-items:center; gap:.75rem; background:var(--primary-xlight); border-radius:var(--radius-sm); padding:.75rem 1rem; margin-bottom:1rem; border:1px solid rgba(46,125,50,.2); }
+  .profile-card-sm img { width:44px; height:44px; border-radius:50%; border:2px solid var(--primary); object-fit:cover; }
+  .profile-card-sm .name { font-weight:600; font-size:.92rem; color:var(--primary-dark); }
+  .profile-card-sm .line-id { font-size:.78rem; color:var(--gray-500); }
+
+  /* ======= REPAIR JOB CARD (mobile) ======= */
+  .repair-card {
+    background:#fff; border-radius:var(--radius); padding:1rem 1.25rem;
+    box-shadow:var(--shadow-sm); border:1px solid var(--gray-200); margin-bottom:.75rem;
+  }
+  .repair-card .job-id { font-size:.78rem; color:var(--gray-500); font-weight:600; }
+  .repair-card .plate { font-size:1rem; font-weight:700; color:var(--primary-dark); }
+
+  /* ======= SEARCH BAR ======= */
+  .search-bar { position:relative; }
+  .search-bar .material-icons { position:absolute; left:.7rem; top:50%; transform:translateY(-50%); color:var(--gray-400); font-size:1.1rem; pointer-events:none; }
+  .search-bar input { padding-left:2.2rem; }
+
+  /* ======= IMAGE PREVIEW ======= */
+  .img-preview-box { border:2px dashed var(--gray-300); border-radius:var(--radius-sm); padding:1.5rem; text-align:center; cursor:pointer; transition:var(--transition); position:relative; }
+  .img-preview-box:hover { border-color:var(--primary); background:var(--primary-xlight); }
+  .img-preview-box img { max-height:160px; border-radius:var(--radius-sm); object-fit:contain; }
+  .img-preview-box .placeholder-text { color:var(--gray-400); font-size:.85rem; }
+
+  /* ======= TABS ======= */
+  .nav-tabs-custom { border-bottom:2px solid var(--gray-200); margin-bottom:1.25rem; }
+  .nav-tabs-custom .nav-link { border:none; border-bottom:2px solid transparent; margin-bottom:-2px; color:var(--gray-600); font-size:.88rem; font-weight:600; padding:.6rem 1rem; transition:var(--transition); background:none; }
+  .nav-tabs-custom .nav-link:hover { color:var(--primary); }
+  .nav-tabs-custom .nav-link.active { color:var(--primary); border-bottom-color:var(--primary); }
+
+  /* ======= ALERT TOAST ======= */
+  #toast-container { position:fixed; bottom:1.5rem; right:1.5rem; z-index:9999; display:flex; flex-direction:column; gap:.5rem; }
+  .toast-msg { background:#fff; border-radius:var(--radius-sm); box-shadow:var(--shadow-lg); padding:.75rem 1rem; display:flex; align-items:center; gap:.6rem; font-size:.85rem; border-left:4px solid var(--primary); min-width:260px; animation:toastIn .3s ease; }
+  .toast-msg.error { border-left-color:var(--danger); }
+  .toast-msg.warning { border-left-color:var(--warning); }
+  @keyframes toastIn { from{opacity:0;transform:translateX(30px)} to{opacity:1;transform:translateX(0)} }
+
+  /* ======= LOADING OVERLAY ======= */
+  #loading-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:9998; align-items:center; justify-content:center; }
+  #loading-overlay.show { display:flex; }
+  .loading-box { background:#fff; border-radius:var(--radius); padding:2rem 2.5rem; text-align:center; }
+  .spinner-custom { width:48px; height:48px; border:4px solid var(--gray-200); border-top-color:var(--primary); border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 1rem; }
+  @keyframes spin { to{transform:rotate(360deg)} }
+
+  /* ======= LOGIN SCREEN ======= */
+  #login-screen { display:flex; align-items:center; justify-content:center; min-height:100vh; background:linear-gradient(160deg, var(--primary-dark) 0%, var(--primary) 60%, #66BB6A 100%); }
+  .login-card { background:#fff; border-radius:var(--radius-lg); padding:2.5rem 2rem; width:100%; max-width:380px; text-align:center; box-shadow:var(--shadow-lg); }
+  .login-logo { width:80px; height:80px; background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%); border-radius:20px; display:flex; align-items:center; justify-content:center; margin:0 auto 1.25rem; }
+  .login-logo .material-icons { font-size:2.5rem; color:#fff; }
+
+  /* ======= RESPONSIVE ======= */
+  @media(max-width:768px) {
+    .sidebar { display:none; }
+    .main-content { padding:1rem .75rem; }
+    .stat-value { font-size:1.4rem; }
+    .table-responsive-hide { display:none; }
+  }
+  @media(min-width:769px) {
+    .mobile-only { display:none !important; }
+  }
+
+  /* ======= PAGE SECTIONS ======= */
+  .page-section { display:none; }
+  .page-section.active { display:block; }
+  .page-title { font-family:'Prompt',sans-serif; font-size:1.25rem; font-weight:700; color:var(--gray-800); display:flex; align-items:center; gap:.5rem; margin-bottom:1.25rem; }
+  .page-title .material-icons { color:var(--primary); font-size:1.4rem; }
+
+  /* DETAIL MODAL */
+  .detail-row { display:flex; gap:.5rem; padding:.5rem 0; border-bottom:1px solid var(--gray-100); font-size:.88rem; }
+  .detail-row:last-child { border:none; }
+  .detail-label { min-width:150px; color:var(--gray-500); font-weight:600; }
+  .detail-value { color:var(--gray-800); flex:1; }
+
+  /* Status filter pills */
+  .filter-pills { display:flex; flex-wrap:wrap; gap:.4rem; margin-bottom:1rem; }
+  .filter-pill { border:1.5px solid var(--gray-300); background:#fff; border-radius:20px; padding:.25rem .8rem; font-size:.8rem; font-weight:600; cursor:pointer; transition:var(--transition); }
+  .filter-pill:hover { border-color:var(--primary); color:var(--primary); }
+  .filter-pill.active { background:var(--primary); border-color:var(--primary); color:#fff; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width:6px; height:6px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:var(--gray-300); border-radius:10px; }
+
+  .empty-state { text-align:center; padding:3rem 1rem; color:var(--gray-400); }
+  .empty-state .material-icons { font-size:3.5rem; display:block; margin-bottom:.75rem; }
+
+  /* bill preview */
+  .bill-thumb { width:80px; height:80px; border-radius:8px; object-fit:cover; border:1px solid var(--gray-200); cursor:pointer; }
+
+  /* User management */
+  .user-row { display:flex; align-items:center; gap:.75rem; padding:.65rem .5rem; border-bottom:1px solid var(--gray-100); }
+  .user-row:last-child { border:none; }
+  .user-row img { width:38px; height:38px; border-radius:50%; object-fit:cover; border:2px solid var(--gray-200); }
+
+  /* Animated number */
+  .animate-num { transition:all .5s ease; }
+</style>
 </head>
 <body>
 
-<div class="sidebar d-flex flex-column p-3" id="sidebar">
-    <h3 class="text-center py-3">ระบบแจ้งซ่อม</h3>
-    <hr>
-    <nav class="nav flex-column gap-1">
-        <a class="nav-link active" onclick="loadDashboard()"><i class="material-icons me-2">dashboard</i> แดชบอร์ด</a>
-        <a class="nav-link" data-bs-toggle="modal" data-bs-target="#repairModal"><i class="material-icons me-2">add_box</i> แจ้งซ่อมใหม่</a>
-        <div id="admin-tools" style="display:none;">
-            <a class="nav-link" onclick="loadUsers()"><i class="material-icons me-2">people</i> จัดการผู้ใช้</a>
-        </div>
-    </nav>
-    <div class="mt-auto p-2 border-top d-flex align-items-center">
-        <img id="u-img" src="" class="rounded-circle me-2" width="35">
-        <div class="small">
-            <div id="u-name" class="fw-bold text-truncate" style="max-width: 150px;">Loading...</div>
-            <div id="u-role" class="opacity-75">User</div>
-        </div>
-    </div>
+<!-- ===== LOADING OVERLAY ===== -->
+<div id="loading-overlay">
+  <div class="loading-box">
+    <div class="spinner-custom"></div>
+    <div style="font-family:'Prompt',sans-serif;font-weight:600;color:var(--gray-700);">กำลังโหลด...</div>
+  </div>
 </div>
 
-<div class="content">
-    <button class="btn d-md-none mb-3" onclick="toggleSidebar()"><i class="material-icons">menu</i></button>
-    <div id="main-view">
-        <div class="row g-3 mb-4" id="stat-cards"></div>
-        <div class="card card-stat">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
-                            <tr><th>วันที่</th><th>ทะเบียน</th><th>อาการ</th><th>สถานะ</th><th>จัดการ</th></tr>
-                        </thead>
-                        <tbody id="repair-table"></tbody>
-                    </table>
+<!-- ===== TOAST CONTAINER ===== -->
+<div id="toast-container"></div>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo"><span class="material-icons">directions_car</span></div>
+    <h5 style="font-family:'Prompt',sans-serif;font-weight:700;margin-bottom:.25rem;color:var(--primary-dark);">ระบบแจ้งซ่อมรถยนต์</h5>
+    <p style="font-size:.85rem;color:var(--gray-500);margin-bottom:1.75rem;">กรุณาเข้าสู่ระบบผ่าน LINE เพื่อใช้งาน</p>
+    <button class="btn-primary-custom w-100 justify-content-center py-3" id="btn-line-login" onclick="initLiff()">
+      <i class="fab fa-line" style="font-size:1.2rem;"></i> เข้าสู่ระบบด้วย LINE
+    </button>
+    <p style="font-size:.75rem;color:var(--gray-400);margin-top:1.25rem;">ระบบจะตรวจสอบสิทธิ์จากบัญชี LINE ของคุณ</p>
+  </div>
+</div>
+
+<!-- ===== MAIN APP (hidden until login) ===== -->
+<div id="main-app" style="display:none;">
+
+  <!-- NAVBAR -->
+  <nav class="navbar-custom d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn-sm-icon" style="background:rgba(255,255,255,.15);color:#fff;" id="sidebar-toggle">
+        <span class="material-icons">menu</span>
+      </button>
+      <span class="material-icons" style="color:#fff;font-size:1.4rem;">directions_car</span>
+      <span class="brand-text">ระบบแจ้งซ่อมรถยนต์</span>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <div class="d-none d-md-block text-end">
+        <div class="user-info-text" id="nav-username">กำลังโหลด...</div>
+        <span class="user-role-badge" id="nav-role">User</span>
+      </div>
+      <img src="https://via.placeholder.com/36" id="nav-avatar" class="user-avatar" alt="avatar">
+    </div>
+  </nav>
+
+  <div class="app-wrapper">
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-section-label">เมนูหลัก</div>
+      <a class="sidebar-item active" data-page="dashboard" onclick="navigate('dashboard')">
+        <span class="material-icons">dashboard</span> แดชบอร์ด
+      </a>
+      <a class="sidebar-item" data-page="repair-list" onclick="navigate('repair-list')">
+        <span class="material-icons">build_circle</span> รายการแจ้งซ่อม
+        <span class="badge-count" id="badge-pending">0</span>
+      </a>
+      <div id="admin-menu" style="display:none;">
+        <div class="sidebar-section-label" style="margin-top:.5rem;">ผู้ดูแลระบบ</div>
+        <a class="sidebar-item" data-page="admin-users" onclick="navigate('admin-users')">
+          <span class="material-icons">manage_accounts</span> จัดการผู้ใช้
+        </a>
+        <a class="sidebar-item" data-page="admin-vehicles" onclick="navigate('admin-vehicles')">
+          <span class="material-icons">directions_car</span> จัดการทะเบียนรถ
+        </a>
+      </div>
+      <div class="sidebar-section-label" style="margin-top:.5rem;">อื่นๆ</div>
+      <a class="sidebar-item" onclick="logout()">
+        <span class="material-icons">logout</span> ออกจากระบบ
+      </a>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+
+      <!-- ===== DASHBOARD PAGE ===== -->
+      <div class="page-section active" id="page-dashboard">
+        <div class="page-title">
+          <span class="material-icons">dashboard</span> แดชบอร์ด
+          <button class="btn-primary-custom ms-auto" onclick="openRepairModal()">
+            <span class="material-icons">add</span> แจ้งซ่อมรถ
+          </button>
+        </div>
+
+        <!-- Profile card -->
+        <div class="profile-card-sm mb-3">
+          <img src="https://via.placeholder.com/44" id="dash-avatar" alt="">
+          <div>
+            <div class="name" id="dash-name">กำลังโหลด...</div>
+            <div class="line-id" id="dash-dept">-</div>
+          </div>
+        </div>
+
+        <!-- Stat Cards -->
+        <div class="row g-3 mb-3" id="stat-cards">
+          <div class="col-6 col-md-3">
+            <div class="stat-card">
+              <div class="stat-icon" style="background:#FFF3E0;"><span class="material-icons" style="color:#E65100;">pending</span></div>
+              <div><div class="stat-value animate-num" id="stat-waiting">0</div><div class="stat-label">รอดำเนินการ</div></div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="stat-card">
+              <div class="stat-icon" style="background:#E3F2FD;"><span class="material-icons" style="color:#1565C0;">build</span></div>
+              <div><div class="stat-value animate-num" id="stat-repairing">0</div><div class="stat-label">กำลังซ่อม</div></div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="stat-card">
+              <div class="stat-icon" style="background:#E8F5E9;"><span class="material-icons" style="color:#2E7D32;">check_circle</span></div>
+              <div><div class="stat-value animate-num" id="stat-done">0</div><div class="stat-label">เสร็จสิ้น</div></div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="stat-card">
+              <div class="stat-icon" style="background:#F3E5F5;"><span class="material-icons" style="color:#6A1B9A;">list_alt</span></div>
+              <div><div class="stat-value animate-num" id="stat-total">0</div><div class="stat-label">ทั้งหมด</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent jobs -->
+        <div class="data-table-wrapper">
+          <div class="data-table-header">
+            <h6><span class="material-icons" style="font-size:1rem;color:var(--primary);vertical-align:middle;">history</span> รายการล่าสุด</h6>
+            <button class="btn-outline-custom btn-sm" onclick="navigate('repair-list')">ดูทั้งหมด</button>
+          </div>
+          <div id="recent-jobs-list" class="p-3">
+            <div class="empty-state"><span class="material-icons">inbox</span>ยังไม่มีรายการ</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== REPAIR LIST PAGE ===== -->
+      <div class="page-section" id="page-repair-list">
+        <div class="page-title">
+          <span class="material-icons">build_circle</span> รายการแจ้งซ่อม
+          <button class="btn-primary-custom ms-auto" onclick="openRepairModal()">
+            <span class="material-icons">add</span> แจ้งซ่อม
+          </button>
+        </div>
+
+        <!-- Filter & search -->
+        <div class="d-flex flex-wrap gap-2 mb-2 align-items-center">
+          <div class="search-bar flex-grow-1" style="max-width:280px;">
+            <span class="material-icons">search</span>
+            <input type="text" class="form-control" id="search-input" placeholder="ค้นหา ทะเบียน / ชื่อ / เลขงาน...">
+          </div>
+          <select class="form-select" style="max-width:160px;font-size:.85rem;" id="filter-date">
+            <option value="">ทุกช่วงเวลา</option>
+            <option value="today">วันนี้</option>
+            <option value="week">สัปดาห์นี้</option>
+            <option value="month">เดือนนี้</option>
+          </select>
+        </div>
+
+        <!-- Status filter pills -->
+        <div class="filter-pills" id="status-pills">
+          <div class="filter-pill active" data-status="">ทั้งหมด</div>
+          <div class="filter-pill" data-status="รอดำเนินการ">รอดำเนินการ</div>
+          <div class="filter-pill" data-status="อนุมัติ">อนุมัติ</div>
+          <div class="filter-pill" data-status="กำลังซ่อม">กำลังซ่อม</div>
+          <div class="filter-pill" data-status="ส่งกลับแก้ไข">ส่งกลับแก้ไข</div>
+          <div class="filter-pill" data-status="เสร็จสิ้น">เสร็จสิ้น</div>
+          <div class="filter-pill" data-status="ไม่อนุมัติ">ไม่อนุมัติ</div>
+        </div>
+
+        <!-- Desktop Table -->
+        <div class="data-table-wrapper d-none d-md-block">
+          <div class="table-responsive">
+            <table class="table" id="repair-table">
+              <thead>
+                <tr>
+                  <th>เลขที่งาน</th>
+                  <th>วันที่แจ้ง</th>
+                  <th>ผู้แจ้ง</th>
+                  <th>ทะเบียน</th>
+                  <th>ไมล์</th>
+                  <th>สถานที่ซ่อม</th>
+                  <th>สถานะ</th>
+                  <th>การดำเนินการ</th>
+                </tr>
+              </thead>
+              <tbody id="repair-tbody">
+                <tr><td colspan="8" class="text-center py-4 text-muted">กำลังโหลดข้อมูล...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Mobile Cards -->
+        <div class="d-md-none" id="repair-cards-mobile">
+          <div class="empty-state"><span class="material-icons">inbox</span>กำลังโหลด...</div>
+        </div>
+      </div>
+
+      <!-- ===== ADMIN USERS PAGE ===== -->
+      <div class="page-section" id="page-admin-users">
+        <div class="page-title">
+          <span class="material-icons">manage_accounts</span> จัดการผู้ใช้งาน
+        </div>
+        <div class="data-table-wrapper">
+          <div class="data-table-header">
+            <h6>รายชื่อพนักงาน</h6>
+            <button class="btn-primary-custom btn-sm" onclick="openAddUserModal()">
+              <span class="material-icons" style="font-size:.9rem;">person_add</span> เพิ่มผู้ใช้
+            </button>
+          </div>
+          <div id="user-list" class="p-3">
+            <div class="empty-state"><span class="material-icons">people</span>กำลังโหลด...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== ADMIN VEHICLES PAGE ===== -->
+      <div class="page-section" id="page-admin-vehicles">
+        <div class="page-title">
+          <span class="material-icons">directions_car</span> จัดการทะเบียนรถ
+        </div>
+        <div class="data-table-wrapper">
+          <div class="data-table-header">
+            <h6>รายการทะเบียนรถ</h6>
+            <button class="btn-primary-custom btn-sm" onclick="openAddVehicleModal()">
+              <span class="material-icons" style="font-size:.9rem;">add</span> เพิ่มทะเบียน
+            </button>
+          </div>
+          <div id="vehicle-list" class="p-3">
+            <div class="empty-state"><span class="material-icons">directions_car</span>กำลังโหลด...</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end main-content -->
+  </div><!-- end app-wrapper -->
+</div><!-- end main-app -->
+
+
+<!-- =====================================================
+     MODALS
+====================================================== -->
+
+<!-- ===== MODAL: REPAIR FORM ===== -->
+<div class="modal fade" id="modalRepair" tabindex="-1">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg">
+    <div class="modal-content">
+      <div class="modal-header-custom">
+        <div class="modal-title"><span class="material-icons">build</span> <span id="repair-modal-title">แจ้งซ่อมรถยนต์</span></div>
+        <button class="btn-close-white" onclick="closeModal('modalRepair')"><span class="material-icons" style="font-size:1rem;">close</span></button>
+      </div>
+      <div class="modal-body">
+        <!-- User profile -->
+        <div class="profile-card-sm">
+          <img src="https://via.placeholder.com/44" id="form-avatar" alt="">
+          <div>
+            <div class="name" id="form-username">-</div>
+            <div class="line-id" id="form-lineuid">-</div>
+          </div>
+        </div>
+
+        <form id="repair-form" novalidate>
+          <input type="hidden" id="f-job-id">
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <label class="form-label">เลขทะเบียนรถ <span class="req">*</span></label>
+              <select class="form-select" id="f-plate" required>
+                <option value="">-- เลือกเลขทะเบียน --</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label">เลขไมล์ <span class="req">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><span class="material-icons" style="font-size:1rem;">speed</span></span>
+                <input type="number" class="form-control" id="f-mileage" placeholder="เช่น 45000" min="0" required>
+              </div>
+            </div>
+            <div class="col-12">
+              <label class="form-label">อาการที่รถยนต์เสีย <span class="req">*</span></label>
+              <textarea class="form-control" id="f-detail" rows="3" placeholder="อธิบายอาการที่พบ..." required></textarea>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label">ประเมินค่าใช้จ่าย (บาท)</label>
+              <div class="input-group">
+                <span class="input-group-text">฿</span>
+                <input type="number" class="form-control" id="f-estimate" placeholder="0" min="0">
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label">สถานที่ซ่อม <span class="req">*</span></label>
+              <input type="text" class="form-control" id="f-location" placeholder="ชื่ออู่ / สถานที่" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label">แนบรูปภาพประกอบ</label>
+              <div class="img-preview-box" onclick="document.getElementById('f-image').click()">
+                <input type="file" id="f-image" accept="image/*" class="d-none" onchange="previewImage(this,'repair-img-preview')">
+                <div id="repair-img-preview">
+                  <span class="material-icons" style="font-size:2rem;color:var(--gray-300);">photo_camera</span>
+                  <div class="placeholder-text">คลิกเพื่อเลือกรูป (ไม่บังคับ)</div>
                 </div>
+              </div>
             </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="repairModal" tabindex="-1">
-    <div class="modal-dialog">
-        <form id="repairForm" class="modal-content">
-            <div class="modal-header"><h5>แจ้งซ่อมรถยนต์</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-            <div class="modal-body">
-                <div class="mb-3"><label>ทะเบียนรถ</label><select id="car-list" class="form-select" required></select></div>
-                <div class="mb-3"><label>เลขไมล์</label><input type="number" id="mileage" class="form-control" required></div>
-                <div class="mb-3"><label>รายละเอียดอาการ</label><textarea id="symptoms" class="form-control" required></textarea></div>
-                <div class="mb-3"><label>ประมาณการค่าซ่อม</label><input type="number" id="est-cost" class="form-control" required></div>
-                <div class="mb-3"><label>สถานที่</label><input type="text" id="loc" class="form-control" required></div>
-                <div class="mb-3"><label>แนบรูป</label><input type="file" id="photo" class="form-control" accept="image/*"></div>
+            <!-- Admin only: edit note -->
+            <div class="col-12 d-none" id="admin-note-section">
+              <label class="form-label">หมายเหตุ (Admin)</label>
+              <textarea class="form-control" id="f-note" rows="2" placeholder="บันทึกหมายเหตุ..."></textarea>
             </div>
-            <div class="modal-footer"><button type="submit" class="btn btn-success w-100">ส่งข้อมูล</button></div>
+          </div>
         </form>
+      </div>
+      <div class="modal-footer justify-content-end gap-2">
+        <button class="btn-outline-custom" onclick="closeModal('modalRepair')">ยกเลิก</button>
+        <button class="btn-primary-custom" id="btn-submit-repair" onclick="submitRepair()">
+          <span class="material-icons" style="font-size:1rem;">send</span> ส่งแจ้งซ่อมรถยนต์
+        </button>
+      </div>
     </div>
+  </div>
 </div>
 
+<!-- ===== MODAL: REPAIR DETAIL ===== -->
+<div class="modal fade" id="modalDetail" tabindex="-1">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg">
+    <div class="modal-content">
+      <div class="modal-header-custom">
+        <div class="modal-title"><span class="material-icons">receipt_long</span> รายละเอียดการแจ้งซ่อม</div>
+        <button class="btn-close-white" onclick="closeModal('modalDetail')"><span class="material-icons" style="font-size:1rem;">close</span></button>
+      </div>
+      <div class="modal-body" id="detail-body">
+        <!-- populated by JS -->
+      </div>
+      <div class="modal-footer" id="detail-footer">
+        <!-- action buttons populated by JS -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: STATUS UPDATE (Admin) ===== -->
+<div class="modal fade" id="modalStatus" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header-custom">
+        <div class="modal-title"><span class="material-icons">update</span> เปลี่ยนสถานะ</div>
+        <button class="btn-close-white" onclick="closeModal('modalStatus')"><span class="material-icons" style="font-size:1rem;">close</span></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="status-job-id">
+        <div class="mb-3">
+          <label class="form-label">สถานะใหม่ <span class="req">*</span></label>
+          <select class="form-select" id="new-status">
+            <option value="รอดำเนินการ">รอดำเนินการ</option>
+            <option value="อนุมัติ">อนุมัติ</option>
+            <option value="ไม่อนุมัติ">ไม่อนุมัติ</option>
+            <option value="ส่งกลับแก้ไข">ส่งกลับแก้ไข</option>
+            <option value="กำลังซ่อม">กำลังซ่อม</option>
+            <option value="เสร็จสิ้น">เสร็จสิ้น</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">หมายเหตุ</label>
+          <textarea class="form-control" id="status-note" rows="2" placeholder="บันทึกหมายเหตุ..."></textarea>
+        </div>
+        <!-- Complete form (shown only when เสร็จสิ้น) -->
+        <div id="complete-section" style="display:none;">
+          <hr>
+          <p class="fw-bold text-success mb-2">🔒 ต้องกรอกเพื่อ "เสร็จสิ้น"</p>
+          <div class="mb-3">
+            <label class="form-label">ค่าใช้จ่ายจริง (บาท) <span class="req">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text">฿</span>
+              <input type="number" class="form-control" id="actual-cost" placeholder="0" min="0">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">แนบบิล / ใบเสร็จ <span class="req">*</span></label>
+            <div class="img-preview-box" onclick="document.getElementById('bill-image').click()">
+              <input type="file" id="bill-image" accept="image/*" class="d-none" onchange="previewImage(this,'bill-preview')">
+              <div id="bill-preview">
+                <span class="material-icons" style="font-size:2rem;color:var(--gray-300);">receipt</span>
+                <div class="placeholder-text">คลิกเพื่อแนบบิล</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer justify-content-end gap-2">
+        <button class="btn-outline-custom" onclick="closeModal('modalStatus')">ยกเลิก</button>
+        <button class="btn-primary-custom" onclick="submitStatusChange()">
+          <span class="material-icons" style="font-size:1rem;">check</span> บันทึก
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: ADD USER ===== -->
+<div class="modal fade" id="modalAddUser" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header-custom">
+        <div class="modal-title"><span class="material-icons">person_add</span> เพิ่ม / แก้ไขผู้ใช้</div>
+        <button class="btn-close-white" onclick="closeModal('modalAddUser')"><span class="material-icons" style="font-size:1rem;">close</span></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="u-row-id">
+        <div class="mb-3">
+          <label class="form-label">LINE User ID <span class="req">*</span></label>
+          <input type="text" class="form-control" id="u-line-id" placeholder="Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">ชื่อ-นามสกุล <span class="req">*</span></label>
+          <input type="text" class="form-control" id="u-name" placeholder="ชื่อจริง">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">แผนก / ตำแหน่ง</label>
+          <input type="text" class="form-control" id="u-dept" placeholder="เช่น ฝ่ายบริหาร">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">บทบาท</label>
+          <select class="form-select" id="u-role">
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer justify-content-end gap-2">
+        <button class="btn-outline-custom" onclick="closeModal('modalAddUser')">ยกเลิก</button>
+        <button class="btn-primary-custom" onclick="saveUser()">
+          <span class="material-icons" style="font-size:1rem;">save</span> บันทึก
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: ADD VEHICLE ===== -->
+<div class="modal fade" id="modalAddVehicle" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header-custom">
+        <div class="modal-title"><span class="material-icons">directions_car</span> เพิ่มทะเบียนรถ</div>
+        <button class="btn-close-white" onclick="closeModal('modalAddVehicle')"><span class="material-icons" style="font-size:1rem;">close</span></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">เลขทะเบียนรถ <span class="req">*</span></label>
+          <input type="text" class="form-control" id="v-plate" placeholder="เช่น กข-1234 กรุงเทพมหานคร">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">ยี่ห้อ / รุ่น</label>
+          <input type="text" class="form-control" id="v-model" placeholder="เช่น Toyota Hilux Revo">
+        </div>
+      </div>
+      <div class="modal-footer justify-content-end gap-2">
+        <button class="btn-outline-custom" onclick="closeModal('modalAddVehicle')">ยกเลิก</button>
+        <button class="btn-primary-custom" onclick="saveVehicle()">
+          <span class="material-icons" style="font-size:1rem;">save</span> บันทึก
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: IMAGE VIEWER ===== -->
+<div class="modal fade" id="modalImage" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="background:transparent;border:none;box-shadow:none;">
+      <div class="text-end mb-2">
+        <button class="btn-close-white" onclick="closeModal('modalImage')" style="background:rgba(0,0,0,.5);"><span class="material-icons" style="font-size:1rem;">close</span></button>
+      </div>
+      <img id="modal-img-src" src="" style="width:100%;border-radius:var(--radius);">
+    </div>
+  </div>
+</div>
+
+
+<!-- =====================================================
+     SCRIPTS
+====================================================== -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbzcyPsWp4FVjyipLGNZcXQK81wxcWDgCLHbk8HxCEMXDoe4rKm3XLD-J5Pmd0Js9Y6f9Q/exec";
-    let currentUser = { userId: "", name: "", role: "" };
-
-   /* async function initLIFF() {
-        await liff.init({ liffId: "2009201666-JexzIIEn" });
-        if (!liff.isLoggedIn()) { liff.login(); return; }
-        const profile = await liff.getProfile();
-        currentUser.userId = profile.userId;
-        document.getElementById('u-img').src = profile.pictureUrl;
-        
-        // เช็คสิทธิ์จาก GAS
-        const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getUserRole", userId: profile.userId }) });
-        const data = await res.json();
-        if (data.role === "Guest") { alert("ไม่พบสิทธิ์การใช้งาน กรุณาติดต่อแอดมิน"); return; }
-        
-        currentUser.role = data.role;
-        currentUser.name = data.name;
-        document.getElementById('u-name').innerText = data.name;
-        document.getElementById('u-role').innerText = data.role;
-        if (data.role === "Admin") document.getElementById('admin-tools').style.display = "block";
-        
-        loadDashboard();
-        loadCarList();
-    } */
-
-
-    async function initLIFF() {
-    await liff.init({ liffId: "2009201666-JexzIIEn" });
-    if (!liff.isLoggedIn()) { liff.login(); return; }
-    const profile = await liff.getProfile();
-    
-    // ส่งข้อมูลไปตรวจสอบ/ลงทะเบียนอัตโนมัติ
-    const res = await fetch(API_URL, { 
-        method: "POST", 
-        body: JSON.stringify({ 
-            action: "checkAndRegisterUser", 
-            userId: profile.userId,
-            displayName: profile.displayName 
-        }) 
-    });
-    const data = await res.json();
-    
-    currentUser = data; // เก็บข้อมูล User ปัจจุบัน
-    document.getElementById('u-img').src = profile.pictureUrl;
-    document.getElementById('u-name').innerText = data.name;
-    document.getElementById('u-role').innerText = data.role;
-
-    if (data.role === "Admin") {
-        document.getElementById('admin-tools').style.display = "block";
-    }
-    loadDashboard();
-    loadCarList();    
-        
-}
-
-    // ฟังก์ชันดึงรายชื่อ User มาแสดง (สำหรับ Admin)
-async function loadUsers() {
-    const mainView = document.getElementById('main-view');
-    mainView.innerHTML = `<div class="text-center"><h4>กำลังโหลดรายชื่อผู้ใช้...</h4></div>`;
-    
-    const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getAllUsers" }) });
-    const users = await res.json();
-    
-    let html = `
-        <h4 class="mb-4">จัดการบัญชีผู้ใช้งาน</h4>
-        <div class="card card-stat"><div class="table-responsive">
-        <table class="table align-middle">
-            <thead><tr><th>ชื่อ LINE</th><th>ชื่อจริง</th><th>สิทธิ์</th><th>จัดการ</th></tr></thead>
-            <tbody>`;
-    
-    users.forEach(u => {
-        html += `
-            <tr>
-                <td>${u[1]}</td>
-                <td>${u[2]}</td>
-                <td><span class="badge ${u[3] === 'Admin' ? 'bg-danger' : 'bg-primary'}">${u[3]}</span></td>
-                <td>
-                    <button class="btn btn-sm btn-outline-success" onclick="editUser('${u[0]}', '${u[2]}', '${u[3]}')">แก้ไข</button>
-                </td>
-            </tr>`;
-    });
-    
-    html += `</tbody></table></div></div>`;
-    mainView.innerHTML = html;
-}
-
-// ฟังก์ชันแก้ไข User
-async function editUser(id, name, role) {
-    const newName = prompt("แก้ไขชื่อจริง:", name);
-    const newRole = confirm("ต้องการให้เป็น Admin ใช่หรือไม่? (ตกลง=Admin / ยกเลิก=User)") ? "Admin" : "User";
-    
-    if (newName) {
-        const res = await fetch(API_URL, { 
-            method: "POST", 
-            body: JSON.stringify({ 
-                action: "updateUser", 
-                targetUserId: id, 
-                realName: newName, 
-                role: newRole 
-            }) 
-        });
-        if (res.ok) { alert("อัปเดตเรียบร้อย"); loadUsers(); }
-    }
-}
-
-    async function loadCarList() {
-        const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getCarList" }) });
-        const cars = await res.json();
-        const select = document.getElementById('car-list');
-        cars.forEach(c => select.innerHTML += `<option value="${c}">${c}</option>`);
-    }
-
-// --- ส่วนการจัดการเมนู (แก้ปัญหากดกลับหน้า Dashboard ไม่ได้) ---
-async function loadDashboard() {
-    // ล้างหน้าจอหลักก่อนโหลด
-    const mainView = document.getElementById('main-view');
-    mainView.innerHTML = `
-        <div class="row g-3 mb-4" id="stat-cards"></div>
-        <div class="card card-stat">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
-                            <tr><th>วันที่</th><th>ทะเบียน</th><th>อาการ</th><th>สถานะ</th><th>จัดการ</th></tr>
-                        </thead>
-                        <tbody id="repair-table"><tr><td colspan="5" class="text-center">กำลังโหลดข้อมูล...</td></tr></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>`;
-
-    try {
-        const res = await fetch(API_URL, { 
-            method: "POST", 
-            body: JSON.stringify({ action: "getRepairs", userId: currentUser.userId, role: currentUser.role }) 
-        });
-        const items = await res.json();
-        renderTable(items); // แยกฟังก์ชัน render ออกมา
-        renderStats(items); // แสดง Card สรุปสถิติ
-    } catch (err) {
-        console.error("Dashboard Error:", err);
-    }
-}
-
-function renderTable(items) {
-    const tbody = document.getElementById('repair-table');
-    tbody.innerHTML = "";
-    if (items.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center">ไม่พบข้อมูลการแจ้งซ่อม</td></tr>`;
-        return;
-    }
-    items.reverse().forEach(row => {
-        let badgeClass = "bg-secondary";
-        if (row[10] === "เสร็จสิ้น") badgeClass = "bg-success";
-        if (row[10] === "กำลังซ่อม") badgeClass = "bg-warning text-dark";
-        if (row[10] === "ไม่อนุมัติ") badgeClass = "bg-danger";
-
-        tbody.innerHTML += `
-            <tr>
-                <td>${new Date(row[1]).toLocaleDateString('th-TH')}</td>
-                <td><b>${row[4]}</b></td>
-                <td>${row[6]}</td>
-                <td><span class="badge ${badgeClass}">${row[10]}</span></td>
-                <td><button class="btn btn-sm btn-outline-primary" onclick="viewDetail('${row[0]}')">ดู</button></td>
-            </tr>`;
-    });
-}
-
-// --- ส่วนบันทึกแจ้งซ่อม (แก้ปัญหารูปภาพไม่บันทึก) ---
-document.getElementById('repairForm').onsubmit = async (e) => {
-    e.preventDefault();
-    const btnSubmit = e.target.querySelector('button[type="submit"]');
-    btnSubmit.disabled = true;
-    btnSubmit.innerText = "กำลังบันทึก...";
-
-    try {
-        const file = document.getElementById('photo').files[0];
-        let base64 = "";
-        
-        if (file) {
-            // ตรวจสอบขนาดไฟล์ (ไม่ควรเกิน 2MB เพื่อความเสถียรของ GAS)
-            if (file.size > 2 * 1024 * 1024) {
-                alert("ไฟล์รูปภาพใหญ่เกินไป (จำกัด 2MB)");
-                btnSubmit.disabled = false;
-                btnSubmit.innerText = "ส่งข้อมูล";
-                return;
-            }
-            base64 = await new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.readAsDataURL(file);
-            });
-        }
-
-        const payload = {
-            action: "submitRepair",
-            userId: currentUser.userId,
-            realName: currentUser.name,
-            licensePlate: document.getElementById('car-list').value,
-            mileage: document.getElementById('mileage').value,
-            symptoms: document.getElementById('symptoms').value,
-            estCost: document.getElementById('est-cost').value,
-            location: document.getElementById('loc').value,
-            image: base64 // ส่ง string base64 เปล่าถ้าไม่มีรูป
-        };
-
-        const res = await fetch(API_URL, { method: "POST", body: JSON.stringify(payload) });
-        const result = await res.json();
-
-        if (result.status === "success") {
-            alert("บันทึกข้อมูลสำเร็จ!");
-            location.reload(); 
-        } else {
-            throw new Error(result.message);
-        }
-    } catch (err) {
-        alert("เกิดข้อผิดพลาด: " + err.message);
-        btnSubmit.disabled = false;
-        btnSubmit.innerText = "ส่งข้อมูล";
-    }
+/* ============================================================
+   CONFIG — แก้ค่าเหล่านี้ให้ตรงกับของคุณ
+   ============================================================ */
+const CONFIG = {
+  LIFF_ID: 'YOUR_LIFF_ID',                          // LIFF ID จาก LINE Developers
+  GAS_URL: 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL',   // URL จาก Deploy > Web App ใน GAS
 };
-    
-    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('show'); }
-    initLIFF();
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let currentUser   = null;   // { lineUid, name, avatar, role, dept }
+let allJobs       = [];
+let vehicles      = [];
+let users         = [];
+let filterStatus  = '';
+let editingJobId  = null;
+let submitting    = false;
+
+/* ============================================================
+   LIFF INIT
+   ============================================================ */
+async function initLiff() {
+  showLoading(true);
+  try {
+    await liff.init({ liffId: CONFIG.LIFF_ID });
+    if (!liff.isLoggedIn()) { liff.login(); return; }
+
+    const profile = await liff.getProfile();
+    const lineUid  = profile.userId;
+    const lineAvatar = profile.pictureUrl || 'https://via.placeholder.com/44';
+
+    // ดึง user จาก GAS
+    const res = await gasCall('getUser', { lineUid });
+    if (res.status === 'ok' && res.user) {
+      currentUser = { ...res.user, avatar: lineAvatar };
+      bootApp();
+    } else {
+      showLoading(false);
+      showToast('ไม่พบข้อมูลผู้ใช้ในระบบ กรุณาติดต่อผู้ดูแล', 'error');
+    }
+  } catch (e) {
+    showLoading(false);
+    console.error(e);
+    showToast('เกิดข้อผิดพลาด: ' + e.message, 'error');
+  }
+}
+
+/* DEV MODE — ลบออกเมื่อใช้งานจริง */
+function devLogin(role = 'admin') {
+  currentUser = {
+    lineUid: role === 'admin' ? 'U_ADMIN_001' : 'U_USER_001',
+    name: role === 'admin' ? 'ผู้ดูแลระบบ' : 'นายสมชาย ใจดี',
+    avatar: 'https://via.placeholder.com/44',
+    role: role,
+    dept: role === 'admin' ? 'ฝ่ายบริหาร' : 'ฝ่ายปฏิบัติการ'
+  };
+  bootApp();
+}
+
+/* ============================================================
+   BOOT APP
+   ============================================================ */
+function bootApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('main-app').style.display = 'block';
+
+  // Set nav
+  document.getElementById('nav-username').textContent = currentUser.name;
+  document.getElementById('nav-role').textContent = currentUser.role === 'admin' ? 'Admin' : 'User';
+  document.getElementById('nav-avatar').src = currentUser.avatar;
+  document.getElementById('dash-avatar').src = currentUser.avatar;
+  document.getElementById('form-avatar').src = currentUser.avatar;
+  document.getElementById('dash-name').textContent = currentUser.name;
+  document.getElementById('dash-dept').textContent = currentUser.dept || '-';
+  document.getElementById('form-username').textContent = currentUser.name;
+  document.getElementById('form-lineuid').textContent = currentUser.lineUid;
+
+  // Admin menu
+  if (currentUser.role === 'admin') {
+    document.getElementById('admin-menu').style.display = 'block';
+    document.getElementById('admin-note-section').classList.remove('d-none');
+  }
+
+  loadData();
+  showLoading(false);
+}
+
+/* ============================================================
+   DATA LOADING
+   ============================================================ */
+async function loadData() {
+  showLoading(true);
+  try {
+    const isAdmin = currentUser?.role === 'admin';
+    const [jobsRes, vehiclesRes, usersRes] = await Promise.all([
+      gasCall('getJobs', { lineUid: currentUser.lineUid, isAdmin }),
+      gasCall('getVehicles', {}),
+      isAdmin ? gasCall('getUsers', {}) : Promise.resolve({ users: [] })
+    ]);
+
+    allJobs  = jobsRes.jobs  || [];
+    vehicles = vehiclesRes.vehicles || [];
+    users    = usersRes.users || [];
+
+    populateVehicleSelect();
+    renderStats();
+    renderRecentJobs();
+    renderRepairTable();
+    if (isAdmin) { renderUserList(); renderVehicleList(); }
+  } catch (e) {
+    showToast('ไม่สามารถโหลดข้อมูลได้', 'error');
+  }
+  showLoading(false);
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function renderStats() {
+  const mine = currentUser.role === 'admin' ? allJobs : allJobs.filter(j => j.lineUid === currentUser.lineUid);
+  const count = s => mine.filter(j => j.status === s).length;
+  animateNum('stat-waiting',   count('รอดำเนินการ'));
+  animateNum('stat-repairing', count('กำลังซ่อม'));
+  animateNum('stat-done',      count('เสร็จสิ้น'));
+  animateNum('stat-total',     mine.length);
+
+  // badge
+  const pending = allJobs.filter(j => j.status === 'รอดำเนินการ').length;
+  const el = document.getElementById('badge-pending');
+  el.textContent = pending;
+  el.style.display = pending ? 'inline' : 'none';
+}
+
+function renderRecentJobs() {
+  const mine = currentUser.role === 'admin' ? allJobs : allJobs.filter(j => j.lineUid === currentUser.lineUid);
+  const recent = mine.slice(0,5);
+  const el = document.getElementById('recent-jobs-list');
+  if (!recent.length) { el.innerHTML = '<div class="empty-state"><span class="material-icons">inbox</span>ยังไม่มีรายการ</div>'; return; }
+  el.innerHTML = recent.map(jobCard).join('');
+}
+
+function renderRepairTable() {
+  let jobs = currentUser.role === 'admin' ? allJobs : allJobs.filter(j => j.lineUid === currentUser.lineUid);
+
+  // filter status
+  if (filterStatus) jobs = jobs.filter(j => j.status === filterStatus);
+
+  // search
+  const q = document.getElementById('search-input').value.toLowerCase();
+  if (q) jobs = jobs.filter(j => (j.jobId+j.plate+j.userName+j.detail).toLowerCase().includes(q));
+
+  // date filter
+  const df = document.getElementById('filter-date').value;
+  if (df) {
+    const now = new Date(); const y=now.getFullYear(),m=now.getMonth(),d=now.getDate();
+    jobs = jobs.filter(j => {
+      const t = new Date(j.createdAt);
+      if (df==='today') return t.getFullYear()===y && t.getMonth()===m && t.getDate()===d;
+      if (df==='week')  { const s=new Date(now); s.setDate(d-7); return t>=s; }
+      if (df==='month') return t.getFullYear()===y && t.getMonth()===m;
+      return true;
+    });
+  }
+
+  // table
+  const tbody = document.getElementById('repair-tbody');
+  if (!jobs.length) { tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted">ไม่มีรายการที่ตรงกัน</td></tr>'; }
+  else {
+    tbody.innerHTML = jobs.map(j => `
+      <tr>
+        <td><span style="font-weight:600;font-size:.82rem;color:var(--primary-dark);">${j.jobId}</span></td>
+        <td>${formatDate(j.createdAt)}</td>
+        <td>${j.userName || '-'}</td>
+        <td><strong>${j.plate}</strong></td>
+        <td>${Number(j.mileage).toLocaleString()} กม.</td>
+        <td>${j.location}</td>
+        <td><span class="badge-status ${statusClass(j.status)}">${j.status}</span></td>
+        <td>
+          <button class="btn-sm-icon" style="background:var(--info-light);color:var(--info);" title="รายละเอียด" onclick="openDetail('${j.jobId}')"><span class="material-icons">visibility</span></button>
+          ${currentUser.role==='admin' ? `
+          <button class="btn-sm-icon ms-1" style="background:var(--accent-light);color:var(--accent);" title="แก้ไข" onclick="openEditRepair('${j.jobId}')"><span class="material-icons">edit</span></button>
+          <button class="btn-sm-icon ms-1" style="background:var(--primary-xlight);color:var(--primary);" title="เปลี่ยนสถานะ" onclick="openStatusModal('${j.jobId}')"><span class="material-icons">update</span></button>
+          ` : (j.status==='ส่งกลับแก้ไข' && j.lineUid===currentUser.lineUid ? `<button class="btn-sm-icon ms-1" style="background:var(--warning-light);color:var(--warning);" title="แก้ไข" onclick="openEditRepair('${j.jobId}')"><span class="material-icons">edit</span></button>` : '')}
+        </td>
+      </tr>`).join('');
+  }
+
+  // mobile cards
+  const mc = document.getElementById('repair-cards-mobile');
+  if (!jobs.length) { mc.innerHTML = '<div class="empty-state"><span class="material-icons">inbox</span>ไม่มีรายการ</div>'; }
+  else mc.innerHTML = jobs.map(jobCard).join('');
+}
+
+function jobCard(j) {
+  return `<div class="repair-card" onclick="openDetail('${j.jobId}')">
+    <div class="d-flex align-items-center justify-content-between mb-1">
+      <span class="job-id">${j.jobId}</span>
+      <span class="badge-status ${statusClass(j.status)}">${j.status}</span>
+    </div>
+    <div class="plate mb-1">${j.plate}</div>
+    <div style="font-size:.82rem;color:var(--gray-500);">${j.userName || ''} • ${formatDate(j.createdAt)}</div>
+    <div style="font-size:.83rem;color:var(--gray-700);margin-top:.3rem;">${j.detail?.substring(0,60)}${j.detail?.length>60?'...':''}</div>
+  </div>`;
+}
+
+function renderUserList() {
+  const el = document.getElementById('user-list');
+  if (!users.length) { el.innerHTML = '<div class="empty-state"><span class="material-icons">people</span>ไม่มีข้อมูล</div>'; return; }
+  el.innerHTML = users.map(u => `
+    <div class="user-row">
+      <img src="${u.avatar||'https://via.placeholder.com/38'}" alt="">
+      <div class="flex-grow-1">
+        <div style="font-weight:600;font-size:.88rem;">${u.name}</div>
+        <div style="font-size:.78rem;color:var(--gray-500);">${u.lineUid} • ${u.role==='admin'?'Admin':'User'}</div>
+      </div>
+      <button class="btn-sm-icon" style="background:var(--accent-light);color:var(--accent);" onclick="openEditUser('${u.lineUid}')"><span class="material-icons">edit</span></button>
+      <button class="btn-sm-icon ms-1" style="background:var(--danger-light);color:var(--danger);" onclick="deleteUser('${u.lineUid}','${u.name}')"><span class="material-icons">delete</span></button>
+    </div>`).join('');
+}
+
+function renderVehicleList() {
+  const el = document.getElementById('vehicle-list');
+  if (!vehicles.length) { el.innerHTML = '<div class="empty-state"><span class="material-icons">directions_car</span>ไม่มีข้อมูล</div>'; return; }
+  el.innerHTML = vehicles.map(v => `
+    <div class="user-row">
+      <span class="material-icons" style="color:var(--primary);font-size:1.4rem;">directions_car</span>
+      <div class="flex-grow-1">
+        <div style="font-weight:600;font-size:.88rem;">${v.plate}</div>
+        <div style="font-size:.78rem;color:var(--gray-500);">${v.model||'-'}</div>
+      </div>
+      <button class="btn-sm-icon" style="background:var(--danger-light);color:var(--danger);" onclick="deleteVehicle('${v.plate}')"><span class="material-icons">delete</span></button>
+    </div>`).join('');
+}
+
+function populateVehicleSelect() {
+  const sel = document.getElementById('f-plate');
+  sel.innerHTML = '<option value="">-- เลือกเลขทะเบียน --</option>' +
+    vehicles.map(v => `<option value="${v.plate}">${v.plate}${v.model?' ('+v.model+')':''}</option>`).join('');
+}
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+function navigate(page) {
+  document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+  const pEl = document.getElementById('page-' + page);
+  if (pEl) pEl.classList.add('active');
+  const sEl = document.querySelector(`.sidebar-item[data-page="${page}"]`);
+  if (sEl) sEl.classList.add('active');
+  if (page === 'repair-list') renderRepairTable();
+  if (page === 'admin-users') renderUserList();
+  if (page === 'admin-vehicles') renderVehicleList();
+  // close sidebar on mobile
+  if (window.innerWidth < 768) document.getElementById('sidebar').style.display='none';
+}
+
+document.getElementById('sidebar-toggle').addEventListener('click', () => {
+  const sb = document.getElementById('sidebar');
+  sb.style.display = sb.style.display === 'none' ? 'block' : 'none';
+});
+
+/* ============================================================
+   REPAIR MODAL
+   ============================================================ */
+function openRepairModal() {
+  editingJobId = null;
+  document.getElementById('repair-modal-title').textContent = 'แจ้งซ่อมรถยนต์';
+  document.getElementById('repair-form').reset();
+  document.getElementById('repair-img-preview').innerHTML = '<span class="material-icons" style="font-size:2rem;color:var(--gray-300);">photo_camera</span><div class="placeholder-text">คลิกเพื่อเลือกรูป (ไม่บังคับ)</div>';
+  if (currentUser.role !== 'admin') document.getElementById('admin-note-section').classList.add('d-none');
+  showModal('modalRepair');
+}
+
+function openEditRepair(jobId) {
+  const job = allJobs.find(j => j.jobId === jobId);
+  if (!job) return;
+  editingJobId = jobId;
+  document.getElementById('repair-modal-title').textContent = 'แก้ไขใบแจ้งซ่อม';
+  document.getElementById('f-job-id').value = jobId;
+  document.getElementById('f-plate').value = job.plate;
+  document.getElementById('f-mileage').value = job.mileage;
+  document.getElementById('f-detail').value = job.detail;
+  document.getElementById('f-estimate').value = job.estimate || '';
+  document.getElementById('f-location').value = job.location;
+  document.getElementById('f-note').value = job.note || '';
+  if (job.imageUrl) {
+    document.getElementById('repair-img-preview').innerHTML = `<img src="${job.imageUrl}" style="max-height:160px;border-radius:8px;">`;
+  }
+  showModal('modalRepair');
+}
+
+async function submitRepair() {
+  if (submitting) return;
+  const plate    = document.getElementById('f-plate').value.trim();
+  const mileage  = document.getElementById('f-mileage').value.trim();
+  const detail   = document.getElementById('f-detail').value.trim();
+  const estimate = document.getElementById('f-estimate').value.trim();
+  const location = document.getElementById('f-location').value.trim();
+  const note     = document.getElementById('f-note').value.trim();
+
+  if (!plate || !mileage || !detail || !location) { showToast('กรุณากรอกข้อมูลที่จำเป็นให้ครบ', 'error'); return; }
+  if (isNaN(mileage) || Number(mileage) < 0) { showToast('เลขไมล์ต้องเป็นตัวเลข', 'error'); return; }
+  if (estimate && (isNaN(estimate) || Number(estimate) < 0)) { showToast('ประเมินค่าใช้จ่ายต้องเป็นตัวเลข', 'error'); return; }
+
+  submitting = true;
+  showLoading(true);
+
+  // Upload image if any
+  let imageUrl = '';
+  const imgFile = document.getElementById('f-image').files[0];
+  if (imgFile) {
+    const b64 = await toBase64(imgFile);
+    const upRes = await gasCall('uploadImage', { base64: b64, mimeType: imgFile.type, filename: imgFile.name });
+    imageUrl = upRes.url || '';
+  }
+
+  const action = editingJobId ? 'updateJob' : 'createJob';
+  const payload = {
+    lineUid: currentUser.lineUid,
+    userName: currentUser.name,
+    plate, mileage, detail, estimate, location, imageUrl, note,
+    jobId: editingJobId || ''
+  };
+
+  const res = await gasCall(action, payload);
+  showLoading(false);
+  submitting = false;
+
+  if (res.status === 'ok') {
+    showToast(editingJobId ? 'แก้ไขเรียบร้อย' : '✅ ส่งแจ้งซ่อมสำเร็จ');
+    closeModal('modalRepair');
+    loadData();
+  } else {
+    showToast('เกิดข้อผิดพลาด: ' + (res.message || ''), 'error');
+  }
+}
+
+/* ============================================================
+   DETAIL MODAL
+   ============================================================ */
+function openDetail(jobId) {
+  const j = allJobs.find(x => x.jobId === jobId);
+  if (!j) return;
+  const isAdmin = currentUser.role === 'admin';
+  const body = document.getElementById('detail-body');
+  body.innerHTML = `
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <div style="font-size:.78rem;color:var(--gray-500);">เลขที่งาน</div>
+        <div style="font-weight:700;font-size:1.05rem;color:var(--primary-dark);">${j.jobId}</div>
+      </div>
+      <span class="badge-status ${statusClass(j.status)}" style="font-size:.85rem;">${j.status}</span>
+    </div>
+    ${j.note ? `<div class="alert" style="background:var(--warning-light);border:1px solid #FFE082;border-radius:8px;padding:.65rem 1rem;font-size:.85rem;margin-bottom:1rem;">
+      <strong>📝 หมายเหตุ:</strong> ${j.note}</div>` : ''}
+    ${['ผู้แจ้ง','เลขทะเบียน','เลขไมล์','อาการที่พบ','ประเมินค่าใช้จ่าย','สถานที่ซ่อม','วันที่แจ้ง'].map((label,i) => {
+      const vals = [j.userName,j.plate,Number(j.mileage).toLocaleString()+' กม.',j.detail,(j.estimate?Number(j.estimate).toLocaleString()+' บาท':'-'),j.location,formatDate(j.createdAt)];
+      return `<div class="detail-row"><div class="detail-label">${label}</div><div class="detail-value">${vals[i]}</div></div>`;
+    }).join('')}
+    ${j.actualCost ? `<div class="detail-row"><div class="detail-label">ค่าใช้จ่ายจริง</div><div class="detail-value text-success fw-bold">${Number(j.actualCost).toLocaleString()} บาท</div></div>` : ''}
+    ${j.imageUrl ? `<div class="mt-3"><div class="form-label">รูปประกอบ</div><img src="${j.imageUrl}" class="bill-thumb" onclick="viewImage('${j.imageUrl}')"></div>` : ''}
+    ${j.billUrl  ? `<div class="mt-2"><div class="form-label">ใบเสร็จ / บิล</div><img src="${j.billUrl}" class="bill-thumb" onclick="viewImage('${j.billUrl}')"></div>` : ''}
+  `;
+  const footer = document.getElementById('detail-footer');
+  footer.innerHTML = '';
+  if (isAdmin) {
+    footer.innerHTML = `
+      <button class="btn-outline-custom btn-sm" onclick="closeModal('modalDetail');openEditRepair('${j.jobId}')"><span class="material-icons" style="font-size:.9rem;">edit</span> แก้ไข</button>
+      <button class="btn-primary-custom btn-sm" onclick="closeModal('modalDetail');openStatusModal('${j.jobId}')"><span class="material-icons" style="font-size:.9rem;">update</span> เปลี่ยนสถานะ</button>`;
+  } else if (j.status === 'ส่งกลับแก้ไข' && j.lineUid === currentUser.lineUid) {
+    footer.innerHTML = `<button class="btn-primary-custom btn-sm" onclick="closeModal('modalDetail');openEditRepair('${j.jobId}')"><span class="material-icons" style="font-size:.9rem;">edit</span> แก้ไขและส่งอีกครั้ง</button>`;
+  }
+  showModal('modalDetail');
+}
+
+/* ============================================================
+   STATUS MODAL
+   ============================================================ */
+function openStatusModal(jobId) {
+  const j = allJobs.find(x => x.jobId === jobId);
+  if (!j) return;
+  document.getElementById('status-job-id').value = jobId;
+  document.getElementById('new-status').value = j.status;
+  document.getElementById('status-note').value = j.note || '';
+  document.getElementById('actual-cost').value = '';
+  document.getElementById('bill-preview').innerHTML = '<span class="material-icons" style="font-size:2rem;color:var(--gray-300);">receipt</span><div class="placeholder-text">คลิกเพื่อแนบบิล</div>';
+  toggleCompleteSection();
+  showModal('modalStatus');
+}
+
+document.getElementById('new-status').addEventListener('change', toggleCompleteSection);
+function toggleCompleteSection() {
+  document.getElementById('complete-section').style.display = document.getElementById('new-status').value === 'เสร็จสิ้น' ? 'block' : 'none';
+}
+
+async function submitStatusChange() {
+  const jobId   = document.getElementById('status-job-id').value;
+  const status  = document.getElementById('new-status').value;
+  const note    = document.getElementById('status-note').value.trim();
+  const cost    = document.getElementById('actual-cost').value.trim();
+  const billFile = document.getElementById('bill-image').files[0];
+
+  if (status === 'เสร็จสิ้น') {
+    if (!cost || isNaN(cost)) { showToast('กรุณากรอกค่าใช้จ่ายจริง', 'error'); return; }
+    if (!billFile) { showToast('กรุณาแนบบิล/ใบเสร็จ', 'error'); return; }
+  }
+
+  showLoading(true);
+  let billUrl = '';
+  if (billFile) {
+    const b64 = await toBase64(billFile);
+    const upRes = await gasCall('uploadImage', { base64: b64, mimeType: billFile.type, filename: billFile.name });
+    billUrl = upRes.url || '';
+  }
+
+  const res = await gasCall('updateStatus', { jobId, status, note, actualCost: cost, billUrl, adminUid: currentUser.lineUid });
+  showLoading(false);
+  if (res.status === 'ok') {
+    showToast('อัปเดตสถานะสำเร็จ');
+    closeModal('modalStatus');
+    loadData();
+  } else {
+    showToast('เกิดข้อผิดพลาด: ' + (res.message || ''), 'error');
+  }
+}
+
+/* ============================================================
+   USER MANAGEMENT
+   ============================================================ */
+function openAddUserModal() {
+  document.getElementById('u-row-id').value='';
+  document.getElementById('u-line-id').value='';
+  document.getElementById('u-name').value='';
+  document.getElementById('u-dept').value='';
+  document.getElementById('u-role').value='user';
+  document.getElementById('u-line-id').disabled=false;
+  showModal('modalAddUser');
+}
+function openEditUser(lineUid) {
+  const u = users.find(x => x.lineUid===lineUid);
+  if (!u) return;
+  document.getElementById('u-row-id').value = lineUid;
+  document.getElementById('u-line-id').value = u.lineUid;
+  document.getElementById('u-name').value = u.name;
+  document.getElementById('u-dept').value = u.dept||'';
+  document.getElementById('u-role').value = u.role||'user';
+  document.getElementById('u-line-id').disabled = true;
+  showModal('modalAddUser');
+}
+async function saveUser() {
+  const lineUid = document.getElementById('u-line-id').value.trim();
+  const name    = document.getElementById('u-name').value.trim();
+  const dept    = document.getElementById('u-dept').value.trim();
+  const role    = document.getElementById('u-role').value;
+  if (!lineUid || !name) { showToast('กรุณากรอก LINE UID และชื่อ', 'error'); return; }
+  showLoading(true);
+  const isEdit = !!document.getElementById('u-row-id').value;
+  const res = await gasCall(isEdit ? 'updateUser' : 'addUser', { lineUid, name, dept, role });
+  showLoading(false);
+  if (res.status==='ok') { showToast('บันทึกสำเร็จ'); closeModal('modalAddUser'); loadData(); }
+  else showToast('ผิดพลาด: '+(res.message||''), 'error');
+}
+async function deleteUser(lineUid, name) {
+  if (!confirm(`ลบผู้ใช้ "${name}" ออกจากระบบ?`)) return;
+  showLoading(true);
+  const res = await gasCall('deleteUser', { lineUid });
+  showLoading(false);
+  if (res.status==='ok') { showToast('ลบสำเร็จ'); loadData(); }
+  else showToast('ผิดพลาด', 'error');
+}
+
+/* ============================================================
+   VEHICLE MANAGEMENT
+   ============================================================ */
+function openAddVehicleModal() {
+  document.getElementById('v-plate').value='';
+  document.getElementById('v-model').value='';
+  showModal('modalAddVehicle');
+}
+async function saveVehicle() {
+  const plate = document.getElementById('v-plate').value.trim();
+  const model = document.getElementById('v-model').value.trim();
+  if (!plate) { showToast('กรุณากรอกเลขทะเบียน', 'error'); return; }
+  showLoading(true);
+  const res = await gasCall('addVehicle', { plate, model });
+  showLoading(false);
+  if (res.status==='ok') { showToast('เพิ่มทะเบียนสำเร็จ'); closeModal('modalAddVehicle'); loadData(); }
+  else showToast('ผิดพลาด: '+(res.message||''), 'error');
+}
+async function deleteVehicle(plate) {
+  if (!confirm(`ลบทะเบียน "${plate}"?`)) return;
+  showLoading(true);
+  const res = await gasCall('deleteVehicle', { plate });
+  showLoading(false);
+  if (res.status==='ok') { showToast('ลบสำเร็จ'); loadData(); }
+  else showToast('ผิดพลาด', 'error');
+}
+
+/* ============================================================
+   GAS CALL
+   ============================================================ */
+async function gasCall(action, params) {
+  try {
+    const res = await fetch(CONFIG.GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, ...params })
+    });
+    return await res.json();
+  } catch (e) {
+    console.error('GAS error:', e);
+    return { status: 'error', message: e.message };
+  }
+}
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function showModal(id) { new bootstrap.Modal(document.getElementById(id)).show(); }
+function closeModal(id) { bootstrap.Modal.getInstance(document.getElementById(id))?.hide(); }
+function showLoading(v) { document.getElementById('loading-overlay').classList.toggle('show', v); }
+
+function showToast(msg, type='success') {
+  const c = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = `toast-msg${type==='error'?' error':type==='warning'?' warning':''}`;
+  el.innerHTML = `<span class="material-icons" style="font-size:1.1rem;color:${type==='error'?'var(--danger)':type==='warning'?'var(--warning)':'var(--primary)'};">${type==='error'?'error':type==='warning'?'warning':'check_circle'}</span>${msg}`;
+  c.appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+function statusClass(s) {
+  return { 'รอดำเนินการ':'status-waiting','อนุมัติ':'status-approved','ไม่อนุมัติ':'status-rejected','ส่งกลับแก้ไข':'status-revise','กำลังซ่อม':'status-repairing','เสร็จสิ้น':'status-done' }[s] || '';
+}
+
+function formatDate(d) {
+  if (!d) return '-';
+  const t = new Date(d);
+  return isNaN(t) ? d : t.toLocaleString('th-TH', { day:'2-digit', month:'short', year:'2-digit', hour:'2-digit', minute:'2-digit' });
+}
+
+function animateNum(id, val) {
+  const el = document.getElementById(id);
+  let start = parseInt(el.textContent)||0; const end=val; const dur=500;
+  const step = (ts) => {
+    if (!start.startTime) start.startTime=ts;
+    const prog = Math.min((ts-start.startTime)/dur,1);
+    el.textContent = Math.floor(prog*(end-parseInt(el.textContent||0))+parseInt(el.textContent||0));
+    if (prog<1) requestAnimationFrame(step); else el.textContent=end;
+  };
+  el.textContent=start; requestAnimationFrame(ts=>{ start.startTime=ts; el.textContent=Math.round((ts-start.startTime)/dur*(end-start)+start); requestAnimationFrame(step); });
+  el.textContent = val; // fallback
+}
+
+function previewImage(input, previewId) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById(previewId).innerHTML = `<img src="${e.target.result}" style="max-height:160px;border-radius:8px;">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+function viewImage(url) {
+  document.getElementById('modal-img-src').src = url;
+  showModal('modalImage');
+}
+
+function toBase64(file) {
+  return new Promise((res,rej) => {
+    const r = new FileReader();
+    r.onload = ()=>res(r.result.split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
+function logout() {
+  if (confirm('ออกจากระบบ?')) {
+    currentUser = null;
+    try { liff.logout(); } catch(e){}
+    document.getElementById('main-app').style.display='none';
+    document.getElementById('login-screen').style.display='flex';
+  }
+}
+
+// Filter pills
+document.querySelectorAll('.filter-pill').forEach(p => {
+  p.addEventListener('click', () => {
+    document.querySelectorAll('.filter-pill').forEach(x=>x.classList.remove('active'));
+    p.classList.add('active');
+    filterStatus = p.dataset.status;
+    renderRepairTable();
+  });
+});
+
+// Search & date filter live
+document.getElementById('search-input').addEventListener('input', renderRepairTable);
+document.getElementById('filter-date').addEventListener('change', renderRepairTable);
 </script>
 </body>
 </html>
-
-
-
