@@ -1271,7 +1271,7 @@ function renderRepairTable() {
           <button class="btn-sm-icon" style="background:var(--info-light);color:var(--info);" title="รายละเอียด" onclick="openDetail('${j.jobId}')"><span class="material-icons">visibility</span></button>
           ${currentUser.role==='admin' ? `
           <button class="btn-sm-icon ms-1" style="background:var(--accent-light);color:var(--accent);" title="แก้ไข" onclick="openEditRepair('${j.jobId}')"><span class="material-icons">edit</span></button>
-          <button class="btn-sm-icon ms-1" style="background:var(--primary-xlight);color:var(--primary);" title="เปลี่ยนสถานะ" onclick="openStatusModal('${j.jobId}')"><span class="material-icons">update</span></button>
+          ${j.status !== 'เสร็จสิ้น' ? `<button class="btn-sm-icon ms-1" style="background:var(--primary-xlight);color:var(--primary);" title="เปลี่ยนสถานะ" onclick="openStatusModal('${j.jobId}')"><span class="material-icons">update</span></button>` : ''}
           <button class="btn-sm-icon ms-1" style="background:var(--danger-light);color:var(--danger);" title="ลบรายการ" onclick="confirmDeleteJob('${j.jobId}','${j.plate}')"><span class="material-icons">delete</span></button>
           ` : (j.status==='ส่งกลับแก้ไข' && j.lineUid===currentUser.lineUid ? `<button class="btn-sm-icon ms-1" style="background:var(--warning-light);color:var(--warning);" title="แก้ไข" onclick="openEditRepair('${j.jobId}')"><span class="material-icons">edit</span></button>` : '')}
         </td>
@@ -1331,7 +1331,7 @@ function jobCard(j) {
     <div class="d-flex gap-1 mt-2 justify-content-end" onclick="event.stopPropagation()">
       <button class="btn-sm-icon" style="background:var(--info-light);color:var(--info);" onclick="openDetail('${j.jobId}')" title="รายละเอียด"><span class="material-icons">visibility</span></button>
       <button class="btn-sm-icon" style="background:var(--accent-light);color:var(--accent);" onclick="openEditRepair('${j.jobId}')" title="แก้ไข"><span class="material-icons">edit</span></button>
-      <button class="btn-sm-icon" style="background:var(--primary-xlight);color:var(--primary);" onclick="openStatusModal('${j.jobId}')" title="เปลี่ยนสถานะ"><span class="material-icons">update</span></button>
+      ${j.status !== 'เสร็จสิ้น' ? `<button class="btn-sm-icon" style="background:var(--primary-xlight);color:var(--primary);" onclick="openStatusModal('${j.jobId}')" title="เปลี่ยนสถานะ"><span class="material-icons">update</span></button>` : ''}
       <button class="btn-sm-icon" style="background:var(--danger-light);color:var(--danger);" onclick="confirmDeleteJob('${j.jobId}','${j.plate}')" title="ลบ"><span class="material-icons">delete</span></button>
     </div>` : (j.status === 'ส่งกลับแก้ไข' && j.lineUid === currentUser?.lineUid ? `
     <div class="d-flex gap-1 mt-2 justify-content-end" onclick="event.stopPropagation()">
@@ -1544,7 +1544,7 @@ function openDetail(jobId) {
   if (isAdmin) {
     footer.innerHTML = pdfBtn + `
       <button class="btn-outline-custom btn-sm" onclick="closeModal('modalDetail');openEditRepair('${j.jobId}')"><span class="material-icons" style="font-size:.9rem;">edit</span> แก้ไข</button>
-      <button class="btn-primary-custom btn-sm" onclick="closeModal('modalDetail');openStatusModal('${j.jobId}')"><span class="material-icons" style="font-size:.9rem;">update</span> เปลี่ยนสถานะ</button>`;
+      ${j.status !== 'เสร็จสิ้น' ? `<button class="btn-primary-custom btn-sm" onclick="closeModal('modalDetail');openStatusModal('${j.jobId}')"><span class="material-icons" style="font-size:.9rem;">update</span> เปลี่ยนสถานะ</button>` : ''}`;
   } else if (j.status === 'ส่งกลับแก้ไข' && j.lineUid === currentUser.lineUid) {
     footer.innerHTML = pdfBtn + `<button class="btn-primary-custom btn-sm" onclick="closeModal('modalDetail');openEditRepair('${j.jobId}')"><span class="material-icons" style="font-size:.9rem;">edit</span> แก้ไขและส่งอีกครั้ง</button>`;
   } else {
@@ -1559,6 +1559,11 @@ function openDetail(jobId) {
 function openStatusModal(jobId) {
   const j = allJobs.find(x => x.jobId === jobId);
   if (!j) return;
+  // ถ้าเสร็จสิ้นแล้ว ล็อคไม่ให้แก้ไข
+  if (j.status === 'เสร็จสิ้น') {
+    showToast('งานนี้เสร็จสิ้นแล้ว ไม่สามารถเปลี่ยนสถานะได้', 'error');
+    return;
+  }
   document.getElementById('status-job-id').value = jobId;
   document.getElementById('new-status').value = j.status;
   document.getElementById('status-note').value = j.note || '';
@@ -2295,11 +2300,11 @@ async function printJobPDF(jobId) {
         </div>
         <div class="sign-box">
           <div class="sign-line"></div>
-          <div class="sign-lbl">ผู้อนุมัติ / หัวหน้า</div>
+          <div class="sign-lbl">ผู้อนุมัติ / หัวหน้างาน</div>
         </div>
         <div class="sign-box">
           <div class="sign-line"></div>
-          <div class="sign-lbl">ผู้อนุมัติ / เจ้านาย</div>
+          <div class="sign-lbl">ช่างผู้รับผิดชอบ</div>
         </div>
       </div>
     </div>
