@@ -779,7 +779,7 @@
           <img src="https://via.placeholder.com/44" id="form-avatar" alt="">
           <div>
             <div class="name" id="form-username">-</div>
-            <div class="line-id" id="form-dept">-</div>
+            <div class="line-id" id="form-lineuid">-</div>
           </div>
         </div>
 
@@ -1104,7 +1104,7 @@ function bootApp() {
   document.getElementById('dash-name').textContent = currentUser.name;
   document.getElementById('dash-dept').textContent = currentUser.dept || '-';
   document.getElementById('form-username').textContent = currentUser.name;
-  document.getElementById('form-lineuid').textContent = currentUser.dept || '-';
+  document.getElementById('form-lineuid').textContent = currentUser.lineUid;
   
 
   // Admin menu
