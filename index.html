@@ -390,9 +390,12 @@
   .bill-thumb { width:80px; height:80px; border-radius:8px; object-fit:cover; border:1px solid var(--gray-200); cursor:pointer; }
 
   /* User management */
-  .user-row { display:flex; align-items:center; gap:.75rem; padding:.65rem .5rem; border-bottom:1px solid var(--gray-100); }
+  .user-row { display:flex; align-items:center; gap:.75rem; padding:.65rem .5rem; border-bottom:1px solid var(--gray-100); min-width:0; overflow:hidden; }
   .user-row:last-child { border:none; }
-  .user-row img { width:38px; height:38px; border-radius:50%; object-fit:cover; border:2px solid var(--gray-200); }
+  .user-row img { width:38px; height:38px; border-radius:50%; object-fit:cover; border:2px solid var(--gray-200); flex-shrink:0; }
+  .user-row .flex-grow-1 { min-width:0; overflow:hidden; }
+  .user-row .flex-grow-1 div { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .user-row .btn-sm-icon { flex-shrink:0; }
 
   /* Animated number */
   .animate-num { transition:all .5s ease; }
@@ -1362,7 +1365,7 @@ function renderUserList() {
       <img src="${u.avatar||AVATAR_DEFAULT}" alt="">
       <div class="flex-grow-1">
         <div style="font-weight:600;font-size:.88rem;">${u.name}</div>
-        <div style="font-size:.78rem;color:var(--gray-500);">${u.lineUid} • ${u.role==='admin'?'Admin':'User'}</div>
+        <div style="font-size:.78rem;color:var(--gray-500);">${u.dept||'-'} • ${u.role==='admin'?'👑 Admin':'👤 User'}</div>
       </div>
       <button class="btn-sm-icon" style="background:var(--accent-light);color:var(--accent);" onclick="openEditUser('${u.lineUid}')"><span class="material-icons">edit</span></button>
       <button class="btn-sm-icon ms-1" style="background:var(--danger-light);color:var(--danger);" onclick="deleteUser('${u.lineUid}','${u.name}')"><span class="material-icons">delete</span></button>
@@ -2292,11 +2295,11 @@ async function printJobPDF(jobId) {
         </div>
         <div class="sign-box">
           <div class="sign-line"></div>
-          <div class="sign-lbl">ผู้อนุมัติ / หัวหน้า</div>
+          <div class="sign-lbl">ผู้อนุมัติ / หัวหน้างาน</div>
         </div>
         <div class="sign-box">
           <div class="sign-line"></div>
-          <div class="sign-lbl">>ผู้อนุมัติ / เจ้านาย</div>
+          <div class="sign-lbl">ช่างผู้รับผิดชอบ</div>
         </div>
       </div>
     </div>
