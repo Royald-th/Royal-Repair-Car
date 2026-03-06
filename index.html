@@ -186,6 +186,18 @@
   }
   .btn-repair-header:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(27,94,32,.4); color:#fff; }
   .btn-repair-header:active { transform: scale(.97); }
+  /* ปุ่มแจ้งซ่อมบน Dashboard */
+  .btn-repair-dashboard {
+    width: 100%; justify-content: center;
+    font-size: 1rem; height: 52px;
+    border-radius: 14px; margin-bottom: 1rem;
+    letter-spacing: .5px;
+  }
+  @media (min-width: 768px) {
+    .btn-repair-dashboard { width: auto; height: auto; border-radius: 24px; font-size:.92rem; margin-bottom: 0; }
+    .page-title { position: relative; }
+    .btn-repair-dashboard { position: absolute; right: 0; top: 0; }
+  }
   .btn-outline-custom:hover { background:var(--primary-xlight); }
   .btn-sm-icon { width:32px; height:32px; border-radius:6px; border:none; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; transition:var(--transition); }
   .btn-sm-icon .material-icons { font-size:1rem; }
@@ -347,7 +359,7 @@
   /* ======= PAGE SECTIONS ======= */
   .page-section { display:none; }
   .page-section.active { display:block; }
-  .page-title { font-family:'Prompt',sans-serif; font-size:1.1rem; font-weight:700; color:var(--gray-800); display:flex; align-items:center; gap:.5rem; margin-bottom:1rem; flex-wrap:wrap; }
+  .page-title { font-family:'Prompt',sans-serif; font-size:1.1rem; font-weight:700; color:var(--gray-800); display:flex; align-items:center; gap:.5rem; margin-bottom:1rem; flex-wrap:wrap; position:relative; }
   .page-title .material-icons { color:var(--primary); font-size:1.3rem; flex-shrink:0; }
   @media (max-width:576px) {
     .page-title { font-size:1rem; }
@@ -429,9 +441,9 @@
       <button class="btn-sm-icon" style="background:rgba(255,255,255,.15);color:#fff;" id="sidebar-toggle">
         <span class="material-icons">menu</span>
       </button>
-      <img id="nav-logo" src="royal-d.png"
+      <img id="nav-logo" src="logo.png"
            onerror="this.style.display='none';document.getElementById('nav-logo-fallback').style.display='inline';"
-           style="height:80px;width:80px;object-fit:contain;border-radius:8px;padding:0;">
+           style="height:48px;width:48px;object-fit:contain;border-radius:8px;padding:0;">
       <span class="material-icons" id="nav-logo-fallback" style="color:#fff;font-size:1.4rem;display:none;">directions_car</span>
       <span class="brand-text">ระบบแจ้งซ่อมรถยนต์</span>
     </div>
@@ -480,11 +492,12 @@
       <div class="page-section active" id="page-dashboard">
         <div class="page-title">
           <span class="material-icons">dashboard</span> แดชบอร์ด
-          <button class="btn-repair-header ms-auto" onclick="openRepairModal()">
-            <span class="material-icons" style="font-size:1.2rem;">add_circle</span>
-            <span>แจ้งซ่อมรถ</span>
-          </button>
         </div>
+        <!-- ปุ่มแจ้งซ่อม — full width บนมือถือ, auto บน desktop -->
+        <button class="btn-repair-header btn-repair-dashboard" onclick="openRepairModal()">
+          <span class="material-icons" style="font-size:1.3rem;">add_circle</span>
+          <span>แจ้งซ่อมรถ</span>
+        </button>
 
         <!-- Profile card -->
         <div class="profile-card-sm mb-3">
@@ -1000,8 +1013,8 @@
    CONFIG — แก้ค่าเหล่านี้ให้ตรงกับของคุณ
    ============================================================ */
 const CONFIG = {
-  LIFF_ID: '2009307051-5UV6LT8a',                          // LIFF ID จาก LINE Developers
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbxXMkVqqmTvvCeYTq58wYb7Vl8QrVKoUXgiqEqv3FgvoTfrH6tA3UCxLznWpFBO5U_7Aw/exec',   // URL จาก Deploy > Web App ใน GAS
+  LIFF_ID: 'YOUR_LIFF_ID',                          // LIFF ID จาก LINE Developers
+  GAS_URL: 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL',   // URL จาก Deploy > Web App ใน GAS
 };
 
 /* ============================================================
@@ -2274,11 +2287,11 @@ async function printJobPDF(jobId) {
         </div>
         <div class="sign-box">
           <div class="sign-line"></div>
-          <div class="sign-lbl">ผู้อนุมัติ / หัวหน้า</div>
+          <div class="sign-lbl">ผู้อนุมัติ / หัวหน้างาน</div>
         </div>
         <div class="sign-box">
           <div class="sign-line"></div>
-          <div class="sign-lbl">ผู้อนุมัติ / เจ้านาย</div>
+          <div class="sign-lbl">ช่างผู้รับผิดชอบ</div>
         </div>
       </div>
     </div>
