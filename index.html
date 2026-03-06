@@ -194,9 +194,7 @@
     letter-spacing: .5px;
   }
   @media (min-width: 768px) {
-    .btn-repair-dashboard { width: auto; height: auto; border-radius: 24px; font-size:.92rem; margin-bottom: 0; }
-    .page-title { position: relative; }
-    .btn-repair-dashboard { position: absolute; right: 0; top: 0; }
+    .btn-repair-dashboard { width: auto; height: auto; border-radius: 24px; font-size:.92rem; margin-bottom: 0; margin-left: auto; }
   }
   .btn-outline-custom:hover { background:var(--primary-xlight); }
   .btn-sm-icon { width:32px; height:32px; border-radius:6px; border:none; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; transition:var(--transition); }
@@ -492,12 +490,11 @@
       <div class="page-section active" id="page-dashboard">
         <div class="page-title">
           <span class="material-icons">dashboard</span> แดชบอร์ด
+          <button class="btn-repair-header btn-repair-dashboard" onclick="openRepairModal()">
+            <span class="material-icons" style="font-size:1.3rem;">add_circle</span>
+            <span>แจ้งซ่อมรถยนต์</span>
+          </button>
         </div>
-        <!-- ปุ่มแจ้งซ่อม — full width บนมือถือ, auto บน desktop -->
-        <button class="btn-repair-header btn-repair-dashboard" onclick="openRepairModal()">
-          <span class="material-icons" style="font-size:1.3rem;">add_circle</span>
-          <span>แจ้งซ่อมรถยนต์</span>
-        </button>
 
         <!-- Profile card -->
         <div class="profile-card-sm mb-3">
@@ -2278,11 +2275,11 @@ async function printJobPDF(jobId) {
         </div>
         <div class="sign-box">
           <div class="sign-line"></div>
-          <div class="sign-lbl">ผู้อนุมัติ / หัวหน้า</div>
+          <div class="sign-lbl">ผู้อนุมัติ / หัวหน้างาน</div>
         </div>
         <div class="sign-box">
           <div class="sign-line"></div>
-          <div class="sign-lbl">ผู้อนุมัติ / เจ้านาย</div>
+          <div class="sign-lbl">ช่างผู้รับผิดชอบ</div>
         </div>
       </div>
     </div>
