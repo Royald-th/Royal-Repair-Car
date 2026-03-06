@@ -123,6 +123,15 @@
   #stat-cards > div::-webkit-scrollbar { display:none; }
 
   /* Report page */
+  .report-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  @media (max-width: 640px) {
+    .report-grid-2 { grid-template-columns: 1fr; }
+    .report-grid   { grid-template-columns: 1fr !important; }
+  }
   .report-summary-card {
     background:#fff; border-radius:var(--radius); padding:1rem 1.25rem;
     border:1px solid var(--gray-200); box-shadow:var(--shadow-sm);
@@ -414,9 +423,9 @@
       <button class="btn-sm-icon" style="background:rgba(255,255,255,.15);color:#fff;" id="sidebar-toggle">
         <span class="material-icons">menu</span>
       </button>
-      <img id="nav-logo" src="royal-d.png"
+      <img id="nav-logo" src="logo.png"
            onerror="this.style.display='none';document.getElementById('nav-logo-fallback').style.display='inline';"
-           style="height:80px;width:80px;object-fit:contain;border-radius:8px;padding:0;">
+           style="height:48px;width:48px;object-fit:contain;border-radius:8px;padding:0;">
       <span class="material-icons" id="nav-logo-fallback" style="color:#fff;font-size:1.4rem;display:none;">directions_car</span>
       <span class="brand-text">ระบบแจ้งซ่อมรถยนต์</span>
     </div>
@@ -606,35 +615,43 @@
 
       <!-- ===== ADMIN MONTHLY REPORT PAGE ===== -->
       <div class="page-section" id="page-admin-report">
-        <div class="page-title">
-          <span class="material-icons">bar_chart</span> รายงานสรุปรายเดือน
-          <div class="ms-auto d-flex gap-2 align-items-center">
-            <select id="report-year"  class="form-select form-select-sm" style="width:100px;font-size:.85rem;"></select>
-            <select id="report-month" class="form-select form-select-sm" style="width:130px;font-size:.85rem;"></select>
-            <button class="btn-repair-header" onclick="generateReport()" style="padding:.45rem 1rem;">
-              <span class="material-icons" style="font-size:1rem;">refresh</span> สร้างรายงาน
-            </button>
-            <button class="btn-outline-custom btn-sm" onclick="exportMonthlyCSV()">
-              <span class="material-icons" style="font-size:.9rem;">download</span> CSV
-            </button>
-            <button class="btn-outline-custom btn-sm" onclick="printMonthlyReport()">
-              <span class="material-icons" style="font-size:.9rem;">picture_as_pdf</span> PDF
-            </button>
-          </div>
+        <!-- Title -->
+        <div class="page-title" style="flex-wrap:wrap;gap:.5rem;">
+          <span class="material-icons">bar_chart</span>
+          <span>รายงานสรุปรายเดือน</span>
+        </div>
+        <!-- Controls — แถวแยก wrap ได้ทุก size -->
+        <div style="display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-bottom:1rem;">
+          <select id="report-year"  class="form-select form-select-sm" style="width:100px;font-size:.85rem;flex-shrink:0;"></select>
+          <select id="report-month" class="form-select form-select-sm" style="width:130px;font-size:.85rem;flex-shrink:0;"></select>
+          <button class="btn-repair-header" onclick="generateReport()" style="padding:.45rem 1rem;flex-shrink:0;">
+            <span class="material-icons" style="font-size:1rem;">refresh</span>
+            <span class="d-none d-sm-inline">สร้างรายงาน</span>
+          </button>
+          <button class="btn-outline-custom btn-sm" onclick="exportMonthlyCSV()" style="flex-shrink:0;">
+            <span class="material-icons" style="font-size:.9rem;">download</span>
+            <span class="d-none d-sm-inline">CSV</span>
+          </button>
+          <button class="btn-outline-custom btn-sm" onclick="printMonthlyReport()" style="flex-shrink:0;">
+            <span class="material-icons" style="font-size:.9rem;">picture_as_pdf</span>
+            <span class="d-none d-sm-inline">PDF</span>
+          </button>
         </div>
 
         <!-- Summary Cards -->
-        <div id="report-summary-row" style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem;"></div>
+        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:1rem;padding-bottom:.25rem;">
+          <div id="report-summary-row" style="display:flex;gap:.75rem;flex-wrap:nowrap;min-width:max-content;"></div>
+        </div>
 
-        <!-- Charts row -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;" class="report-grid">
+        <!-- Charts row — 2 col desktop, 1 col mobile -->
+        <div class="report-grid-2 mb-3">
 
           <!-- Status Pie -->
           <div class="data-table-wrapper" style="padding:1rem;">
             <div style="font-weight:700;font-size:.9rem;margin-bottom:.75rem;display:flex;align-items:center;gap:.4rem;">
               <span class="material-icons" style="font-size:1rem;color:var(--primary);">donut_large</span> สัดส่วนสถานะ
             </div>
-            <canvas id="chart-status" height="200"></canvas>
+            <canvas id="chart-status"></canvas>
           </div>
 
           <!-- Daily Bar -->
@@ -642,12 +659,12 @@
             <div style="font-weight:700;font-size:.9rem;margin-bottom:.75rem;display:flex;align-items:center;gap:.4rem;">
               <span class="material-icons" style="font-size:1rem;color:var(--primary);">bar_chart</span> แจ้งซ่อมรายวัน
             </div>
-            <canvas id="chart-daily" height="200"></canvas>
+            <canvas id="chart-daily"></canvas>
           </div>
         </div>
 
         <!-- Top users + Cost summary -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;" class="report-grid">
+        <div class="report-grid-2 mb-3">
 
           <!-- Top Users -->
           <div class="data-table-wrapper" style="padding:1rem;">
@@ -970,6 +987,8 @@
 ====================================================== -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
 <script>
@@ -977,8 +996,8 @@
    CONFIG — แก้ค่าเหล่านี้ให้ตรงกับของคุณ
    ============================================================ */
 const CONFIG = {
-  LIFF_ID: '2009307051-5UV6LT8a', // LIFF ID จาก LINE Developers
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbxXMkVqqmTvvCeYTq58wYb7Vl8QrVKoUXgiqEqv3FgvoTfrH6tA3UCxLznWpFBO5U_7Aw/exec',   // URL จาก Deploy > Web App ใน GAS
+  LIFF_ID: 'YOUR_LIFF_ID',                          // LIFF ID จาก LINE Developers
+  GAS_URL: 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL',   // URL จาก Deploy > Web App ใน GAS
 };
 
 /* ============================================================
@@ -1050,7 +1069,17 @@ async function initLiff() {
   }
 }
 
-
+/* DEV MODE — ลบออกเมื่อใช้งานจริง */
+function devLogin(role = 'admin') {
+  currentUser = {
+    lineUid: role === 'admin' ? 'U_ADMIN_001' : 'U_USER_001',
+    name: role === 'admin' ? 'ผู้ดูแลระบบ' : 'นายสมชาย ใจดี',
+    avatar: 'https://via.placeholder.com/44',
+    role: role,
+    dept: role === 'admin' ? 'ฝ่ายบริหาร' : 'ฝ่ายปฏิบัติการ'
+  };
+  bootApp();
+}
 
 /* ============================================================
    BOOT APP
@@ -1851,7 +1880,60 @@ async function exportCSV() {
 /* ============================================================
    PRINT / EXPORT PDF — ใบรายงานแจ้งซ่อมรถยนต์ (1 หน้า A4)
    ============================================================ */
-function printJobPDF(jobId) {
+/* ============================================================
+   PDF HELPER — สร้าง PDF จาก HTML แล้ว download (ใช้ได้บนมือถือ)
+   ============================================================ */
+async function savePDF(htmlContent, filename) {
+  // สร้าง hidden iframe render HTML
+  const iframe = document.createElement('iframe');
+  iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:794px;height:1123px;border:none;';
+  document.body.appendChild(iframe);
+
+  const iDoc = iframe.contentDocument || iframe.contentWindow.document;
+  iDoc.open(); iDoc.write(htmlContent); iDoc.close();
+
+  // รอ font/image โหลด
+  await new Promise(r => setTimeout(r, 1200));
+
+  try {
+    const canvas = await html2canvas(iDoc.body, {
+      scale: 1.8,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff',
+      width: 794,
+      windowWidth: 794,
+    });
+
+    const imgData = canvas.toDataURL('image/jpeg', 0.92);
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    const pW = pdf.internal.pageSize.getWidth();
+    const pH = pdf.internal.pageSize.getHeight();
+    // คำนวณ height ตามสัดส่วน
+    const imgH = (canvas.height / canvas.width) * pW;
+    if (imgH <= pH) {
+      pdf.addImage(imgData, 'JPEG', 0, 0, pW, imgH);
+    } else {
+      // กรณียาวเกิน 1 หน้า — แบ่งหน้า
+      let yOffset = 0;
+      while (yOffset < imgH) {
+        if (yOffset > 0) pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 0, -yOffset, pW, imgH);
+        yOffset += pH;
+      }
+    }
+    pdf.save(filename);
+    showToast('บันทึก PDF สำเร็จ ✅');
+  } catch(e) {
+    console.error('PDF error:', e);
+    showToast('ไม่สามารถสร้าง PDF ได้: ' + e.message, 'error');
+  } finally {
+    document.body.removeChild(iframe);
+  }
+}
+
+async function printJobPDF(jobId) {
   const j = allJobs.find(x => x.jobId === jobId);
   if (!j) return;
 
@@ -2154,11 +2236,11 @@ function printJobPDF(jobId) {
         </div>
         <div class="sign-box">
           <div class="sign-line"></div>
-          <div class="sign-lbl">ผู้อนุมัติ / หัวหน้า</div>
+          <div class="sign-lbl">ผู้อนุมัติ / หัวหน้างาน</div>
         </div>
         <div class="sign-box">
           <div class="sign-line"></div>
-          <div class="sign-lbl">ผู้อนุมัติ / เจ้านาย</div>
+          <div class="sign-lbl">ช่างผู้รับผิดชอบ</div>
         </div>
       </div>
     </div>
@@ -2176,10 +2258,17 @@ function printJobPDF(jobId) {
 </body>
 </html>`;
 
-  const win = window.open('', '_blank');
-  if (!win) { showToast('กรุณาอนุญาต Popup เพื่อพิมพ์ PDF', 'error'); return; }
-  win.document.write(html);
-  win.document.close();
+  // ตรวจว่า desktop หรือมือถือ
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if (isMobile) {
+    showToast('กำลังสร้าง PDF...');
+    await savePDF(html, `แจ้งซ่อม_${j.jobId}.pdf`);
+  } else {
+    const win = window.open('', '_blank');
+    if (!win) { showToast('กรุณาอนุญาต Popup', 'error'); return; }
+    win.document.write(html);
+    win.document.close();
+  }
 }
 
 // หยุด refresh เมื่อ tab ซ่อน เพื่อประหยัด quota GAS
@@ -2440,7 +2529,7 @@ function exportMonthlyCSV() {
   showToast(`Export CSV ${jobs.length} รายการ ✅`);
 }
 
-function printMonthlyReport() {
+async function printMonthlyReport() {
   const year   = parseInt(document.getElementById('report-year').value);
   const month  = parseInt(document.getElementById('report-month').value);
   const monthName = ['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
@@ -2525,10 +2614,18 @@ td{padding:3.5px 6px;font-size:9.5px;border-bottom:1px solid #f0f0f0;}
 <div class="ft"><span>รายงานประจำเดือน ${monthName} ${year+543} | ระบบแจ้งซ่อมรถยนต์</span><span>พิมพ์: ${printDate}</span></div>
 </div><script>window.onload=function(){window.print();}<\/script></body></html>`;
 
-  const win = window.open('','_blank');
-  if (!win) { showToast('กรุณาอนุญาต Popup', 'error'); return; }
-  win.document.write(html);
-  win.document.close();
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const monthName2 = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.',
+                      'ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][month];
+  if (isMobile) {
+    showToast('กำลังสร้าง PDF...');
+    await savePDF(html, `รายงาน_${monthName2}_${year+543}.pdf`);
+  } else {
+    const win = window.open('','_blank');
+    if (!win) { showToast('กรุณาอนุญาต Popup', 'error'); return; }
+    win.document.write(html);
+    win.document.close();
+  }
 }
 
 function logout() {
