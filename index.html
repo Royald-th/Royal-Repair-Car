@@ -1518,31 +1518,51 @@ async function openStatusLog(jobId) {
   document.getElementById('status-log-cards').innerHTML = '<div class="p-3 text-center">กำลังโหลด...</div>';
   showModal('modalStatusLog');
   const res = await gasCall('getStatusLog', { jobId });
-  if (res.status !== 'ok') { showToast('โหลดประวัติไม่สำเร็จ', 'error'); return; }
+  if (res.status !== 'ok') {
+    showToast('โหลดประวัติไม่สำเร็จ', 'error');
+    const emptyMsg = '<tr><td colspan="5" class="text-center py-4 text-muted">โหลดไม่สำเร็จ</td></tr>';
+    document.getElementById('status-log-tbody').innerHTML = emptyMsg;
+    document.getElementById('status-log-cards').innerHTML = '<div class="p-3 text-center text-muted">โหลดไม่สำเร็จ</div>';
+    return;
+  }
   const logs = res.logs || [];
   const statusColor = s => ({'รอดำเนินการ':'#F57F17','อนุมัติ':'#2E7D32','กำลังซ่อม':'#1565C0','เสร็จสิ้น':'#1B5E20','ส่งกลับแก้ไข':'#6A1B9A','ไม่อนุมัติ':'#C62828'})[s] || '#555';
 
+  // หาชื่อ+ตำแหน่งจาก users array
+  const getChanger = uid => {
+    const u = users.find(x => x.lineUid === uid);
+    if (!u) return uid || '-';
+    return `${u.name}${u.dept ? '<br><span style="font-size:.75rem;color:var(--gray-400);">' + u.dept + '</span>' : ''}`;
+  };
+
   if (!logs.length) {
     document.getElementById('status-log-tbody').innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">ยังไม่มีประวัติ</td></tr>';
+    document.getElementById('status-log-cards').innerHTML = '<div class="p-4 text-center text-muted" style="color:var(--gray-400);"><span class="material-icons" style="font-size:2rem;display:block;margin-bottom:.5rem;">history</span>ยังไม่มีประวัติ</div>';
     return;
   }
+
   document.getElementById('status-log-tbody').innerHTML = logs.map(l => `
     <tr>
       <td style="font-size:.82rem;white-space:nowrap;">${formatDate(l.changedAt)}</td>
       <td><span style="color:${statusColor(l.oldStatus)};font-weight:600;">${l.oldStatus||'-'}</span></td>
       <td><span style="color:${statusColor(l.newStatus)};font-weight:600;">→ ${l.newStatus}</span></td>
       <td style="font-size:.82rem;">${l.note||'-'}</td>
-      <td style="font-size:.82rem;">${l.changedBy||'-'}</td>
+      <td style="font-size:.82rem;line-height:1.3;">${getChanger(l.changedBy)}</td>
     </tr>`).join('');
+
   document.getElementById('status-log-cards').innerHTML = logs.map(l => `
     <div class="repair-card mb-2">
       <div style="font-size:.78rem;color:var(--gray-500);">${formatDate(l.changedAt)}</div>
-      <div style="display:flex;gap:.5rem;align-items:center;margin:.25rem 0;">
+      <div style="display:flex;gap:.5rem;align-items:center;margin:.25rem 0;flex-wrap:wrap;">
         <span style="color:${statusColor(l.oldStatus)};font-weight:600;font-size:.85rem;">${l.oldStatus||'-'}</span>
         <span class="material-icons" style="font-size:.9rem;color:var(--gray-400);">arrow_forward</span>
         <span style="color:${statusColor(l.newStatus)};font-weight:600;font-size:.85rem;">${l.newStatus}</span>
       </div>
       ${l.note ? `<div style="font-size:.8rem;color:var(--gray-600);">📝 ${l.note}</div>` : ''}
+      <div style="font-size:.78rem;color:var(--gray-500);margin-top:.25rem;">
+        👤 ${(users.find(x=>x.lineUid===l.changedBy)?.name)||l.changedBy||'-'}
+        ${(users.find(x=>x.lineUid===l.changedBy)?.dept) ? `<span style="color:var(--gray-400);"> · ${users.find(x=>x.lineUid===l.changedBy).dept}</span>` : ''}
+      </div>
     </div>`).join('');
 }
 
@@ -2710,11 +2730,11 @@ async function printJobPDF(jobId) {
         </div>
         <div class="sign-box">
           <div class="sign-line"></div>
-          <div class="sign-lbl">ผู้อนุมัติ / หัวหน้า</div>
+          <div class="sign-lbl">ผู้อนุมัติ / หัวหน้างาน</div>
         </div>
         <div class="sign-box">
           <div class="sign-line"></div>
-          <div class="sign-lbl">ผู้อนุมัติ / เจ้านาย</div>
+          <div class="sign-lbl">ช่างผู้รับผิดชอบ</div>
         </div>
       </div>
     </div>
