@@ -479,6 +479,7 @@
   <div class="app-wrapper">
     <!-- SIDEBAR -->
     <div class="sidebar" id="sidebar">
+      <!-- เมนูหลัก -->
       <div class="sidebar-section-label">เมนูหลัก</div>
       <a class="sidebar-item active" data-page="dashboard" onclick="navigate('dashboard')">
         <span class="material-icons">dashboard</span> แดชบอร์ด
@@ -487,28 +488,36 @@
         <span class="material-icons">build_circle</span> รายการแจ้งซ่อม
         <span class="badge-count" id="badge-pending">0</span>
       </a>
+
+      <!-- เมนู Admin -->
       <div id="admin-menu" style="display:none;">
-        <div class="sidebar-section-label" style="margin-top:.5rem;">ผู้ดูแลระบบ</div>
+        <!-- จัดการข้อมูล -->
+        <div class="sidebar-section-label" style="margin-top:.75rem;">จัดการข้อมูล</div>
         <a class="sidebar-item" data-page="admin-users" onclick="navigate('admin-users')">
           <span class="material-icons">manage_accounts</span> จัดการผู้ใช้
         </a>
         <a class="sidebar-item" data-page="admin-vehicles" onclick="navigate('admin-vehicles')">
           <span class="material-icons">directions_car</span> จัดการทะเบียนรถ
         </a>
+        <a class="sidebar-item" data-page="vehicle-history" onclick="navigate('vehicle-history')">
+          <span class="material-icons">manage_search</span> ประวัติตามทะเบียน
+        </a>
+        <!-- รายงาน -->
+        <div class="sidebar-section-label" style="margin-top:.75rem;">รายงาน</div>
         <a class="sidebar-item" data-page="admin-report" onclick="navigate('admin-report')">
           <span class="material-icons">bar_chart</span> รายงานรายเดือน
         </a>
         <a class="sidebar-item" data-page="admin-yearly" onclick="navigate('admin-yearly')">
           <span class="material-icons">calendar_today</span> รายงานรายปี
         </a>
+        <!-- เครื่องมือ -->
+        <div class="sidebar-section-label" style="margin-top:.75rem;">เครื่องมือ</div>
         <a class="sidebar-item" data-page="admin-qr" onclick="navigate('admin-qr')">
           <span class="material-icons">qr_code_2</span> QR Code แจ้งซ่อม
         </a>
-        <a class="sidebar-item" data-page="vehicle-history" onclick="navigate('vehicle-history')">
-          <span class="material-icons">manage_search</span> ประวัติตามทะเบียน
-        </a>
       </div>
-      <div class="sidebar-section-label" style="margin-top:.5rem;">อื่นๆ</div>
+
+      <div class="sidebar-section-label" style="margin-top:.75rem;">อื่นๆ</div>
       <a class="sidebar-item" onclick="logout()">
         <span class="material-icons">logout</span> ออกจากระบบ
       </a>
@@ -770,8 +779,8 @@
               QR สแกนแจ้งซ่อม
             </div>
             <!-- QR จะถูก generate ตรงนี้ -->
-            <div id="qr-canvas-wrap" style="padding:16px;background:#fff;border-radius:12px;border:2px solid var(--gray-200);box-shadow:var(--shadow-sm);">
-              <canvas id="qr-canvas"></canvas>
+            <div id="qr-canvas-wrap" style="padding:16px;background:#fff;border-radius:12px;border:2px solid var(--gray-200);box-shadow:var(--shadow-sm);display:inline-block;">
+              <div id="qr-div"></div>
             </div>
             <div style="font-size:.8rem;color:var(--gray-500);max-width:220px;text-align:center;">
               สแกน QR นี้เพื่อเปิดหน้าแจ้งซ่อมได้ทันที
@@ -797,7 +806,7 @@
             <div id="qr-poster" style="background:linear-gradient(135deg,#1B5E20,#2E7D32);border-radius:12px;padding:24px 20px;text-align:center;color:#fff;display:flex;flex-direction:column;align-items:center;gap:12px;">
               <div style="font-size:1.3rem;font-weight:700;font-family:'Prompt',sans-serif;letter-spacing:.5px;">🔧 แจ้งซ่อมรถยนต์</div>
               <div style="background:#fff;padding:12px;border-radius:10px;">
-                <canvas id="qr-poster-canvas"></canvas>
+                <div id="qr-poster-div"></div>
               </div>
               <div style="font-size:.85rem;opacity:.9;">สแกน QR Code เพื่อแจ้งซ่อม</div>
               <div style="font-size:.75rem;opacity:.7;word-break:break-all;" id="qr-url-label"></div>
@@ -1893,37 +1902,29 @@ let _qrInstance       = null;
 let _qrPosterInstance = null;
 
 function initQRCode() {
-  const url = window.location.href.split('?')[0]; // URL หน้าเว็บ
+  const url = window.location.href.split('?')[0];
 
   document.getElementById('qr-url-display').textContent = url;
   document.getElementById('qr-url-label').textContent   = url;
 
-  // ล้าง instance เก่า
-  const wrap       = document.getElementById('qr-canvas-wrap');
-  const posterWrap = document.getElementById('qr-poster-canvas').parentElement;
+  // ล้าง QR เก่า
+  const div1 = document.getElementById('qr-div');
+  const div2 = document.getElementById('qr-poster-div');
+  div1.innerHTML = '';
+  div2.innerHTML = '';
 
-  // ลบ canvas เก่า แล้วสร้างใหม่
-  document.getElementById('qr-canvas').remove();
-  document.getElementById('qr-poster-canvas').remove();
-
-  const canvas1 = document.createElement('canvas'); canvas1.id = 'qr-canvas';
-  const canvas2 = document.createElement('canvas'); canvas2.id = 'qr-poster-canvas';
-  wrap.appendChild(canvas1);
-  posterWrap.appendChild(canvas2);
-
-  const opts = { text: url, correctLevel: QRCode.CorrectLevel.M };
-  new QRCode(canvas1, { ...opts, width: 220, height: 220 });
-  new QRCode(canvas2, { ...opts, width: 160, height: 160 });
+  // สร้าง QR ใหม่ด้วย qrcodejs (render เป็น <img> + <canvas> ใน div)
+  new QRCode(div1, { text: url, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.M });
+  new QRCode(div2, { text: url, width: 160, height: 160, correctLevel: QRCode.CorrectLevel.M });
 }
 
 function downloadQR() {
-  // รอให้ QR render เสร็จ
   setTimeout(() => {
-    const canvas = document.querySelector('#qr-canvas-wrap canvas');
-    if (!canvas) { showToast('ยังไม่มี QR Code', 'error'); return; }
+    const img = document.querySelector('#qr-div img');
+    if (!img) { showToast('ยังไม่มี QR Code', 'error'); return; }
     const link = document.createElement('a');
     link.download = 'QR_แจ้งซ่อม.png';
-    link.href = canvas.toDataURL('image/png');
+    link.href = img.src;
     link.click();
     showToast('บันทึก QR Code แล้ว ✅');
   }, 300);
@@ -1931,10 +1932,10 @@ function downloadQR() {
 
 function printQR() {
   setTimeout(() => {
-    const canvas = document.querySelector('#qr-canvas-wrap canvas');
-    if (!canvas) { showToast('ยังไม่มี QR Code', 'error'); return; }
+    const img = document.querySelector('#qr-div img');
+    if (!img) { showToast('ยังไม่มี QR Code', 'error'); return; }
     const url  = document.getElementById('qr-url-display').textContent;
-    const imgData = canvas.toDataURL('image/png');
+    const imgData = img.src;
     const win  = window.open('', '_blank', 'width=400,height=500');
     win.document.write(`<!DOCTYPE html><html><head><title>QR แจ้งซ่อม</title>
       <style>
@@ -1958,10 +1959,10 @@ function printQR() {
 
 function printPoster() {
   setTimeout(() => {
-    const canvas = document.querySelector('#qr-poster-canvas');
-    if (!canvas) { showToast('ยังไม่มี QR Code', 'error'); return; }
+    const img = document.querySelector('#qr-poster-div img');
+    if (!img) { showToast('ยังไม่มี QR Code', 'error'); return; }
     const url     = document.getElementById('qr-url-display').textContent;
-    const imgData = canvas.toDataURL('image/png');
+    const imgData = img.src;
     const win     = window.open('', '_blank', 'width=500,height=700');
     win.document.write(`<!DOCTYPE html><html><head><title>โปสเตอร์แจ้งซ่อม</title>
       <style>
@@ -2917,11 +2918,11 @@ async function printJobPDF(jobId) {
         </div>
         <div class="sign-box">
           <div class="sign-line"></div>
-          <div class="sign-lbl">ผู้อนุมัติ / หัวหน้า</div>
+          <div class="sign-lbl">ผู้อนุมัติ / หัวหน้างาน</div>
         </div>
         <div class="sign-box">
           <div class="sign-line"></div>
-          <div class="sign-lbl">ผู้อนุมัติ / ผู้บริหาร</div>
+          <div class="sign-lbl">ช่างผู้รับผิดชอบ</div>
         </div>
       </div>
     </div>
