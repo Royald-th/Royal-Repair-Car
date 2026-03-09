@@ -1200,9 +1200,9 @@
    CONFIG — แก้ค่าเหล่านี้ให้ตรงกับของคุณ
    ============================================================ */
 const CONFIG = {
-  LIFF_ID:    'YOUR_LIFF_ID',   // LIFF ID จาก LINE Developers
-  GAS_URL:    'YOUR_GAS_URL',   // URL จาก Deploy > Web App ใน GAS
-  API_SECRET: 'YOUR_API_SECRET_KEY', // ต้องตรงกับ API_SECRET ใน Code.gs
+  LIFF_ID:    '2009307051-5UV6LT8a',   // LIFF ID จาก LINE Developers
+  GAS_URL:    'https://script.google.com/macros/s/AKfycbxXMkVqqmTvvCeYTq58wYb7Vl8QrVKoUXgiqEqv3FgvoTfrH6tA3UCxLznWpFBO5U_7Aw/exec',   // URL จาก Deploy > Web App ใน GAS
+  API_SECRET: 'UJ&8m@+<KL#S9z1$gB!6', // ต้องตรงกับ API_SECRET ใน Code.gs
 };
 
 /* ============================================================
@@ -1294,7 +1294,7 @@ function bootApp() {
 
   // Set nav
   document.getElementById('nav-username').textContent = currentUser.name;
-  document.getElementById('nav-role').textContent = {admin:'Admin',supervisor:'หัวหน้า',manager:'เจ้านาย',user:'User'}[currentUser.role] || 'User';
+  document.getElementById('nav-role').textContent = {admin:'Admin',supervisor:'หัวหน้า',manager:'ผู้บริหาร',user:'User'}[currentUser.role] || 'User';
   document.getElementById('nav-avatar').src = currentUser.avatar;
   document.getElementById('dash-avatar').src = currentUser.avatar;
   document.getElementById('form-avatar').src = currentUser.avatar;
@@ -1532,7 +1532,7 @@ function renderUserList() {
       <img src="${u.avatar||AVATAR_DEFAULT}" alt="">
       <div class="flex-grow-1">
         <div style="font-weight:600;font-size:.88rem;">${u.name}</div>
-        <div style="font-size:.78rem;color:var(--gray-500);">${u.dept||'-'} • ${ {admin:'👑 Admin',supervisor:'👔 หัวหน้า',manager:'🏢 เจ้านาย',user:'👤 User'}[u.role]||'👤 User' }</div>
+        <div style="font-size:.78rem;color:var(--gray-500);">${u.dept||'-'} • ${ {admin:'👑 Admin',supervisor:'👔 หัวหน้า',manager:'🏢 ผู้บริหาร',user:'👤 User'}[u.role]||'👤 User' }</div>
       </div>
       <button class="btn-sm-icon" style="background:var(--accent-light);color:var(--accent);" onclick="openEditUser('${u.lineUid}')"><span class="material-icons">edit</span></button>
       <button class="btn-sm-icon ms-1" style="background:var(--danger-light);color:var(--danger);" onclick="deleteUser('${u.lineUid}','${u.name}')"><span class="material-icons">delete</span></button>
@@ -2162,7 +2162,7 @@ function openStatusModal(jobId) {
   const roleOptions = {
     supervisor: [
       { v:'รอดำเนินการ',   l:'รอดำเนินการ' },
-      { v:'รอการอนุมัติ', l:'ส่งต่อเจ้านาย (รอการอนุมัติ)' },
+      { v:'รอการอนุมัติ', l:'ส่งต่อผู้บริหาร (รอการอนุมัติ)' },
       { v:'อนุมัติ',       l:'อนุมัติ' },
       { v:'ไม่อนุมัติ',   l:'ไม่อนุมัติ' },
       { v:'ส่งกลับแก้ไข', l:'ส่งกลับแก้ไข' },
@@ -2925,11 +2925,11 @@ async function printJobPDF(jobId) {
         </div>
         <div class="sign-box">
           <div class="sign-line"></div>
-          <div class="sign-lbl">ผู้อนุมัติ / หัวหน้างาน</div>
+          <div class="sign-lbl">ผู้อนุมัติ / หัวหน้า</div>
         </div>
         <div class="sign-box">
           <div class="sign-line"></div>
-          <div class="sign-lbl">ช่างผู้รับผิดชอบ</div>
+          <div class="sign-lbl">ผู้อนุมัติ / ผู้บริหาร</div>
         </div>
       </div>
     </div>
