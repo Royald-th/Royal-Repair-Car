@@ -180,6 +180,7 @@
   .status-revise    { background:#F3E5F5; color:#6A1B9A; }
   .status-repairing { background:#E3F2FD; color:#1565C0; }
   .status-done      { background:#E8F5E9; color:#1B5E20; }
+  .status-pending-mgr { background:#FFF8E1; color:#F57F17; }
 
   /* ======= BUTTONS ======= */
   .btn-primary-custom {
@@ -1268,9 +1269,9 @@
    CONFIG — แก้ค่าเหล่านี้ให้ตรงกับของคุณ
    ============================================================ */
 const CONFIG = {
-  LIFF_ID:    '2009307051-5UV6LT8a',   // LIFF ID จาก LINE Developers
-  GAS_URL:    'https://script.google.com/macros/s/AKfycbxXMkVqqmTvvCeYTq58wYb7Vl8QrVKoUXgiqEqv3FgvoTfrH6tA3UCxLznWpFBO5U_7Aw/exec',   // URL จาก Deploy > Web App ใน GAS
-  API_SECRET: 'UJ&8m@+<KL#S9z1$gB!6', // ต้องตรงกับ API_SECRET ใน Code.gs
+  LIFF_ID:    'YOUR_LIFF_ID',   // LIFF ID จาก LINE Developers
+  GAS_URL:    'YOUR_GAS_URL',   // URL จาก Deploy > Web App ใน GAS
+  API_SECRET: 'YOUR_API_SECRET_KEY', // ต้องตรงกับ API_SECRET ใน Code.gs
 };
 
 /* ============================================================
@@ -1509,7 +1510,8 @@ async function loadData(silent = false) {
    RENDER
    ============================================================ */
 function renderStats() {
-  const mine = currentUser.role === 'admin' ? allJobs : allJobs.filter(j => j.lineUid === currentUser.lineUid);
+  const _isPriv = ['admin','supervisor','manager'].includes(currentUser.role);
+  const mine = _isPriv ? allJobs : allJobs.filter(j => j.lineUid === currentUser.lineUid);
   const count = s => mine.filter(j => j.status === s).length;
   animateNum('stat-waiting',   count('รอดำเนินการ'));
   animateNum('stat-repairing', count('กำลังซ่อม'));
@@ -1529,7 +1531,7 @@ function renderStats() {
 }
 
 function renderRecentJobs() {
-  const mine = currentUser.role === 'admin' ? allJobs : allJobs.filter(j => j.lineUid === currentUser.lineUid);
+  const mine = ['admin','supervisor','manager'].includes(currentUser.role) ? allJobs : allJobs.filter(j => j.lineUid === currentUser.lineUid);
   const recent = mine.slice(0,5);
   const el = document.getElementById('recent-jobs-list');
   if (!recent.length) { el.innerHTML = '<div class="empty-state"><span class="material-icons">inbox</span>ยังไม่มีรายการ</div>'; return; }
@@ -1538,7 +1540,7 @@ function renderRecentJobs() {
 
 function renderRepairTable() {
   try {
-  let jobs = currentUser.role === 'admin' ? allJobs : allJobs.filter(j => j.lineUid === currentUser.lineUid);
+  let jobs = ['admin','supervisor','manager'].includes(currentUser.role) ? allJobs : allJobs.filter(j => j.lineUid === currentUser.lineUid);
 
   // filter status
   if (filterStatus) jobs = jobs.filter(j => j.status === filterStatus);
@@ -2408,7 +2410,7 @@ async function submitRepair() {
 function openDetail(jobId) {
   const j = allJobs.find(x => x.jobId === jobId);
   if (!j) return;
-  const isAdmin = currentUser.role === 'admin';
+  const isAdmin = ['admin','supervisor'].includes(currentUser.role);
   const body = document.getElementById('detail-body');
   body.innerHTML = `
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -2847,7 +2849,7 @@ async function exportCSV() {
   if (btn) { btn.disabled = true; btn.innerHTML = '<span class="material-icons" style="font-size:1rem;">hourglass_empty</span> กำลัง Export...'; }
   showLoading(true);
 
-  const isAdmin = currentUser.role === 'admin';
+  const isAdmin = ['admin','supervisor','manager'].includes(currentUser.role);
   const res = await gasCall('exportJobs', {
     lineUid: currentUser.lineUid,
     isAdmin,
@@ -3242,11 +3244,11 @@ async function printJobPDF(jobId) {
         </div>
         <div class="sign-box">
           <div class="sign-line"></div>
-          <div class="sign-lbl">ผู้อนุมัติ / หัวหน้า</div>
+          <div class="sign-lbl">ผู้อนุมัติ / หัวหน้างาน</div>
         </div>
         <div class="sign-box">
           <div class="sign-line"></div>
-          <div class="sign-lbl">ผู้อนุมัติ / ผู้บริหาร</div>
+          <div class="sign-lbl">ช่างผู้รับผิดชอบ</div>
         </div>
       </div>
     </div>
