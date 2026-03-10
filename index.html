@@ -1301,9 +1301,9 @@
    CONFIG — แก้ค่าเหล่านี้ให้ตรงกับของคุณ
    ============================================================ */
 const CONFIG = {
-  LIFF_ID:    '2009307051-5UV6LT8a',   // LIFF ID จาก LINE Developers
-  GAS_URL:    'https://script.google.com/macros/s/AKfycbxXMkVqqmTvvCeYTq58wYb7Vl8QrVKoUXgiqEqv3FgvoTfrH6tA3UCxLznWpFBO5U_7Aw/exec',   // URL จาก Deploy > Web App ใน GAS
-  API_SECRET: 'UJ&8m@+<KL#S9z1$gB!6', // ต้องตรงกับ API_SECRET ใน Code.gs
+  LIFF_ID:    'YOUR_LIFF_ID',   // LIFF ID จาก LINE Developers
+  GAS_URL:    'YOUR_GAS_URL',   // URL จาก Deploy > Web App ใน GAS
+  API_SECRET: 'YOUR_API_SECRET_KEY', // ต้องตรงกับ API_SECRET ใน Code.gs
 };
 
 /* ============================================================
@@ -1429,9 +1429,11 @@ function bootApp() {
   document.getElementById('main-app').style.display = 'block';
   startKeepWarm();
 
+  const role = currentUser.role || 'user';
+
   // Set nav
   document.getElementById('nav-username').textContent = currentUser.name;
-  document.getElementById('nav-role').textContent = {admin:'Admin',supervisor:'หัวหน้า',manager:'ผู้บริหาร',user:'User'}[currentUser.role] || 'User';
+  document.getElementById('nav-role').textContent = {admin:'Admin', supervisor:'หัวหน้า', manager:'ผู้บริหาร', user:'User'}[role] || 'User';
   document.getElementById('nav-avatar').src = currentUser.avatar;
   document.getElementById('dash-avatar').src = currentUser.avatar;
   document.getElementById('form-avatar').src = currentUser.avatar;
@@ -1439,14 +1441,37 @@ function bootApp() {
   document.getElementById('dash-dept').textContent = currentUser.dept || '-';
   document.getElementById('form-username').textContent = currentUser.name;
   document.getElementById('form-lineuid').textContent = currentUser.dept || '-';
-  
 
-  // Admin menu
-  if ((currentUser.role || '') === 'admin') {
+  // Sidebar menus
+  if (['admin','supervisor'].includes(role)) {
     document.getElementById('admin-menu').style.display = 'block';
+  }
+  if (role === 'manager') {
+    document.getElementById('manager-menu').style.display = 'block';
+  }
+
+  // Admin-only extras
+  if (role === 'admin') {
     document.getElementById('admin-note-section').classList.remove('d-none');
     const exportBtn = document.getElementById('btn-export-csv');
     if (exportBtn) exportBtn.style.display = 'inline-flex';
+  }
+
+  // Manager — ซ่อนปุ่มแจ้งซ่อมทั้งหมด
+  if (role === 'manager') {
+    ['btn-repair-dashboard','btn-repair-list'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+    const fab = document.getElementById('fab-repair');
+    if (fab) fab.style.display = 'none';
+  }
+
+  // Navigate ตาม role
+  if (role === 'manager') {
+    navigate('manager-jobs');
+  } else {
+    navigate('dashboard');
   }
 
   loadData();
@@ -3322,7 +3347,7 @@ async function printJobPDF(jobId) {
         </div>
         <div class="sign-box">
           <div class="sign-line"></div>
-          <div class="sign-lbl">ผู้อนุมัติ / ผู้บริหาร</div>
+          <div class="sign-lbl">ช่างผู้รับผิดชอบ</div>
         </div>
       </div>
     </div>
