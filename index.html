@@ -64,7 +64,7 @@
     box-shadow: 0 2px 8px rgba(0,0,0,.2);
     position: sticky; top:0; z-index: 1050;
   }
-  .navbar-custom .brand-text { color:#fff; font-size:1rem; font-weight:600; letter-spacing:.3px; }
+  .navbar-custom .brand-text { color:#fff; font-size:1.15rem; font-weight:600; letter-spacing:.3px; }
   .navbar-custom .nav-link { color:rgba(255,255,255,.85) !important; font-size:.9rem; padding:.4rem .7rem !important; border-radius:6px; transition:var(--transition); }
   .navbar-custom .nav-link:hover, .navbar-custom .nav-link.active { color:#fff !important; background:rgba(255,255,255,.15); }
   .user-avatar { width:36px; height:36px; border-radius:50%; border:2px solid rgba(255,255,255,.5); object-fit:cover; cursor:pointer; }
@@ -485,7 +485,16 @@
         <span class="badge-count" id="badge-pending">0</span>
       </a>
 
-      <!-- เมนู Admin -->
+      <!-- เมนู Manager -->
+      <div id="manager-menu" style="display:none;">
+        <div class="sidebar-section-label" style="margin-top:.75rem;">ผู้บริหาร</div>
+        <a class="sidebar-item" data-page="manager-jobs" onclick="navigate('manager-jobs')">
+          <span class="material-icons">rule_folder</span> รายการแจ้งซ่อม
+          <span class="badge-count" id="badge-approval">0</span>
+        </a>
+      </div>
+
+      <!-- เมนู Admin/Supervisor -->
       <div id="admin-menu" style="display:none;">
         <!-- จัดการข้อมูล -->
         <div class="sidebar-section-label" style="margin-top:.75rem;">จัดการข้อมูล</div>
@@ -623,6 +632,10 @@
             <option value="today">วันนี้</option>
             <option value="week">สัปดาห์นี้</option>
             <option value="month">เดือนนี้</option>
+          </select>
+          <select class="form-select" style="width:auto;min-width:150px;font-size:.85rem;flex-shrink:0;" id="repair-sort">
+            <option value="newest">ใหม่สุดก่อน</option>
+            <option value="oldest">เก่าสุดก่อน</option>
           </select>
         </div>
 
@@ -949,6 +962,62 @@
 
     </div><!-- end main-content -->
   </div><!-- end app-wrapper -->
+
+      <!-- ===== MANAGER JOBS PAGE ===== -->
+      <div class="page-section" id="page-manager-jobs">
+        <div class="page-header">
+          <h4 class="page-title"><span class="material-icons">rule_folder</span> รายการแจ้งซ่อม</h4>
+        </div>
+        <!-- Stats 3 cards -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:1rem;">
+          <div class="stat-card-h" style="cursor:default;">
+            <span class="material-icons" style="color:var(--warning);font-size:1.4rem;">pending</span>
+            <div><div class="stat-number" id="mgr-stat-pending">0</div><div class="stat-label">รออนุมัติ</div></div>
+          </div>
+          <div class="stat-card-h" style="cursor:default;">
+            <span class="material-icons" style="color:var(--success);font-size:1.4rem;">check_circle</span>
+            <div><div class="stat-number" id="mgr-stat-approved">0</div><div class="stat-label">อนุมัติแล้ว</div></div>
+          </div>
+          <div class="stat-card-h" style="cursor:default;">
+            <span class="material-icons" style="color:var(--primary);font-size:1.4rem;">payments</span>
+            <div><div class="stat-number" style="font-size:1rem;" id="mgr-stat-cost">0</div><div class="stat-label">ยอดอนุมัติ (฿)</div></div>
+          </div>
+        </div>
+        <!-- Search + Sort -->
+        <div class="d-flex gap-2 mb-2 flex-wrap">
+          <div style="position:relative;flex:1;min-width:180px;">
+            <span class="material-icons" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--gray-400);font-size:1.1rem;">search</span>
+            <input type="text" id="mgr-search" class="form-control" placeholder="ค้นหาทะเบียน / ผู้แจ้ง..." style="padding-left:2.2rem;" oninput="renderManagerJobs()">
+          </div>
+          <select id="mgr-sort" class="form-select" style="max-width:170px;" onchange="renderManagerJobs()">
+            <option value="oldest">เก่าสุดก่อน (FIFO)</option>
+            <option value="newest">ใหม่สุดก่อน</option>
+          </select>
+        </div>
+        <!-- Filter Pills -->
+        <div class="filter-bar" style="margin-bottom:1rem;">
+          <div class="filter-pill active" data-mgr-status="all"          onclick="filterManagerJobs('all')">ทั้งหมด</div>
+          <div class="filter-pill"        data-mgr-status="รอการอนุมัติ" onclick="filterManagerJobs('รอการอนุมัติ')">รอการอนุมัติ</div>
+          <div class="filter-pill"        data-mgr-status="อนุมัติ"      onclick="filterManagerJobs('อนุมัติ')">อนุมัติแล้ว</div>
+          <div class="filter-pill"        data-mgr-status="ไม่อนุมัติ"  onclick="filterManagerJobs('ไม่อนุมัติ')">ไม่อนุมัติ</div>
+          <div class="filter-pill"        data-mgr-status="ส่งกลับแก้ไข" onclick="filterManagerJobs('ส่งกลับแก้ไข')">ส่งกลับแก้ไข</div>
+        </div>
+        <!-- Desktop Table -->
+        <div class="table-card d-none d-md-block">
+          <table class="repair-table">
+            <thead><tr>
+              <th>เลขที่งาน</th><th>ผู้แจ้ง</th><th>ทะเบียน</th><th>อาการ</th><th>ประเมิน (฿)</th><th>สถานะ</th><th>วันที่แจ้ง</th><th>การดำเนินการ</th>
+            </tr></thead>
+            <tbody id="mgr-jobs-tbody"></tbody>
+          </table>
+        </div>
+        <!-- Mobile Cards -->
+        <div class="d-md-none" id="mgr-jobs-cards"></div>
+        <div id="mgr-jobs-empty" class="empty-state" style="display:none;">
+          <span class="material-icons">inbox</span>ไม่มีรายการ
+        </div>
+      </div>
+
 </div><!-- end main-app -->
 
 
@@ -1129,8 +1198,10 @@
         <div class="mb-3">
           <label class="form-label">บทบาท</label>
           <select class="form-select" id="u-role">
-            <option value="user">User</option>
-            <option value="admin">Admin</option>
+            <option value="user">👤 User — ผู้ใช้ทั่วไป</option>
+            <option value="supervisor">👔 Supervisor — หัวหน้า</option>
+            <option value="manager">🏢 Manager — ผู้บริหาร</option>
+            <option value="admin">👑 Admin — ผู้ดูแลระบบ</option>
           </select>
         </div>
       </div>
@@ -1197,9 +1268,9 @@
    CONFIG — แก้ค่าเหล่านี้ให้ตรงกับของคุณ
    ============================================================ */
 const CONFIG = {
-  LIFF_ID:    '2009307051-5UV6LT8a',   // LIFF ID จาก LINE Developers
-  GAS_URL:    'https://script.google.com/macros/s/AKfycbxXMkVqqmTvvCeYTq58wYb7Vl8QrVKoUXgiqEqv3FgvoTfrH6tA3UCxLznWpFBO5U_7Aw/exec',   // URL จาก Deploy > Web App ใน GAS
-  API_SECRET: 'UJ&8m@+<KL#S9z1$gB!6', // ต้องตรงกับ API_SECRET ใน Code.gs
+  LIFF_ID:    'YOUR_LIFF_ID',   // LIFF ID จาก LINE Developers
+  GAS_URL:    'YOUR_GAS_URL',   // URL จาก Deploy > Web App ใน GAS
+  API_SECRET: 'YOUR_API_SECRET_KEY', // ต้องตรงกับ API_SECRET ใน Code.gs
 };
 
 /* ============================================================
@@ -1380,13 +1451,23 @@ function _loadCache() {
 }
 
 function _renderAll() {
-  const isAdmin = ['admin','supervisor','manager'].includes(currentUser?.role);
+  const role = currentUser?.role;
+  const isAdmin = ['admin','supervisor'].includes(role);
+  const isManager = role === 'manager';
   populateVehicleSelect();
   populateVehicleHistorySelect();
   renderStats();
   renderRecentJobs();
   renderRepairTable();
   if (isAdmin) { renderUserList(); renderVehicleList(); }
+  // อัปเดต badge รออนุมัติ
+  if (isManager) {
+    const count = allJobs.filter(j => j.status === 'รอการอนุมัติ').length;
+    const b = document.getElementById('badge-approval');
+    if (b) { b.textContent = count; b.style.display = count ? 'inline' : 'none'; }
+    // refresh หน้า manager ถ้ากำลังอยู่หน้านั้น
+    if (document.getElementById('page-manager-jobs')?.classList.contains('active')) renderManagerJobs();
+  }
 }
 
 async function _fetchFresh(silent = false) {
@@ -1478,6 +1559,14 @@ function renderRepairTable() {
       return true;
     });
   }
+
+  // ===== SORT =====
+  const repairSort = document.getElementById('repair-sort')?.value || 'newest';
+  jobs = [...jobs].sort((a, b) => {
+    const ta = new Date(a.createdAt).getTime() || 0;
+    const tb = new Date(b.createdAt).getTime() || 0;
+    return repairSort === 'newest' ? tb - ta : ta - tb;
+  });
 
   // ===== PAGINATION =====
   const totalPages = Math.max(1, Math.ceil(jobs.length / PAGE_SIZE));
@@ -2058,7 +2147,8 @@ function navigate(page) {
   if (page === 'admin-report')   { initReportSelectors(); setTimeout(generateReport, 50); }
   if (page === 'admin-yearly')   { initYearlySelectors(); }
   if (page === 'admin-qr')       { setTimeout(initQRCode, 100); }
-  if (page === 'vehicle-history') { populateVehicleHistorySelect(); }
+  if (page === 'vehicle-history')    { populateVehicleHistorySelect(); }
+  if (page === 'manager-jobs') { _mgrFilter='all'; renderManagerJobs(); }
 
   // FAB — แสดงเฉพาะหน้า dashboard และ repair-list
   const fab = document.getElementById('fab-repair');
@@ -2069,6 +2159,155 @@ function navigate(page) {
 
   // close sidebar on mobile
   if (window.innerWidth < 768) document.getElementById('sidebar').style.display='none';
+}
+
+/* ============================================================
+   MANAGER — Jobs with filter
+   ============================================================ */
+let _mgrFilter = 'all';
+
+function filterManagerJobs(status) {
+  _mgrFilter = status;
+  document.querySelectorAll('[data-mgr-status]').forEach(el => {
+    el.classList.toggle('active', el.dataset.mgrStatus === status);
+  });
+  renderManagerJobs();
+}
+
+function renderManagerJobs() {
+  // ===== stats =====
+  const pending   = allJobs.filter(j => j.status === 'รอการอนุมัติ').length;
+  const approved  = allJobs.filter(j => j.status === 'อนุมัติ').length;
+  const totalCost = allJobs
+    .filter(j => j.status === 'อนุมัติ')
+    .reduce((s, j) => s + (Number(j.estimate) || 0), 0);
+  document.getElementById('mgr-stat-pending').textContent  = pending;
+  document.getElementById('mgr-stat-approved').textContent = approved;
+  document.getElementById('mgr-stat-cost').textContent     = totalCost.toLocaleString();
+
+  // badge sidebar
+  const badge = document.getElementById('badge-approval');
+  if (badge) { badge.textContent = pending; badge.style.display = pending ? 'inline' : 'none'; }
+
+  // ===== filter + search + sort =====
+  const q       = (document.getElementById('mgr-search')?.value || '').toLowerCase().trim();
+  const sortVal = document.getElementById('mgr-sort')?.value || 'oldest';
+
+  let jobs = allJobs;
+  if (_mgrFilter !== 'all') jobs = jobs.filter(j => j.status === _mgrFilter);
+  if (q) jobs = jobs.filter(j =>
+    (j.plate||'').toLowerCase().includes(q) ||
+    (j.userName||'').toLowerCase().includes(q) ||
+    (j.jobId||'').toLowerCase().includes(q) ||
+    (j.detail||'').toLowerCase().includes(q)
+  );
+  jobs = [...jobs].sort((a, b) => {
+    const ta = new Date(a.createdAt).getTime();
+    const tb = new Date(b.createdAt).getTime();
+    return sortVal === 'oldest' ? ta - tb : tb - ta;
+  });
+
+  const tbody = document.getElementById('mgr-jobs-tbody');
+  const cards = document.getElementById('mgr-jobs-cards');
+  const empty = document.getElementById('mgr-jobs-empty');
+
+  if (!jobs.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4" style="color:var(--gray-400);">ไม่พบรายการ</td></tr>';
+    cards.innerHTML = '';
+    empty.style.display = jobs.length === 0 && !q ? 'flex' : 'none';
+    return;
+  }
+  empty.style.display = 'none';
+
+  // ปุ่มการดำเนินการ — เฉพาะ รอการอนุมัติ แสดง 3 ปุ่ม
+  const actionBtns = j => {
+    const viewBtn = `<button class="btn-outline-custom btn-sm" onclick="openDetail('${j.jobId}')" title="ดูรายละเอียด">
+      <span class="material-icons" style="font-size:.9rem;">visibility</span>
+    </button>`;
+    if (j.status !== 'รอการอนุมัติ') return viewBtn;
+    return `<div class="d-flex gap-1">
+      ${viewBtn}
+      <button class="btn-primary-custom btn-sm" style="background:var(--success);padding:.3rem .6rem;" onclick="quickDecision('${j.jobId}','อนุมัติ')" title="อนุมัติ">
+        <span class="material-icons" style="font-size:.9rem;">check</span>
+      </button>
+      <button class="btn-primary-custom btn-sm" style="background:var(--danger);padding:.3rem .6rem;" onclick="quickDecision('${j.jobId}','ไม่อนุมัติ')" title="ไม่อนุมัติ">
+        <span class="material-icons" style="font-size:.9rem;">close</span>
+      </button>
+      <button class="btn-primary-custom btn-sm" style="background:var(--warning);color:#333;padding:.3rem .6rem;" onclick="quickDecision('${j.jobId}','ส่งกลับแก้ไข')" title="ส่งกลับแก้ไข">
+        <span class="material-icons" style="font-size:.9rem;">undo</span>
+      </button>
+    </div>`;
+  };
+
+  // ===== Desktop =====
+  tbody.innerHTML = jobs.map(j => `
+    <tr style="${j.status==='รอการอนุมัติ'?'background:rgba(255,193,7,.06);':''}">
+      <td><span style="font-weight:600;color:var(--primary-dark);">${j.jobId}</span></td>
+      <td>${j.userName}</td>
+      <td>${j.plate}</td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${j.detail}">${j.detail}</td>
+      <td style="text-align:right;">${j.estimate ? Number(j.estimate).toLocaleString() : '-'}</td>
+      <td><span class="badge-status ${statusClass(j.status)}">${j.status}</span></td>
+      <td style="white-space:nowrap;">${formatDate(j.createdAt)}</td>
+      <td>${actionBtns(j)}</td>
+    </tr>`).join('');
+
+  // ===== Mobile =====
+  const borderColor = s => s==='รอการอนุมัติ'?'var(--warning)':s==='อนุมัติ'?'var(--success)':s==='ไม่อนุมัติ'?'var(--danger)':'var(--gray-300)';
+  cards.innerHTML = jobs.map(j => `
+    <div class="job-card" style="border-left:4px solid ${borderColor(j.status)};">
+      <div class="d-flex justify-content-between align-items-start mb-1">
+        <div>
+          <div style="font-weight:700;color:var(--primary-dark);font-size:.9rem;">${j.jobId}</div>
+          <div style="font-size:.82rem;color:var(--gray-500);">${j.userName} · ${j.plate}</div>
+        </div>
+        <span class="badge-status ${statusClass(j.status)}">${j.status}</span>
+      </div>
+      <div style="font-size:.85rem;color:var(--gray-700);margin:.4rem 0;">${j.detail}</div>
+      <div style="font-size:.82rem;color:var(--gray-500);margin-bottom:.7rem;">
+        💰 ${j.estimate ? Number(j.estimate).toLocaleString()+' บาท' : 'ไม่ระบุ'} &nbsp;·&nbsp; 📅 ${formatDate(j.createdAt)}
+        ${j.note ? `<br>📝 ${j.note}` : ''}
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        <button class="btn-outline-custom btn-sm" onclick="openDetail('${j.jobId}')">
+          <span class="material-icons" style="font-size:.9rem;">visibility</span> ดูรายละเอียด
+        </button>
+        ${j.status==='รอการอนุมัติ' ? `
+        <button class="btn-primary-custom btn-sm" style="background:var(--success);" onclick="quickDecision('${j.jobId}','อนุมัติ')">
+          <span class="material-icons" style="font-size:.9rem;">check</span> อนุมัติ
+        </button>
+        <button class="btn-primary-custom btn-sm" style="background:var(--danger);" onclick="quickDecision('${j.jobId}','ไม่อนุมัติ')">
+          <span class="material-icons" style="font-size:.9rem;">close</span> ไม่อนุมัติ
+        </button>
+        <button class="btn-primary-custom btn-sm" style="background:var(--warning);color:#333;" onclick="quickDecision('${j.jobId}','ส่งกลับแก้ไข')">
+          <span class="material-icons" style="font-size:.9rem;">undo</span> ส่งกลับ
+        </button>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+// ตัดสินใจด่วน — prompt หมายเหตุถ้าจำเป็น
+async function quickDecision(jobId, decision) {
+  const icons = { 'อนุมัติ':'✅', 'ไม่อนุมัติ':'❌', 'ส่งกลับแก้ไข':'⚠️' };
+  let note = '';
+  if (['ไม่อนุมัติ','ส่งกลับแก้ไข'].includes(decision)) {
+    note = prompt(`${icons[decision]} ${decision}
+กรุณาระบุเหตุผล (หรือกด OK เพื่อข้าม):`);
+    if (note === null) return; // กด Cancel
+    note = note.trim();
+  }
+  const res = await gasCall('updateStatus', {
+    jobId, status: decision, note, actualCost: '',
+    adminUid: currentUser.lineUid,
+  });
+  if (res.status === 'ok') {
+    showToast(`${icons[decision]} ${decision}แล้ว`);
+    sessionStorage.removeItem('_repairData');
+    await loadData(true);
+    renderManagerJobs();
+  } else {
+    showToast('เกิดข้อผิดพลาด: ' + res.message, 'error');
+  }
 }
 
 document.getElementById('sidebar-toggle').addEventListener('click', () => {
@@ -2194,6 +2433,7 @@ function openDetail(jobId) {
   // ปุ่ม Print PDF ให้ทุกคนกดได้
   const pdfBtn = `<button class="btn-outline-custom btn-sm" onclick="printJobPDF('${j.jobId}')"><span class="material-icons" style="font-size:.9rem;">picture_as_pdf</span> PDF</button>`;
 
+  const isManager = currentUser.role === 'manager';
   if (isAdmin) {
     const logBtn = `<button class="btn-outline-custom btn-sm" onclick="openStatusLog('${j.jobId}')"><span class="material-icons" style="font-size:.9rem;">history</span> ประวัติ</button>`;
     if (j.status === 'เสร็จสิ้น') {
@@ -2203,6 +2443,17 @@ function openDetail(jobId) {
         <button class="btn-outline-custom btn-sm" onclick="closeModal('modalDetail');openEditRepair('${j.jobId}')"><span class="material-icons" style="font-size:.9rem;">edit</span> แก้ไข</button>
         <button class="btn-primary-custom btn-sm" onclick="closeModal('modalDetail');openStatusModal('${j.jobId}')"><span class="material-icons" style="font-size:.9rem;">update</span> เปลี่ยนสถานะ</button>`;
     }
+  } else if (isManager && j.status === 'รอการอนุมัติ') {
+    footer.innerHTML = pdfBtn + `
+      <button class="btn-primary-custom btn-sm" style="background:var(--success);" onclick="closeModal('modalDetail');quickDecision('${j.jobId}','อนุมัติ')">
+        <span class="material-icons" style="font-size:.9rem;">check</span> อนุมัติ
+      </button>
+      <button class="btn-primary-custom btn-sm" style="background:var(--danger);" onclick="closeModal('modalDetail');quickDecision('${j.jobId}','ไม่อนุมัติ')">
+        <span class="material-icons" style="font-size:.9rem;">close</span> ไม่อนุมัติ
+      </button>
+      <button class="btn-primary-custom btn-sm" style="background:var(--warning);color:#333;" onclick="closeModal('modalDetail');quickDecision('${j.jobId}','ส่งกลับแก้ไข')">
+        <span class="material-icons" style="font-size:.9rem;">undo</span> ส่งกลับแก้ไข
+      </button>`;
   } else if (j.status === 'ส่งกลับแก้ไข' && j.lineUid === currentUser.lineUid) {
     footer.innerHTML = pdfBtn + `<button class="btn-primary-custom btn-sm" onclick="closeModal('modalDetail');openEditRepair('${j.jobId}')"><span class="material-icons" style="font-size:.9rem;">edit</span> แก้ไขและส่งอีกครั้ง</button>`;
   } else {
@@ -2991,11 +3242,11 @@ async function printJobPDF(jobId) {
         </div>
         <div class="sign-box">
           <div class="sign-line"></div>
-          <div class="sign-lbl">ผู้อนุมัติ / หัวหน้า</div>
+          <div class="sign-lbl">ผู้อนุมัติ / หัวหน้างาน</div>
         </div>
         <div class="sign-box">
           <div class="sign-line"></div>
-          <div class="sign-lbl">ผู้อนุมัติ / ผู้บริหาร</div>
+          <div class="sign-lbl">ช่างผู้รับผิดชอบ</div>
         </div>
       </div>
     </div>
@@ -3427,6 +3678,7 @@ document.querySelectorAll('.filter-pill').forEach(p => {
 // Search & date filter live
 document.getElementById('search-input').addEventListener('input', () => { currentPage = 1; renderRepairTable(); });
 document.getElementById('filter-date').addEventListener('change', () => { currentPage = 1; renderRepairTable(); });
+document.getElementById('repair-sort').addEventListener('change', () => { currentPage = 1; renderRepairTable(); });
 </script>
 
 
