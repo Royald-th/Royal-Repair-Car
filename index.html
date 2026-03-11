@@ -1005,58 +1005,77 @@
 
       <!-- ===== MANAGER JOBS PAGE ===== -->
       <div class="page-section" id="page-manager-jobs">
-        <div class="page-header">
-          <h4 class="page-title"><span class="material-icons">rule_folder</span> รายการแจ้งซ่อม</h4>
+        <!-- Page Title -->
+        <div class="page-title" style="margin-bottom:1.25rem;">
+          <span class="material-icons">rule_folder</span> รายการแจ้งซ่อม
         </div>
-        <!-- Stats 3 cards -->
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:1rem;">
-          <div class="stat-card-h" style="cursor:default;">
-            <span class="material-icons" style="color:var(--warning);font-size:1.4rem;">pending</span>
-            <div><div class="stat-number" id="mgr-stat-pending">0</div><div class="stat-label">รออนุมัติ</div></div>
+
+        <!-- Stat Cards — 3 ใบ scrollable แนวนอน -->
+        <div style="display:flex;gap:.75rem;overflow-x:auto;padding-bottom:.5rem;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin-bottom:1.25rem;">
+          <div class="stat-card-h" style="cursor:default;min-width:140px;flex:1;">
+            <div class="stat-icon-h" style="background:#FFF8E1;color:#F57F17;"><span class="material-icons">pending</span></div>
+            <div class="stat-val-h" id="mgr-stat-pending">0</div>
+            <div class="stat-lbl-h">รอการอนุมัติ</div>
           </div>
-          <div class="stat-card-h" style="cursor:default;">
-            <span class="material-icons" style="color:var(--success);font-size:1.4rem;">check_circle</span>
-            <div><div class="stat-number" id="mgr-stat-approved">0</div><div class="stat-label">อนุมัติแล้ว</div></div>
+          <div class="stat-card-h" style="cursor:default;min-width:140px;flex:1;">
+            <div class="stat-icon-h" style="background:#E8F5E9;color:#2E7D32;"><span class="material-icons">check_circle</span></div>
+            <div class="stat-val-h" id="mgr-stat-approved">0</div>
+            <div class="stat-lbl-h">อนุมัติแล้ว</div>
           </div>
-          <div class="stat-card-h" style="cursor:default;">
-            <span class="material-icons" style="color:var(--primary);font-size:1.4rem;">payments</span>
-            <div><div class="stat-number" style="font-size:1rem;" id="mgr-stat-cost">0</div><div class="stat-label">ยอดอนุมัติ (฿)</div></div>
+          <div class="stat-card-h" style="cursor:default;min-width:140px;flex:1;">
+            <div class="stat-icon-h" style="background:#E8EAF6;color:#283593;"><span class="material-icons">payments</span></div>
+            <div class="stat-val-h" id="mgr-stat-cost" style="font-size:1rem;">0</div>
+            <div class="stat-lbl-h">ยอดอนุมัติ (฿)</div>
           </div>
         </div>
-        <!-- Search + Sort -->
-        <div class="d-flex gap-2 mb-2 flex-wrap">
-          <div style="position:relative;flex:1;min-width:180px;">
-            <span class="material-icons" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--gray-400);font-size:1.1rem;">search</span>
-            <input type="text" id="mgr-search" class="form-control" placeholder="ค้นหาทะเบียน / ผู้แจ้ง..." style="padding-left:2.2rem;" oninput="renderManagerJobs()">
+
+        <!-- Search + Sort Row -->
+        <div class="d-flex gap-2 mb-3 flex-wrap align-items-center">
+          <div style="position:relative;flex:1;min-width:200px;">
+            <span class="material-icons" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--gray-400);font-size:1.1rem;pointer-events:none;">search</span>
+            <input type="text" id="mgr-search" class="form-control" placeholder="ค้นหาทะเบียน / ผู้แจ้ง / เลขที่งาน..." style="padding-left:2.4rem;" oninput="renderManagerJobs()">
           </div>
-          <select id="mgr-sort" class="form-select" style="max-width:170px;" onchange="renderManagerJobs()">
-            <option value="oldest">เก่าสุดก่อน (FIFO)</option>
-            <option value="newest">ใหม่สุดก่อน</option>
+          <select id="mgr-sort" class="form-select" style="max-width:180px;" onchange="renderManagerJobs()">
+            <option value="oldest">🕐 เก่าสุดก่อน (FIFO)</option>
+            <option value="newest">🕑 ใหม่สุดก่อน</option>
           </select>
         </div>
-        <!-- Filter Pills -->
-        <div class="filter-bar" style="margin-bottom:1rem;">
-          <div class="filter-pill active" data-mgr-status="all"          onclick="filterManagerJobs('all')">ทั้งหมด</div>
-          <div class="filter-pill"        data-mgr-status="รอการอนุมัติ" onclick="filterManagerJobs('รอการอนุมัติ')">รอการอนุมัติ</div>
-          <div class="filter-pill"        data-mgr-status="อนุมัติ"      onclick="filterManagerJobs('อนุมัติ')">อนุมัติ</div>
-          <div class="filter-pill"        data-mgr-status="เสร็จสิ้น"    onclick="filterManagerJobs('เสร็จสิ้น')">เสร็จสิ้น</div>
-          <div class="filter-pill"        data-mgr-status="ส่งกลับแก้ไข" onclick="filterManagerJobs('ส่งกลับแก้ไข')">ส่งกลับแก้ไข</div>
-          <div class="filter-pill"        data-mgr-status="ไม่อนุมัติ"  onclick="filterManagerJobs('ไม่อนุมัติ')">ไม่อนุมัติ</div>
+
+        <!-- Filter Pills — เลื่อนแนวนอนได้บน mobile -->
+        <div style="display:flex;gap:.5rem;overflow-x:auto;padding-bottom:.5rem;scrollbar-width:none;margin-bottom:1rem;-webkit-overflow-scrolling:touch;">
+          <div class="filter-pill active" data-mgr-status="all"          onclick="filterManagerJobs('all')"          style="white-space:nowrap;flex-shrink:0;">ทั้งหมด</div>
+          <div class="filter-pill"        data-mgr-status="รอการอนุมัติ" onclick="filterManagerJobs('รอการอนุมัติ')" style="white-space:nowrap;flex-shrink:0;">⏳ รอการอนุมัติ</div>
+          <div class="filter-pill"        data-mgr-status="อนุมัติ"      onclick="filterManagerJobs('อนุมัติ')"      style="white-space:nowrap;flex-shrink:0;">✅ อนุมัติ</div>
+          <div class="filter-pill"        data-mgr-status="เสร็จสิ้น"    onclick="filterManagerJobs('เสร็จสิ้น')"    style="white-space:nowrap;flex-shrink:0;">🏁 เสร็จสิ้น</div>
+          <div class="filter-pill"        data-mgr-status="ส่งกลับแก้ไข" onclick="filterManagerJobs('ส่งกลับแก้ไข')" style="white-space:nowrap;flex-shrink:0;">↩️ ส่งกลับแก้ไข</div>
+          <div class="filter-pill"        data-mgr-status="ไม่อนุมัติ"  onclick="filterManagerJobs('ไม่อนุมัติ')"  style="white-space:nowrap;flex-shrink:0;">❌ ไม่อนุมัติ</div>
         </div>
+
         <!-- Desktop Table -->
-        <div class="table-card d-none d-md-block">
-          <table class="repair-table">
+        <div class="data-table-wrapper d-none d-md-block">
+          <table class="repair-table w-100">
             <thead><tr>
-              <th>เลขที่งาน</th><th>ผู้แจ้ง</th><th>ทะเบียน</th><th>อาการ</th><th>ประเมิน (฿)</th><th>สถานะ</th><th>วันที่แจ้ง</th><th>การดำเนินการ</th>
+              <th>เลขที่งาน</th>
+              <th>ผู้แจ้ง</th>
+              <th>ทะเบียน</th>
+              <th>อาการ</th>
+              <th style="text-align:right;">ประเมิน (฿)</th>
+              <th>สถานะ</th>
+              <th>วันที่แจ้ง</th>
+              <th style="text-align:center;">การดำเนินการ</th>
             </tr></thead>
             <tbody id="mgr-jobs-tbody"></tbody>
           </table>
         </div>
+
         <!-- Mobile Cards -->
         <div class="d-md-none" id="mgr-jobs-cards"></div>
+
+        <!-- Empty State -->
         <div id="mgr-jobs-empty" class="empty-state" style="display:none;">
           <span class="material-icons">inbox</span>ไม่มีรายการ
         </div>
+
       </div>
 
 </div>
@@ -1313,9 +1332,9 @@
    CONFIG — แก้ค่าเหล่านี้ให้ตรงกับของคุณ
    ============================================================ */
 const CONFIG = {
-  LIFF_ID:    '2009307051-5UV6LT8a',   // LIFF ID จาก LINE Developers
-  GAS_URL:    'https://script.google.com/macros/s/AKfycbxXMkVqqmTvvCeYTq58wYb7Vl8QrVKoUXgiqEqv3FgvoTfrH6tA3UCxLznWpFBO5U_7Aw/exec',   // URL จาก Deploy > Web App ใน GAS
-  API_SECRET: 'UJ&8m@+<KL#S9z1$gB!6', // ต้องตรงกับ API_SECRET ใน Code.gs
+  LIFF_ID:    'YOUR_LIFF_ID',   // LIFF ID จาก LINE Developers
+  GAS_URL:    'YOUR_GAS_URL',   // URL จาก Deploy > Web App ใน GAS
+  API_SECRET: 'YOUR_API_SECRET_KEY', // ต้องตรงกับ API_SECRET ใน Code.gs
 };
 
 /* ============================================================
@@ -3402,7 +3421,7 @@ async function printJobPDF(jobId) {
         </div>
         <div class="sign-box">
           <div class="sign-line"></div>
-          <div class="sign-lbl">ผู้อนุมัติ / ผุู้บริหาร</div>
+          <div class="sign-lbl">ช่างผู้รับผิดชอบ</div>
         </div>
       </div>
     </div>
