@@ -1,0 +1,3942 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>ระบบแจ้งซ่อมรถยนต์</title>
+<link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="favicon.png">
+<link rel="shortcut icon" href="favicon.png">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  :root {
+    --primary: #2E7D32;
+    --primary-dark: #1B5E20;
+    --primary-light: #4CAF50;
+    --primary-xlight: #E8F5E9;
+    --accent: #FF8F00;
+    --accent-light: #FFF8E1;
+    --danger: #C62828;
+    --danger-light: #FFEBEE;
+    --warning: #F57F17;
+    --warning-light: #FFFDE7;
+    --info: #01579B;
+    --info-light: #E1F5FE;
+    --success: #2E7D32;
+    --success-light: #E8F5E9;
+    --gray-50: #FAFAFA;
+    --gray-100: #F5F5F5;
+    --gray-200: #EEEEEE;
+    --gray-300: #E0E0E0;
+    --gray-400: #BDBDBD;
+    --gray-500: #9E9E9E;
+    --gray-600: #757575;
+    --gray-700: #616161;
+    --gray-800: #424242;
+    --gray-900: #212121;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.1);
+    --shadow-md: 0 4px 12px rgba(0,0,0,.12);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,.14);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --radius-lg: 16px;
+    --transition: .2s ease;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Sarabun', sans-serif;
+    background: var(--gray-100);
+    color: var(--gray-900);
+    min-height: 100vh;
+  }
+  h1,h2,h3,h4,h5,h6,.brand-text { font-family: 'Prompt', sans-serif; }
+
+  /* ======= NAVBAR ======= */
+  .navbar-custom {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+    padding: 0 1rem;
+    height: 64px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.2);
+    position: sticky; top:0; z-index: 1050;
+  }
+  .navbar-custom .brand-text { color:#fff; font-size:1.15rem; font-weight:600; letter-spacing:.3px; }
+  .navbar-custom .nav-link { color:rgba(255,255,255,.85) !important; font-size:.9rem; padding:.4rem .7rem !important; border-radius:6px; transition:var(--transition); }
+  .navbar-custom .nav-link:hover, .navbar-custom .nav-link.active { color:#fff !important; background:rgba(255,255,255,.15); }
+  .user-avatar { width:36px; height:36px; border-radius:50%; border:2px solid rgba(255,255,255,.5); object-fit:cover; cursor:pointer; }
+  .user-info-text { color:#fff; font-size:.82rem; line-height:1.2; }
+  .user-role-badge { background:rgba(255,255,255,.2); color:#fff; font-size:.7rem; padding:1px 6px; border-radius:20px; }
+
+  /* ======= SIDEBAR (desktop) ======= */
+  .app-wrapper { display:flex; min-height: calc(100vh - 64px); }
+  .sidebar {
+    width:240px; min-width:240px; background:#fff;
+    border-right:1px solid var(--gray-200);
+    padding:1rem 0;
+    position:sticky; top:64px; height:calc(100vh - 64px);
+    overflow-y:auto;
+    transition: width .3s ease;
+  }
+  .sidebar-section-label { font-size:.7rem; font-weight:700; color:var(--gray-500); letter-spacing:.8px; text-transform:uppercase; padding:.5rem 1.2rem .2rem; }
+  .sidebar-item {
+    display:flex; align-items:center; gap:.7rem;
+    padding:.65rem 1.2rem; margin:.1rem .5rem;
+    border-radius:var(--radius-sm); cursor:pointer;
+    color:var(--gray-700); font-size:.9rem;
+    transition:var(--transition); text-decoration:none;
+  }
+  .sidebar-item:hover { background:var(--primary-xlight); color:var(--primary); }
+  .sidebar-item.active { background:var(--primary-xlight); color:var(--primary); font-weight:600; }
+  .sidebar-item .material-icons { font-size:1.2rem; }
+  .sidebar-item .badge-count { margin-left:auto; background:var(--accent); color:#fff; font-size:.7rem; border-radius:20px; padding:1px 7px; }
+
+  .main-content { flex:1; padding:1.5rem; overflow-x:hidden; }
+
+  /* ======= CARDS ======= */
+  /* stat card เดิม */
+  .stat-card {
+    background:#fff; border-radius:var(--radius); padding:1.25rem 1.5rem;
+    box-shadow:var(--shadow-sm); border:1px solid var(--gray-200);
+    display:flex; align-items:center; gap:1rem;
+    transition:var(--transition);
+  }
+  .stat-card:hover { box-shadow:var(--shadow-md); transform:translateY(-2px); }
+  .stat-icon { width:52px; height:52px; border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:center; }
+  .stat-icon .material-icons { font-size:1.6rem; }
+  .stat-value { font-size:1.8rem; font-weight:700; line-height:1; }
+  .stat-label { font-size:.82rem; color:var(--gray-500); margin-top:.2rem; }
+
+  /* stat card แบบ horizontal แถวเดียว */
+  .stat-card-h {
+    background:#fff; border-radius:var(--radius); padding:1rem 1.25rem;
+    box-shadow:var(--shadow-sm); border:1px solid var(--gray-200);
+    min-width:130px; flex:1; text-align:center;
+    transition:var(--transition); flex-shrink:0;
+    display:flex; flex-direction:column; align-items:center; gap:.35rem;
+  }
+  .stat-card-h:hover { box-shadow:var(--shadow-md); transform:translateY(-2px); border-color:var(--primary-light); }
+  .stat-icon-h { width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; }
+  .stat-icon-h .material-icons { font-size:1.4rem; }
+  .stat-val-h { font-size:2rem; font-weight:700; line-height:1; font-family:'Prompt',sans-serif; color:var(--gray-900); }
+  .stat-lbl-h { font-size:.78rem; color:var(--gray-500); font-weight:500; white-space:nowrap; }
+  /* ซ่อน scrollbar แต่ scroll ได้ */
+  #stat-cards > div::-webkit-scrollbar { display:none; }
+
+  /* Report page */
+  .report-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  @media (max-width: 640px) {
+    .report-grid-2 { grid-template-columns: 1fr; }
+    .report-grid   { grid-template-columns: 1fr !important; }
+  }
+  .report-summary-grid {
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap:.75rem;
+    margin-bottom:1rem;
+  }
+  @media (max-width:768px) {
+    .report-summary-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width:400px) {
+    .report-summary-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  .report-summary-card {
+    background:#fff; border-radius:var(--radius); padding:1rem .75rem;
+    border:1px solid var(--gray-200); box-shadow:var(--shadow-sm);
+    text-align:center; min-width:0;
+  }
+  .report-summary-card .rs-val { font-size:1.6rem; font-weight:700; font-family:'Prompt',sans-serif; line-height:1; }
+  .report-summary-card .rs-lbl { font-size:.75rem; color:var(--gray-500); margin-top:.25rem; }
+  .report-bar-wrap { display:flex; align-items:center; gap:.6rem; margin-bottom:.4rem; font-size:.82rem; }
+  .report-bar { height:10px; border-radius:20px; background:var(--primary); transition:.4s; min-width:4px; }
+  @media (max-width:640px) { .report-grid { grid-template-columns:1fr !important; } }
+  @media (max-width:640px) {
+    #page-admin-qr > div:first-of-type { grid-template-columns:1fr !important; }
+  }
+
+  /* ======= TABLE ======= */
+  .data-table-wrapper { background:#fff; border-radius:var(--radius); box-shadow:var(--shadow-sm); border:1px solid var(--gray-200); overflow:hidden; }
+  .data-table-header { padding:1rem 1.25rem; border-bottom:1px solid var(--gray-200); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.5rem; }
+  .data-table-header h6 { font-family:'Prompt',sans-serif; font-size:.95rem; font-weight:600; color:var(--gray-800); }
+  .table { margin:0; font-size:.85rem; }
+  .table thead th { background:var(--gray-50); color:var(--gray-600); font-weight:600; font-size:.78rem; letter-spacing:.3px; text-transform:uppercase; padding:.75rem 1rem; white-space:nowrap; border-bottom:1px solid var(--gray-200); }
+  .table tbody td { padding:.75rem 1rem; vertical-align:middle; border-bottom:1px solid var(--gray-100); }
+  .table tbody tr:hover { background:var(--gray-50); }
+  .table tbody tr:last-child td { border-bottom:none; }
+  /* Manager jobs table */
+  .repair-table { width:100%; border-collapse:collapse; }
+  .repair-table thead th {
+    background:var(--gray-50); color:var(--gray-600);
+    font-weight:600; font-size:.78rem; letter-spacing:.3px;
+    text-transform:uppercase; padding:.75rem 1rem;
+    white-space:nowrap; border-bottom:2px solid var(--gray-200);
+  }
+  .repair-table tbody td { padding:.75rem 1rem; vertical-align:middle; border-bottom:1px solid var(--gray-100); }
+  .repair-table tbody tr:hover { background:var(--gray-50); }
+  .repair-table tbody tr:last-child td { border-bottom:none; }
+
+  /* ======= STATUS BADGES ======= */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:1060; align-items:center; justify-content:center; padding:1rem; }
+  .modal-overlay .modal-box {
+    background:#fff; border-radius:16px; width:100%; max-width:480px;
+    box-shadow:0 8px 32px rgba(0,0,0,.18); overflow:hidden;
+  }
+  .badge-status { font-size:.75rem; padding:.3rem .7rem; border-radius:20px; font-weight:600; white-space:nowrap; }
+  .status-waiting   { background:#FFF3E0; color:#E65100; }
+  .status-approved  { background:#E8F5E9; color:#2E7D32; }
+  .status-rejected  { background:#FFEBEE; color:#C62828; }
+  .status-revise    { background:#F3E5F5; color:#6A1B9A; }
+  .status-repairing { background:#E3F2FD; color:#1565C0; }
+  .status-done      { background:#E8F5E9; color:#1B5E20; }
+  .status-pending-mgr { background:#FFF8E1; color:#F57F17; }
+
+  /* ======= BUTTONS ======= */
+  .btn-primary-custom {
+    background:linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color:#fff; border:none; border-radius:var(--radius-sm);
+    padding:.55rem 1.2rem; font-size:.88rem; font-weight:600;
+    font-family:'Sarabun',sans-serif; cursor:pointer;
+    transition:var(--transition); display:inline-flex; align-items:center; gap:.4rem;
+  }
+  .btn-primary-custom:hover { opacity:.92; box-shadow:0 4px 12px rgba(46,125,50,.35); transform:translateY(-1px); color:#fff; }
+  .btn-primary-custom:active { transform:translateY(0); }
+  .btn-outline-custom { background:#fff; color:var(--primary); border:1.5px solid var(--primary); border-radius:var(--radius-sm); padding:.5rem 1.1rem; font-size:.88rem; font-weight:600; font-family:'Sarabun',sans-serif; cursor:pointer; transition:var(--transition); display:inline-flex; align-items:center; gap:.4rem; }
+  .btn-repair-header {
+    background: linear-gradient(135deg, #43A047, #1B5E20);
+    color: #fff; border: none;
+    border-radius: 24px;
+    padding: .55rem 1.3rem .55rem 1rem;
+    font-size: .92rem; font-weight: 700;
+    font-family: 'Prompt', sans-serif;
+    cursor: pointer; display: inline-flex; align-items: center; gap: .45rem;
+    box-shadow: 0 3px 10px rgba(27,94,32,.3);
+    transition: all .2s ease;
+  }
+  .btn-repair-header:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(27,94,32,.4); color:#fff; }
+  .btn-repair-header:active { transform: scale(.97); }
+  /* ปุ่มแจ้งซ่อมบน Dashboard */
+  .btn-repair-dashboard {
+    width: 100%; justify-content: center;
+    font-size: 1rem; height: 52px;
+    border-radius: 14px; margin-bottom: 1rem;
+    letter-spacing: .5px;
+  }
+  @media (min-width: 768px) {
+    .btn-repair-dashboard { width: auto; height: auto; border-radius: 24px; font-size:.92rem; margin-bottom: 0; margin-left: auto; }
+  }
+  .btn-outline-custom:hover { background:var(--primary-xlight); }
+  .btn-sm-icon { width:32px; height:32px; border-radius:6px; border:none; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; transition:var(--transition); }
+  .btn-sm-icon .material-icons { font-size:1rem; }
+
+  /* ======= FAB — Floating Action Button แจ้งซ่อม ======= */
+  .fab-repair {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 1040;
+    background: linear-gradient(135deg, #43A047 0%, #1B5E20 100%);
+    color: #fff;
+    border: none;
+    border-radius: 28px;
+    padding: 0 24px 0 16px;
+    height: 58px;
+    font-size: 1rem;
+    font-weight: 700;
+    font-family: 'Prompt', sans-serif;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 6px 20px rgba(27,94,32,.45);
+    transition: all .25s cubic-bezier(.34,1.56,.64,1);
+    letter-spacing: .3px;
+  }
+  .fab-repair:hover {
+    transform: translateY(-3px) scale(1.04);
+    box-shadow: 0 10px 28px rgba(27,94,32,.55);
+  }
+  .fab-repair:active { transform: scale(.97); }
+  .fab-repair .fab-icon {
+    width: 36px; height: 36px;
+    background: rgba(255,255,255,.2);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
+  }
+
+  /* pulse ring เฉพาะหน้า dashboard และ repair-list */
+  @keyframes fab-pulse {
+    0%   { transform: scale(1); box-shadow: 0 0 0 0 rgba(76,175,80,.55); }
+    60%  { transform: scale(1.03); box-shadow: 0 0 0 14px rgba(76,175,80,0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(76,175,80,0); }
+  }
+  .fab-repair.pulse { animation: fab-pulse 2.4s ease-out infinite; }
+
+  /* ซ่อน FAB บน desktop ที่มีปุ่มใน header แล้ว (optional — เปิดไว้ทุก size) */
+  @media (max-width: 768px) {
+    .fab-repair .fab-label { display: block; }
+  }
+
+  /* Auto-refresh indicator */
+  /* sync button spinner */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .syncing .material-icons { animation: spin .7s linear infinite; }
+
+  /* ======= MODAL OVERRIDES ======= */
+  .modal-content { border:none; border-radius:var(--radius-lg); box-shadow:var(--shadow-lg); }
+  .modal-header-custom {
+    background:linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+    color:#fff; padding:1rem 1.5rem; border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .modal-header-custom .modal-title { font-family:'Prompt',sans-serif; font-size:1rem; font-weight:600; display:flex; align-items:center; gap:.5rem; }
+  .modal-header-custom .btn-close-white { background:rgba(255,255,255,.2); border:none; border-radius:6px; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#fff; transition:var(--transition); }
+  .modal-header-custom .btn-close-white:hover { background:rgba(255,255,255,.35); }
+  .modal-body { padding:1.5rem; }
+  .modal-footer { padding:.75rem 1.5rem; border-top:1px solid var(--gray-200); background:var(--gray-50); border-radius:0 0 var(--radius-lg) var(--radius-lg); }
+
+  /* ======= FORM ======= */
+  .form-label { font-size:.85rem; font-weight:600; color:var(--gray-700); margin-bottom:.3rem; }
+  .form-label .req { color:var(--danger); margin-left:2px; }
+  .form-control, .form-select {
+    border:1.5px solid var(--gray-300); border-radius:var(--radius-sm);
+    padding:.5rem .85rem; font-size:.88rem; font-family:'Sarabun',sans-serif;
+    transition:var(--transition);
+  }
+  .form-control:focus, .form-select:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(46,125,50,.12); outline:none; }
+  .input-group-text { background:var(--gray-100); border:1.5px solid var(--gray-300); border-right:none; color:var(--gray-500); }
+
+  /* ======= USER PROFILE CARD ======= */
+  .profile-card-sm { display:flex; align-items:center; gap:.75rem; background:var(--primary-xlight); border-radius:var(--radius-sm); padding:.75rem 1rem; margin-bottom:1rem; border:1px solid rgba(46,125,50,.2); }
+  .profile-card-sm img { width:44px; height:44px; border-radius:50%; border:2px solid var(--primary); object-fit:cover; }
+  .profile-card-sm .name { font-weight:600; font-size:.92rem; color:var(--primary-dark); }
+  .profile-card-sm .line-id { font-size:.78rem; color:var(--gray-500); }
+
+  /* ======= REPAIR JOB CARD (mobile) ======= */
+  .repair-card {
+    background:#fff; border-radius:var(--radius); padding:1rem 1.25rem;
+    box-shadow:var(--shadow-sm); border:1px solid var(--gray-200); margin-bottom:.75rem;
+  }
+  .repair-card .job-id { font-size:.78rem; color:var(--gray-500); font-weight:600; }
+  .repair-card .plate { font-size:1rem; font-weight:700; color:var(--primary-dark); }
+
+  /* ======= SEARCH BAR ======= */
+  .search-bar { position:relative; }
+  .search-bar .material-icons { position:absolute; left:.7rem; top:50%; transform:translateY(-50%); color:var(--gray-400); font-size:1.1rem; pointer-events:none; }
+  .search-bar input { padding-left:2.2rem; }
+
+  /* ======= IMAGE PREVIEW ======= */
+  .img-preview-box { border:2px dashed var(--gray-300); border-radius:var(--radius-sm); padding:1.5rem; text-align:center; cursor:pointer; transition:var(--transition); position:relative; }
+  .img-preview-box:hover { border-color:var(--primary); background:var(--primary-xlight); }
+  .img-preview-box img { max-height:160px; border-radius:var(--radius-sm); object-fit:contain; }
+  .img-preview-box .placeholder-text { color:var(--gray-400); font-size:.85rem; }
+
+  /* ======= TABS ======= */
+  .nav-tabs-custom { border-bottom:2px solid var(--gray-200); margin-bottom:1.25rem; }
+  .nav-tabs-custom .nav-link { border:none; border-bottom:2px solid transparent; margin-bottom:-2px; color:var(--gray-600); font-size:.88rem; font-weight:600; padding:.6rem 1rem; transition:var(--transition); background:none; }
+  .nav-tabs-custom .nav-link:hover { color:var(--primary); }
+  .nav-tabs-custom .nav-link.active { color:var(--primary); border-bottom-color:var(--primary); }
+
+  /* ======= ALERT TOAST ======= */
+  #toast-container { position:fixed; bottom:1.5rem; right:1.5rem; z-index:9999; display:flex; flex-direction:column; gap:.5rem; }
+  .toast-msg { background:#fff; border-radius:var(--radius-sm); box-shadow:var(--shadow-lg); padding:.75rem 1rem; display:flex; align-items:center; gap:.6rem; font-size:.85rem; border-left:4px solid var(--primary); min-width:260px; animation:toastIn .3s ease; }
+  .toast-msg.error { border-left-color:var(--danger); }
+  .toast-msg.warning { border-left-color:var(--warning); }
+  @keyframes toastIn { from{opacity:0;transform:translateX(30px)} to{opacity:1;transform:translateX(0)} }
+
+  /* ======= LOADING OVERLAY ======= */
+  #loading-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:9998; align-items:center; justify-content:center; }
+  #loading-overlay.show { display:flex; }
+  .loading-box { background:#fff; border-radius:var(--radius); padding:2rem 2.5rem; text-align:center; }
+  .spinner-custom { width:48px; height:48px; border:4px solid var(--gray-200); border-top-color:var(--primary); border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 1rem; }
+  @keyframes spin { to{transform:rotate(360deg)} }
+
+  /* ======= LOGIN SCREEN ======= */
+  #login-screen { display:flex; align-items:center; justify-content:center; min-height:100vh; background:linear-gradient(160deg, var(--primary-dark) 0%, var(--primary) 60%, #66BB6A 100%); }
+  .login-card { background:#fff; border-radius:var(--radius-lg); padding:2.5rem 2rem; width:100%; max-width:380px; text-align:center; box-shadow:var(--shadow-lg); }
+  .login-logo { width:100px; height:100px; border-radius:20px; margin:0 auto 1.25rem; overflow:hidden; display:flex; align-items:center; justify-content:center; background:var(--primary-xlight); border:2px solid var(--primary-xlight); }
+  .login-logo img { width:100%; height:100%; object-fit:contain; }
+  .login-logo .material-icons { font-size:2.5rem; color:var(--primary); }
+
+  /* ======= RESPONSIVE ======= */
+  @media(max-width:768px) {
+    .sidebar { display:none; }
+    .main-content { padding:1rem .75rem; }
+    .stat-value { font-size:1.4rem; }
+    .table-responsive-hide { display:none; }
+  }
+  @media(min-width:769px) {
+    .mobile-only { display:none !important; }
+  }
+
+  /* ======= PAGE SECTIONS ======= */
+  .page-section { display:none; }
+  .page-section.active { display:block; }
+  .page-title { font-family:'Prompt',sans-serif; font-size:1.1rem; font-weight:700; color:var(--gray-800); display:flex; align-items:center; gap:.5rem; margin-bottom:1rem; flex-wrap:wrap; position:relative; }
+  .page-title .material-icons { color:var(--primary); font-size:1.3rem; flex-shrink:0; }
+  @media (max-width:576px) {
+    .page-title { font-size:1rem; }
+    .page-title .ms-auto { width:100%; justify-content:flex-end; }
+  }
+
+  /* DETAIL MODAL */
+  .detail-row { display:flex; gap:.5rem; padding:.5rem 0; border-bottom:1px solid var(--gray-100); font-size:.88rem; }
+  .detail-row:last-child { border:none; }
+  .detail-label { min-width:150px; color:var(--gray-500); font-weight:600; }
+  .detail-value { color:var(--gray-800); flex:1; }
+
+  /* Status filter pills */
+  .filter-pills { display:flex; gap:.4rem; margin-bottom:1rem; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:.25rem; scrollbar-width:none; flex-wrap:nowrap; }
+  .filter-pills::-webkit-scrollbar { display:none; }
+  .filter-pill { flex-shrink:0; }
+  .filter-pill { border:1.5px solid var(--gray-300); background:#fff; border-radius:20px; padding:.25rem .8rem; font-size:.8rem; font-weight:600; cursor:pointer; transition:var(--transition); }
+  .filter-pill:hover { border-color:var(--primary); color:var(--primary); }
+  .filter-pill.active { background:var(--primary); border-color:var(--primary); color:#fff; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width:6px; height:6px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:var(--gray-300); border-radius:10px; }
+
+  .empty-state { text-align:center; padding:3rem 1rem; color:var(--gray-400); }
+  .empty-state .material-icons { font-size:3.5rem; display:block; margin-bottom:.75rem; }
+
+  /* bill preview */
+  .bill-thumb { width:80px; height:80px; border-radius:8px; object-fit:cover; border:1px solid var(--gray-200); cursor:pointer; }
+
+  /* User management */
+  .user-row { display:flex; align-items:center; gap:.75rem; padding:.65rem .5rem; border-bottom:1px solid var(--gray-100); min-width:0; overflow:hidden; }
+  .user-row:last-child { border:none; }
+  .user-row img { width:38px; height:38px; border-radius:50%; object-fit:cover; border:2px solid var(--gray-200); flex-shrink:0; }
+  .user-row .flex-grow-1 { min-width:0; overflow:hidden; }
+  .user-row .flex-grow-1 div { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .user-row .btn-sm-icon { flex-shrink:0; }
+
+  /* Animated number */
+  .animate-num { transition:all .5s ease; }
+</style>
+</head>
+<body>
+
+<!-- ===== LOADING OVERLAY ===== -->
+<div id="loading-overlay">
+  <div class="loading-box">
+    <div class="spinner-custom"></div>
+    <div style="font-family:'Prompt',sans-serif;font-weight:600;color:var(--gray-700);">กำลังโหลด...</div>
+  </div>
+</div>
+
+<!-- ===== TOAST CONTAINER ===== -->
+<div id="toast-container"></div>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo" id="login-logo-wrap">
+      <!-- ถ้าต้องการใช้โลโก้บริษัท ให้เปลี่ยน src เป็น URL รูปโลโก้ของคุณ -->
+      <!-- เช่น src="https://yourdomain.com/logo.png" หรือ src="logo.png" (วางไว้ใน repo เดียวกัน) -->
+      <img src="logo.png" alt="Company Logo"
+           onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='flex';">
+      <span class="material-icons" id="logo-fallback" style="display:none;">directions_car</span>
+    </div>
+    <h5 style="font-family:'Prompt',sans-serif;font-weight:700;margin-bottom:.25rem;color:var(--primary-dark);">ระบบแจ้งซ่อมรถยนต์</h5>
+    <p style="font-size:.85rem;color:var(--gray-500);margin-bottom:1.75rem;">กรุณาเข้าสู่ระบบผ่าน LINE เพื่อใช้งาน</p>
+    <button class="btn-primary-custom w-100 justify-content-center py-3" id="btn-line-login" onclick="initLiff()">
+      <i class="fab fa-line" style="font-size:1.2rem;"></i> เข้าสู่ระบบด้วย LINE
+    </button>
+    <p style="font-size:.75rem;color:var(--gray-400);margin-top:1.25rem;">ระบบจะตรวจสอบสิทธิ์จากบัญชี LINE ของคุณ</p>
+  </div>
+</div>
+
+<!-- ===== MAIN APP (hidden until login) ===== -->
+<div id="main-app" style="display:none;">
+
+  <!-- NAVBAR -->
+  <nav class="navbar-custom d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn-sm-icon" style="background:rgba(255,255,255,.15);color:#fff;" id="sidebar-toggle">
+        <span class="material-icons">menu</span>
+      </button>
+      <img id="nav-logo" src="royal-d.png"
+           onerror="this.style.display='none';document.getElementById('nav-logo-fallback').style.display='inline';"
+           style="height:80px;width:80px;object-fit:contain;border-radius:8px;padding:0;">
+      <span class="material-icons" id="nav-logo-fallback" style="color:#fff;font-size:1.4rem;display:none;">directions_car</span>
+      <span class="brand-text">ระบบแจ้งซ่อมรถยนต์</span>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <!-- ปุ่ม Sync -->
+      <button id="btn-sync" onclick="manualSync()" title="รีเฟรชข้อมูล"
+        style="background:rgba(255,255,255,.18);border:none;border-radius:8px;color:#fff;
+               width:36px;height:36px;display:flex;align-items:center;justify-content:center;
+               cursor:pointer;transition:.2s;flex-shrink:0;"
+        onmouseover="this.style.background='rgba(255,255,255,.3)'"
+        onmouseout="this.style.background='rgba(255,255,255,.18)'">
+        <span class="material-icons" style="font-size:1.2rem;">sync</span>
+      </button>
+      <div class="d-none d-md-block text-end">
+        <div class="user-info-text" id="nav-username">กำลังโหลด...</div>
+        <span class="user-role-badge" id="nav-role">User</span>
+      </div>
+      <img src="" onerror="this.src=AVATAR_DEFAULT" id="nav-avatar" class="user-avatar" alt="avatar">
+    </div>
+  </nav>
+
+  <div class="app-wrapper">
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+      <!-- เมนูหลัก -->
+      <div id="main-menu">
+        <div class="sidebar-section-label">เมนูหลัก</div>
+        <a class="sidebar-item active" data-page="dashboard" onclick="navigate('dashboard')">
+          <span class="material-icons">dashboard</span> แดชบอร์ด
+        </a>
+        <a class="sidebar-item" data-page="repair-list" onclick="navigate('repair-list')">
+          <span class="material-icons">build_circle</span> รายการแจ้งซ่อม
+          <span class="badge-count" id="badge-pending">0</span>
+        </a>
+      </div>
+
+      <!-- เมนู Manager -->
+      <div id="manager-menu" style="display:none;">
+        <div class="sidebar-section-label" style="margin-top:.75rem;">ผู้บริหาร</div>
+        <a class="sidebar-item" data-page="manager-jobs" onclick="navigate('manager-jobs')">
+          <span class="material-icons">rule_folder</span> รายการแจ้งซ่อม
+          <span class="badge-count" id="badge-approval">0</span>
+        </a>
+        <div class="sidebar-section-label" style="margin-top:.75rem;">รายงาน</div>
+        <a class="sidebar-item" data-page="admin-report" onclick="navigate('admin-report')">
+          <span class="material-icons">bar_chart</span> รายงานรายเดือน
+        </a>
+        <a class="sidebar-item" data-page="admin-yearly" onclick="navigate('admin-yearly')">
+          <span class="material-icons">calendar_month</span> รายงานรายปี
+        </a>
+      </div>
+
+      <!-- เมนู Admin/Supervisor -->
+      <div id="admin-menu" style="display:none;">
+        <!-- จัดการข้อมูล -->
+        <div class="sidebar-section-label" style="margin-top:.75rem;">จัดการข้อมูล</div>
+        <a class="sidebar-item" data-page="admin-users" onclick="navigate('admin-users')">
+          <span class="material-icons">manage_accounts</span> จัดการผู้ใช้
+        </a>
+        <a class="sidebar-item" data-page="admin-vehicles" onclick="navigate('admin-vehicles')">
+          <span class="material-icons">directions_car</span> จัดการทะเบียนรถ
+        </a>
+        <a class="sidebar-item" data-page="vehicle-history" onclick="navigate('vehicle-history')">
+          <span class="material-icons">manage_search</span> ประวัติตามทะเบียน
+        </a>
+        <!-- รายงาน -->
+        <div class="sidebar-section-label" style="margin-top:.75rem;">รายงาน</div>
+        <a class="sidebar-item" data-page="admin-report" onclick="navigate('admin-report')">
+          <span class="material-icons">bar_chart</span> รายงานรายเดือน
+        </a>
+        <a class="sidebar-item" data-page="admin-yearly" onclick="navigate('admin-yearly')">
+          <span class="material-icons">calendar_today</span> รายงานรายปี
+        </a>
+        <!-- เครื่องมือ -->
+        <div class="sidebar-section-label" style="margin-top:.75rem;">เครื่องมือ</div>
+        <a class="sidebar-item" data-page="admin-qr" onclick="navigate('admin-qr')">
+          <span class="material-icons">qr_code_2</span> QR Code แจ้งซ่อม
+        </a>
+      </div>
+
+      <div class="sidebar-section-label" style="margin-top:.75rem;">อื่นๆ</div>
+      <a class="sidebar-item" onclick="logout()">
+        <span class="material-icons">logout</span> ออกจากระบบ
+      </a>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+
+      <!-- ===== DASHBOARD PAGE ===== -->
+      <div class="page-section active" id="page-dashboard">
+        <div class="page-title">
+          <span class="material-icons">dashboard</span> แดชบอร์ด
+          <button class="btn-repair-header btn-repair-dashboard" id="btn-repair-dashboard" onclick="openRepairModal()">
+            <span class="material-icons" style="font-size:1.3rem;">add_circle</span>
+            <span>แจ้งซ่อมรถยนต์</span>
+          </button>
+        </div>
+
+        <!-- Profile card -->
+        <div class="profile-card-sm mb-3">
+          <img src="" onerror="this.src=AVATAR_DEFAULT" id="dash-avatar" alt="">
+          <div>
+            <div class="name" id="dash-name">กำลังโหลด...</div>
+            <div class="line-id" id="dash-dept">-</div>
+          </div>
+        </div>
+
+        <!-- Stat Cards — single scrollable row -->
+        <div id="stat-cards" class="mb-3">
+          <div style="display:flex;gap:.75rem;overflow-x:auto;padding-bottom:.5rem;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
+
+            <div class="stat-card-h" onclick="navigate('repair-list')" style="cursor:pointer;">
+              <div class="stat-icon-h" style="background:#FFF3E0;color:#E65100;"><span class="material-icons">pending</span></div>
+              <div class="stat-val-h animate-num" id="stat-waiting">0</div>
+              <div class="stat-lbl-h">รอดำเนินการ</div>
+            </div>
+
+            <div class="stat-card-h" onclick="navigate('repair-list')" style="cursor:pointer;">
+              <div class="stat-icon-h" style="background:#E3F2FD;color:#1565C0;"><span class="material-icons">build</span></div>
+              <div class="stat-val-h animate-num" id="stat-repairing">0</div>
+              <div class="stat-lbl-h">กำลังซ่อม</div>
+            </div>
+
+            <div class="stat-card-h" onclick="navigate('repair-list')" style="cursor:pointer;">
+              <div class="stat-icon-h" style="background:#E8F5E9;color:#2E7D32;"><span class="material-icons">check_circle</span></div>
+              <div class="stat-val-h animate-num" id="stat-done">0</div>
+              <div class="stat-lbl-h">เสร็จสิ้น</div>
+            </div>
+
+            <div class="stat-card-h" onclick="navigate('repair-list')" style="cursor:pointer;">
+              <div class="stat-icon-h" style="background:#E8EAF6;color:#283593;"><span class="material-icons">list_alt</span></div>
+              <div class="stat-val-h animate-num" id="stat-total">0</div>
+              <div class="stat-lbl-h">ทั้งหมด</div>
+            </div>
+
+            <div class="stat-card-h admin-only-stat" style="display:none;cursor:pointer;" onclick="navigate('repair-list')">
+              <div class="stat-icon-h" style="background:#FFEBEE;color:#C62828;"><span class="material-icons">cancel</span></div>
+              <div class="stat-val-h animate-num" id="stat-rejected">0</div>
+              <div class="stat-lbl-h">ไม่อนุมัติ</div>
+            </div>
+
+            <div class="stat-card-h admin-only-stat" style="display:none;cursor:pointer;" onclick="navigate('repair-list')">
+              <div class="stat-icon-h" style="background:#F3E5F5;color:#6A1B9A;"><span class="material-icons">replay</span></div>
+              <div class="stat-val-h animate-num" id="stat-revise">0</div>
+              <div class="stat-lbl-h">ส่งกลับแก้ไข</div>
+            </div>
+
+
+          </div>
+        </div>
+
+        <!-- Recent jobs -->
+        <div class="data-table-wrapper">
+          <div class="data-table-header">
+            <h6><span class="material-icons" style="font-size:1rem;color:var(--primary);vertical-align:middle;">history</span> รายการล่าสุด</h6>
+            <button class="btn-outline-custom btn-sm" onclick="navigate('repair-list')">ดูทั้งหมด</button>
+          </div>
+          <div id="recent-jobs-list" class="p-3">
+            <div class="empty-state"><span class="material-icons">inbox</span>ยังไม่มีรายการ</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== REPAIR LIST PAGE ===== -->
+      <div class="page-section" id="page-repair-list">
+        <div class="page-title">
+          <span class="material-icons">build_circle</span> รายการแจ้งซ่อม
+          <div class="ms-auto d-flex gap-2">
+            <button class="btn-outline-custom" id="btn-export-csv" onclick="exportCSV()" style="display:none;">
+              <span class="material-icons" style="font-size:1rem;">download</span>
+              <span class="d-none d-sm-inline">Export </span>CSV
+            </button>
+            <button class="btn-repair-header" id="btn-repair-list" onclick="openRepairModal()">
+              <span class="material-icons" style="font-size:1.2rem;">add_circle</span>
+              <span>แจ้งซ่อม</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter & search -->
+        <div class="d-flex flex-wrap gap-2 mb-2 align-items-center">
+          <div class="search-bar" style="flex:1;min-width:160px;">
+            <span class="material-icons">search</span>
+            <input type="text" class="form-control" id="search-input" placeholder="ค้นหา ทะเบียน / ชื่อ / เลขงาน...">
+          </div>
+          <select class="form-select" style="width:auto;min-width:130px;font-size:.85rem;flex-shrink:0;" id="filter-date">
+            <option value="">ทุกช่วงเวลา</option>
+            <option value="today">วันนี้</option>
+            <option value="week">สัปดาห์นี้</option>
+            <option value="month">เดือนนี้</option>
+          </select>
+          <select class="form-select" style="width:auto;min-width:150px;font-size:.85rem;flex-shrink:0;" id="repair-sort">
+            <option value="newest">ใหม่สุดก่อน</option>
+            <option value="oldest">เก่าสุดก่อน</option>
+          </select>
+        </div>
+
+        <!-- Status filter pills -->
+        <div class="filter-pills" id="status-pills">
+          <div class="filter-pill active" data-status="">ทั้งหมด</div>
+          <div class="filter-pill" data-status="รอดำเนินการ">รอดำเนินการ</div>
+          <div class="filter-pill" data-status="อนุมัติ">อนุมัติ</div>
+          <div class="filter-pill" data-status="กำลังซ่อม">กำลังซ่อม</div>
+          <div class="filter-pill" data-status="ส่งกลับแก้ไข">ส่งกลับแก้ไข</div>
+          <div class="filter-pill" data-status="รอการอนุมัติ">รอการอนุมัติ</div>
+          <div class="filter-pill" data-status="เสร็จสิ้น">เสร็จสิ้น</div>
+          <div class="filter-pill" data-status="ไม่อนุมัติ">ไม่อนุมัติ</div>
+        </div>
+
+        <!-- Desktop Table -->
+        <div class="data-table-wrapper d-none d-md-block">
+          <div class="table-responsive">
+            <table class="table" id="repair-table">
+              <thead>
+                <tr>
+                  <th>เลขที่งาน</th>
+                  <th>วันที่แจ้ง</th>
+                  <th>ผู้แจ้ง</th>
+                  <th>ทะเบียน</th>
+                  <th>ไมล์</th>
+                  <th>สถานที่ซ่อม</th>
+                  <th>สถานะ</th>
+                  <th>การดำเนินการ</th>
+                </tr>
+              </thead>
+              <tbody id="repair-tbody">
+                <tr><td colspan="8" class="text-center py-4 text-muted">กำลังโหลดข้อมูล...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Mobile Cards -->
+        <div class="d-md-none" id="repair-cards-mobile">
+          <div class="empty-state"><span class="material-icons">inbox</span>กำลังโหลด...</div>
+        </div>
+      </div>
+
+
+      <!-- ===== VEHICLE HISTORY PAGE (ข้อ 6) ===== -->
+      <div class="page-section" id="page-vehicle-history">
+        <div class="page-title">
+          <span class="material-icons">manage_search</span> ประวัติซ่อมตามทะเบียน
+        </div>
+        <!-- Search -->
+        <div class="data-table-wrapper p-3 mb-3">
+          <div class="d-flex gap-2 flex-wrap align-items-center">
+            <select class="form-select" id="vh-plate-select" style="max-width:220px;">
+              <option value="">-- เลือกทะเบียนรถ --</option>
+            </select>
+            <button class="btn-repair-header" onclick="loadVehicleHistory()" style="padding:.45rem 1rem;">
+              <span class="material-icons" style="font-size:1rem;">search</span> ค้นหา
+            </button>
+          </div>
+        </div>
+        <!-- Summary -->
+        <div id="vh-summary" style="display:none;" class="mb-3">
+          <div style="display:flex;gap:.75rem;flex-wrap:wrap;">
+            <div class="data-table-wrapper p-3 text-center" style="flex:1;min-width:120px;">
+              <div style="font-size:1.5rem;font-weight:700;color:var(--primary);" id="vh-total-jobs">0</div>
+              <div style="font-size:.8rem;color:var(--gray-500);">งานซ่อมทั้งหมด</div>
+            </div>
+            <div class="data-table-wrapper p-3 text-center" style="flex:1;min-width:120px;">
+              <div style="font-size:1.5rem;font-weight:700;color:#1B5E20;" id="vh-done-jobs">0</div>
+              <div style="font-size:.8rem;color:var(--gray-500);">เสร็จสิ้น</div>
+            </div>
+            <div class="data-table-wrapper p-3 text-center" style="flex:1;min-width:120px;">
+              <div style="font-size:1.5rem;font-weight:700;color:var(--accent);" id="vh-total-cost">0</div>
+              <div style="font-size:.8rem;color:var(--gray-500);">ค่าใช้จ่ายรวม (บาท)</div>
+            </div>
+          </div>
+        </div>
+        <!-- History Table -->
+        <div class="data-table-wrapper" id="vh-table-wrap" style="display:none;">
+          <div class="table-responsive d-none d-md-block">
+            <table class="table" id="vh-table">
+              <thead><tr><th>เลขที่งาน</th><th>วันที่</th><th>อาการ</th><th>สถานะ</th><th>ค่าใช้จ่าย</th><th>หมายเหตุ</th></tr></thead>
+              <tbody id="vh-tbody"></tbody>
+            </table>
+          </div>
+          <div class="d-md-none p-2" id="vh-cards"></div>
+        </div>
+        <div class="empty-state" id="vh-empty" style="display:none;">
+          <span class="material-icons">directions_car</span>ไม่พบประวัติการซ่อม
+        </div>
+      </div>
+
+      <!-- ===== STATUS LOG MODAL (ข้อ 5) — เปิดจากปุ่มใน detail ===== -->
+      <!-- ใช้ modal แยก -->
+
+      <!-- ===== YEARLY REPORT PAGE (ข้อ 7) ===== -->
+      <div class="page-section" id="page-admin-yearly">
+        <div class="page-title">
+          <span class="material-icons">calendar_today</span> รายงานสรุปรายปี
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-bottom:1rem;">
+          <select id="yearly-year" class="form-select form-select-sm" style="width:110px;"></select>
+          <button class="btn-repair-header" onclick="generateYearlyReport()" style="padding:.45rem 1rem;font-size:.82rem;">
+            <span class="material-icons" style="font-size:.95rem;">refresh</span> สร้างรายงาน
+          </button>
+          <button class="btn-outline-custom btn-sm" onclick="exportYearlyCSV()" style="flex-shrink:0;font-size:.82rem;">
+            <span class="material-icons" style="font-size:.85rem;">download</span> CSV
+          </button>
+          <button class="btn-outline-custom btn-sm" onclick="printYearlyReport()" style="flex-shrink:0;font-size:.82rem;">
+            <span class="material-icons" style="font-size:.85rem;">picture_as_pdf</span> PDF
+          </button>
+        </div>
+        <!-- Summary cards -->
+        <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem;" id="yearly-summary-row"></div>
+        <!-- Monthly chart -->
+        <div class="data-table-wrapper p-3 mb-3">
+          <div style="font-weight:700;font-size:.9rem;margin-bottom:.75rem;">
+            <span class="material-icons" style="font-size:1rem;color:var(--primary);vertical-align:middle;">bar_chart</span> จำนวนงานซ่อมรายเดือน
+          </div>
+          <canvas id="chart-yearly-monthly"></canvas>
+        </div>
+        <!-- Cost chart -->
+        <div class="data-table-wrapper p-3 mb-3">
+          <div style="font-weight:700;font-size:.9rem;margin-bottom:.75rem;">
+            <span class="material-icons" style="font-size:1rem;color:var(--primary);vertical-align:middle;">payments</span> ค่าใช้จ่ายรายเดือน (บาท)
+          </div>
+          <canvas id="chart-yearly-cost"></canvas>
+        </div>
+        <!-- Top plates -->
+        <div class="data-table-wrapper p-3 mb-3">
+          <div style="font-weight:700;font-size:.9rem;margin-bottom:.75rem;">
+            <span class="material-icons" style="font-size:1rem;color:var(--primary);vertical-align:middle;">directions_car</span> รถที่ซ่อมบ่อยที่สุด (Top 10)
+          </div>
+          <div id="yearly-top-plates"></div>
+        </div>
+      </div>
+
+      <!-- ===== QR CODE PAGE ===== -->
+      <div class="page-section" id="page-admin-qr">
+        <div class="page-title">
+          <span class="material-icons">qr_code_2</span> QR Code แจ้งซ่อม
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;max-width:860px;">
+
+          <!-- QR Card -->
+          <div class="data-table-wrapper p-4 text-center" style="display:flex;flex-direction:column;align-items:center;gap:.75rem;">
+            <div style="font-weight:700;font-size:1rem;color:var(--primary-dark);">
+              <span class="material-icons" style="vertical-align:middle;font-size:1.1rem;">qr_code</span>
+              QR สแกนแจ้งซ่อม
+            </div>
+            <!-- QR จะถูก generate ตรงนี้ -->
+            <div id="qr-canvas-wrap" style="padding:16px;background:#fff;border-radius:12px;border:2px solid var(--gray-200);box-shadow:var(--shadow-sm);display:inline-block;">
+              <div id="qr-div"></div>
+            </div>
+            <div style="font-size:.8rem;color:var(--gray-500);max-width:220px;text-align:center;">
+              สแกน QR นี้เพื่อเปิดหน้าแจ้งซ่อมได้ทันที
+            </div>
+            <!-- ปุ่ม -->
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center;">
+              <button class="btn-repair-header" onclick="downloadQR()" style="padding:.45rem 1rem;font-size:.82rem;">
+                <span class="material-icons" style="font-size:.95rem;">download</span> บันทึก PNG
+              </button>
+              <button class="btn-outline-custom btn-sm" onclick="printQR()" style="font-size:.82rem;">
+                <span class="material-icons" style="font-size:.9rem;">print</span> พิมพ์
+              </button>
+            </div>
+          </div>
+
+          <!-- Preview Card -->
+          <div class="data-table-wrapper p-4" style="display:flex;flex-direction:column;gap:.75rem;">
+            <div style="font-weight:700;font-size:1rem;color:var(--primary-dark);">
+              <span class="material-icons" style="vertical-align:middle;font-size:1.1rem;">preview</span>
+              ตัวอย่างโปสเตอร์สำหรับติดที่รถ/จุดรับแจ้ง
+            </div>
+            <!-- Poster Preview -->
+            <div id="qr-poster" style="background:linear-gradient(135deg,#1B5E20,#2E7D32);border-radius:12px;padding:24px 20px;text-align:center;color:#fff;display:flex;flex-direction:column;align-items:center;gap:12px;">
+              <div style="font-size:1.3rem;font-weight:700;font-family:'Prompt',sans-serif;letter-spacing:.5px;">🔧 แจ้งซ่อมรถยนต์</div>
+              <div style="background:#fff;padding:12px;border-radius:10px;">
+                <div id="qr-poster-div"></div>
+              </div>
+              <div style="font-size:.85rem;opacity:.9;">สแกน QR Code เพื่อแจ้งซ่อม</div>
+              <div style="font-size:.75rem;opacity:.7;word-break:break-all;" id="qr-url-label"></div>
+            </div>
+            <button class="btn-outline-custom btn-sm" onclick="printPoster()" style="font-size:.82rem;align-self:center;">
+              <span class="material-icons" style="font-size:.9rem;">print</span> พิมพ์โปสเตอร์
+            </button>
+          </div>
+
+        </div>
+
+        <!-- URL Info -->
+        <div class="data-table-wrapper p-3 mt-3" style="max-width:860px;">
+          <div style="font-size:.82rem;color:var(--gray-600);">
+            <span class="material-icons" style="font-size:.9rem;vertical-align:middle;color:var(--primary);">link</span>
+            <strong>URL ที่ QR ชี้ไป:</strong>
+            <span id="qr-url-display" style="word-break:break-all;margin-left:.25rem;"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== ADMIN MONTHLY REPORT PAGE ===== -->
+      <div class="page-section" id="page-admin-report">
+        <!-- Title -->
+        <div class="page-title" style="flex-wrap:wrap;gap:.5rem;">
+          <span class="material-icons">bar_chart</span>
+          <span>รายงานสรุปรายเดือน</span>
+        </div>
+        <!-- Controls — แถวแยก wrap ได้ทุก size -->
+        <div style="display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-bottom:1rem;">
+          <select id="report-year"  class="form-select form-select-sm" style="width:100px;font-size:.85rem;flex-shrink:0;"></select>
+          <select id="report-month" class="form-select form-select-sm" style="width:130px;font-size:.85rem;flex-shrink:0;"></select>
+          <button class="btn-repair-header" onclick="generateReport()" style="padding:.45rem .9rem;flex-shrink:0;font-size:.82rem;">
+            <span class="material-icons" style="font-size:.95rem;">refresh</span> สร้างรายงาน
+          </button>
+          <button class="btn-outline-custom btn-sm" onclick="exportMonthlyCSV()" style="flex-shrink:0;font-size:.82rem;">
+            <span class="material-icons" style="font-size:.85rem;">download</span> CSV
+          </button>
+          <button class="btn-outline-custom btn-sm" onclick="printMonthlyReport()" style="flex-shrink:0;font-size:.82rem;">
+            <span class="material-icons" style="font-size:.85rem;">picture_as_pdf</span> PDF
+          </button>
+        </div>
+
+        <!-- Summary Cards -->
+        <div id="report-month-label" style="font-family:'Prompt',sans-serif;font-size:.82rem;color:var(--gray-500);margin-bottom:.5rem;"></div>
+        <div id="report-summary-row" class="report-summary-grid"></div>
+
+        <!-- Charts row — 2 col desktop, 1 col mobile -->
+        <div class="report-grid-2 mb-3">
+
+          <!-- Status Pie -->
+          <div class="data-table-wrapper" style="padding:1rem;">
+            <div style="font-weight:700;font-size:.9rem;margin-bottom:.75rem;display:flex;align-items:center;gap:.4rem;">
+              <span class="material-icons" style="font-size:1rem;color:var(--primary);">donut_large</span> สัดส่วนสถานะ
+            </div>
+            <canvas id="chart-status"></canvas>
+          </div>
+
+          <!-- Daily Bar -->
+          <div class="data-table-wrapper" style="padding:1rem;">
+            <div style="font-weight:700;font-size:.9rem;margin-bottom:.75rem;display:flex;align-items:center;gap:.4rem;">
+              <span class="material-icons" style="font-size:1rem;color:var(--primary);">bar_chart</span> แจ้งซ่อมรายวัน
+            </div>
+            <canvas id="chart-daily"></canvas>
+          </div>
+        </div>
+
+        <!-- Top users + Cost summary -->
+        <div class="report-grid-2 mb-3">
+
+          <!-- Top Users -->
+          <div class="data-table-wrapper" style="padding:1rem;">
+            <div style="font-weight:700;font-size:.9rem;margin-bottom:.75rem;display:flex;align-items:center;gap:.4rem;">
+              <span class="material-icons" style="font-size:1rem;color:var(--primary);">leaderboard</span> ผู้แจ้งซ่อมสูงสุด
+            </div>
+            <div id="report-top-users"></div>
+          </div>
+
+          <!-- Cost summary -->
+          <div class="data-table-wrapper" style="padding:1rem;">
+            <div style="font-weight:700;font-size:.9rem;margin-bottom:.75rem;display:flex;align-items:center;gap:.4rem;">
+              <span class="material-icons" style="font-size:1rem;color:var(--primary);">payments</span> สรุปค่าใช้จ่าย
+            </div>
+            <div id="report-cost-summary"></div>
+          </div>
+        </div>
+
+        <!-- Detail Table -->
+        <div class="data-table-wrapper">
+          <div class="data-table-header">
+            <h6><span class="material-icons" style="font-size:1rem;color:var(--primary);vertical-align:middle;">table_chart</span> รายการทั้งหมดในเดือนนี้</h6>
+            <span id="report-job-count" style="font-size:.82rem;color:var(--gray-500);"></span>
+          </div>
+          <div class="table-responsive">
+            <table class="table" style="font-size:.85rem;">
+              <thead>
+                <tr>
+                  <th>เลขที่งาน</th><th>วันที่แจ้ง</th><th>ผู้แจ้ง</th>
+                  <th>ทะเบียน</th><th>สถานะ</th><th>ค่าใช้จ่าย</th>
+                </tr>
+              </thead>
+              <tbody id="report-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== ADMIN USERS PAGE ===== -->
+      <div class="page-section" id="page-admin-users">
+        <div class="page-title">
+          <span class="material-icons">manage_accounts</span> จัดการผู้ใช้งาน
+        </div>
+        <div class="data-table-wrapper">
+          <div class="data-table-header">
+            <h6>รายชื่อพนักงาน</h6>
+            <button class="btn-primary-custom btn-sm" onclick="openAddUserModal()">
+              <span class="material-icons" style="font-size:.9rem;">person_add</span> เพิ่มผู้ใช้
+            </button>
+          </div>
+          <div id="user-list" class="p-3">
+            <div class="empty-state"><span class="material-icons">people</span>กำลังโหลด...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== ADMIN VEHICLES PAGE ===== -->
+      <div class="page-section" id="page-admin-vehicles">
+        <div class="page-title">
+          <span class="material-icons">directions_car</span> จัดการทะเบียนรถ
+        </div>
+        <div class="data-table-wrapper">
+          <div class="data-table-header">
+            <h6>รายการทะเบียนรถ</h6>
+            <button class="btn-primary-custom btn-sm" onclick="openAddVehicleModal()">
+              <span class="material-icons" style="font-size:.9rem;">add</span> เพิ่มทะเบียน
+            </button>
+          </div>
+          <div id="vehicle-list" class="p-3">
+            <div class="empty-state"><span class="material-icons">directions_car</span>กำลังโหลด...</div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ===== MANAGER JOBS PAGE ===== -->
+      <div class="page-section" id="page-manager-jobs">
+        <!-- Page Title -->
+        <div class="page-title" style="margin-bottom:1.25rem;">
+          <span class="material-icons">rule_folder</span> รายการแจ้งซ่อม
+        </div>
+
+        <!-- Stat Cards — 3 ใบ scrollable แนวนอน -->
+        <div style="display:flex;gap:.75rem;overflow-x:auto;padding-bottom:.5rem;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin-bottom:1.25rem;">
+          <div class="stat-card-h" style="cursor:default;min-width:140px;flex:1;">
+            <div class="stat-icon-h" style="background:#FFF8E1;color:#F57F17;"><span class="material-icons">pending</span></div>
+            <div class="stat-val-h" id="mgr-stat-pending">0</div>
+            <div class="stat-lbl-h">รอการอนุมัติ</div>
+          </div>
+          <div class="stat-card-h" style="cursor:default;min-width:140px;flex:1;">
+            <div class="stat-icon-h" style="background:#E8F5E9;color:#2E7D32;"><span class="material-icons">check_circle</span></div>
+            <div class="stat-val-h" id="mgr-stat-approved">0</div>
+            <div class="stat-lbl-h">อนุมัติแล้ว</div>
+          </div>
+          <div class="stat-card-h" style="cursor:default;min-width:140px;flex:1;">
+            <div class="stat-icon-h" style="background:#E8EAF6;color:#283593;"><span class="material-icons">payments</span></div>
+            <div class="stat-val-h" id="mgr-stat-cost" style="font-size:1rem;">0</div>
+            <div class="stat-lbl-h">ยอดอนุมัติ (฿)</div>
+          </div>
+        </div>
+
+        <!-- Search + Sort Row -->
+        <div class="d-flex gap-2 mb-3 flex-wrap align-items-center">
+          <div style="position:relative;flex:1;min-width:200px;">
+            <span class="material-icons" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--gray-400);font-size:1.1rem;pointer-events:none;">search</span>
+            <input type="text" id="mgr-search" class="form-control" placeholder="ค้นหาทะเบียน / ผู้แจ้ง / เลขที่งาน..." style="padding-left:2.4rem;" oninput="renderManagerJobs()">
+          </div>
+          <select id="mgr-sort" class="form-select" style="max-width:180px;" onchange="renderManagerJobs()">
+            <option value="oldest">🕐 เก่าสุดก่อน (FIFO)</option>
+            <option value="newest">🕑 ใหม่สุดก่อน</option>
+          </select>
+        </div>
+
+        <!-- Filter Pills — เลื่อนแนวนอนได้บน mobile -->
+        <div style="display:flex;gap:.5rem;overflow-x:auto;padding-bottom:.5rem;scrollbar-width:none;margin-bottom:1rem;-webkit-overflow-scrolling:touch;">
+          <div class="filter-pill active" data-mgr-status="all"          onclick="filterManagerJobs('all')"          style="white-space:nowrap;flex-shrink:0;">ทั้งหมด</div>
+          <div class="filter-pill"        data-mgr-status="รอการอนุมัติ" onclick="filterManagerJobs('รอการอนุมัติ')" style="white-space:nowrap;flex-shrink:0;">⏳ รอการอนุมัติ</div>
+          <div class="filter-pill"        data-mgr-status="อนุมัติ"      onclick="filterManagerJobs('อนุมัติ')"      style="white-space:nowrap;flex-shrink:0;">✅ อนุมัติ</div>
+          <div class="filter-pill"        data-mgr-status="เสร็จสิ้น"    onclick="filterManagerJobs('เสร็จสิ้น')"    style="white-space:nowrap;flex-shrink:0;">🏁 เสร็จสิ้น</div>
+          <div class="filter-pill"        data-mgr-status="ส่งกลับแก้ไข" onclick="filterManagerJobs('ส่งกลับแก้ไข')" style="white-space:nowrap;flex-shrink:0;">↩️ ส่งกลับแก้ไข</div>
+          <div class="filter-pill"        data-mgr-status="ไม่อนุมัติ"  onclick="filterManagerJobs('ไม่อนุมัติ')"  style="white-space:nowrap;flex-shrink:0;">❌ ไม่อนุมัติ</div>
+        </div>
+
+        <!-- Desktop Table -->
+        <div class="data-table-wrapper d-none d-md-block">
+          <table class="repair-table w-100">
+            <thead><tr>
+              <th>เลขที่งาน</th>
+              <th>ผู้แจ้ง</th>
+              <th>ทะเบียน</th>
+              <th>อาการ</th>
+              <th style="text-align:right;">ประเมิน (฿)</th>
+              <th>สถานะ</th>
+              <th>วันที่แจ้ง</th>
+              <th style="text-align:center;">การดำเนินการ</th>
+            </tr></thead>
+            <tbody id="mgr-jobs-tbody"></tbody>
+          </table>
+        </div>
+
+        <!-- Mobile Cards -->
+        <div class="d-md-none" id="mgr-jobs-cards"></div>
+
+        <!-- Empty State -->
+        <div id="mgr-jobs-empty" class="empty-state" style="display:none;">
+          <span class="material-icons">inbox</span>ไม่มีรายการ
+        </div>
+
+      </div>
+
+</div>
+
+    </div><!-- end main-content -->
+  </div><!-- end app-wrapper -->
+<!-- end main-app -->
+
+
+<!-- =====================================================
+     MODALS
+====================================================== -->
+
+<!-- ===== MODAL: REPAIR FORM ===== -->
+<div class="modal fade" id="modalRepair" tabindex="-1">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg">
+    <div class="modal-content">
+      <div class="modal-header-custom">
+        <div class="modal-title"><span class="material-icons">build</span> <span id="repair-modal-title">แจ้งซ่อมรถยนต์</span></div>
+        <button class="btn-close-white" onclick="closeModal('modalRepair')"><span class="material-icons" style="font-size:1rem;">close</span></button>
+      </div>
+      <div class="modal-body">
+        <!-- User profile -->
+        <div class="profile-card-sm">
+          <img src="" onerror="this.src=AVATAR_DEFAULT" id="form-avatar" alt="">
+          <div>
+            <div class="name" id="form-username">-</div>
+            <div class="line-id" id="form-lineuid">-</div>
+          </div>
+        </div>
+
+        <form id="repair-form" novalidate>
+          <input type="hidden" id="f-job-id">
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <label class="form-label">เลขทะเบียนรถ <span class="req">*</span></label>
+              <select class="form-select" id="f-plate" required>
+                <option value="">-- เลือกเลขทะเบียน --</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label">เลขไมล์ <span class="req">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><span class="material-icons" style="font-size:1rem;">speed</span></span>
+                <input type="number" class="form-control" id="f-mileage" placeholder="เช่น 45000" min="0" required>
+              </div>
+            </div>
+            <div class="col-12">
+              <label class="form-label">อาการที่รถยนต์เสีย <span class="req">*</span></label>
+              <textarea class="form-control" id="f-detail" rows="3" placeholder="อธิบายอาการที่พบ..." required></textarea>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label">ประเมินค่าใช้จ่าย (บาท)</label>
+              <div class="input-group">
+                <span class="input-group-text">฿</span>
+                <input type="number" class="form-control" id="f-estimate" placeholder="0" min="0">
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label">สถานที่ซ่อม</label>
+              <input type="text" class="form-control" id="f-location" placeholder="ชื่ออู่ / สถานที่ (ไม่บังคับ)">
+            </div>
+            <div class="col-12">
+              <label class="form-label">แนบรูปภาพประกอบ</label>
+              <div class="img-preview-box" onclick="document.getElementById('f-image').click()">
+                <input type="file" id="f-image" accept="image/*" class="d-none" onchange="previewImage(this,'repair-img-preview')">
+                <div id="repair-img-preview">
+                  <span class="material-icons" style="font-size:2rem;color:var(--gray-300);">photo_camera</span>
+                  <div class="placeholder-text">คลิกเพื่อเลือกรูป (ไม่บังคับ)</div>
+                </div>
+              </div>
+            </div>
+            <!-- Admin only: edit note -->
+            <div class="col-12 d-none" id="admin-note-section">
+              <label class="form-label">หมายเหตุ (Admin)</label>
+              <textarea class="form-control" id="f-note" rows="2" placeholder="บันทึกหมายเหตุ..."></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer justify-content-end gap-2">
+        <button class="btn-outline-custom" onclick="closeModal('modalRepair')">ยกเลิก</button>
+        <button class="btn-primary-custom" id="btn-submit-repair" onclick="submitRepair()">
+          <span class="material-icons" style="font-size:1rem;">send</span> ส่งแจ้งซ่อมรถยนต์
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: REPAIR DETAIL ===== -->
+<div class="modal fade" id="modalDetail" tabindex="-1">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg">
+    <div class="modal-content">
+      <div class="modal-header-custom">
+        <div class="modal-title"><span class="material-icons">receipt_long</span> รายละเอียดการแจ้งซ่อม</div>
+        <button class="btn-close-white" onclick="closeModal('modalDetail')"><span class="material-icons" style="font-size:1rem;">close</span></button>
+      </div>
+      <div class="modal-body" id="detail-body">
+        <!-- populated by JS -->
+      </div>
+      <div class="modal-footer" id="detail-footer">
+        <!-- action buttons populated by JS -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: STATUS UPDATE (Admin) ===== -->
+<div class="modal fade" id="modalStatus" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header-custom">
+        <div class="modal-title"><span class="material-icons">update</span> เปลี่ยนสถานะ</div>
+        <button class="btn-close-white" onclick="closeModal('modalStatus')"><span class="material-icons" style="font-size:1rem;">close</span></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="status-job-id">
+        <div class="mb-3">
+          <label class="form-label">สถานะใหม่ <span class="req">*</span></label>
+          <select class="form-select" id="new-status">
+            <!-- Options จะถูก render ตาม role ใน openStatusModal() -->
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">หมายเหตุ</label>
+          <textarea class="form-control" id="status-note" rows="2" placeholder="บันทึกหมายเหตุ..."></textarea>
+        </div>
+        <!-- Complete form (shown only when เสร็จสิ้น) -->
+        <div id="complete-section" style="display:none;">
+          <hr>
+          <p class="fw-bold text-success mb-2">🔒 ต้องกรอกเพื่อ "เสร็จสิ้น"</p>
+          <div class="mb-3">
+            <label class="form-label">ค่าใช้จ่ายจริง (บาท) <span class="req">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text">฿</span>
+              <input type="number" class="form-control" id="actual-cost" placeholder="0" min="0">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">แนบบิล / ใบเสร็จ <span class="req">*</span></label>
+            <div class="img-preview-box" onclick="document.getElementById('bill-image').click()">
+              <input type="file" id="bill-image" accept="image/*" class="d-none" onchange="previewImage(this,'bill-preview')">
+              <div id="bill-preview">
+                <span class="material-icons" style="font-size:2rem;color:var(--gray-300);">receipt</span>
+                <div class="placeholder-text">คลิกเพื่อแนบบิล</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer justify-content-end gap-2">
+        <button class="btn-outline-custom" onclick="closeModal('modalStatus')">ยกเลิก</button>
+        <button class="btn-primary-custom" onclick="submitStatusChange()">
+          <span class="material-icons" style="font-size:1rem;">check</span> บันทึก
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: ADD USER ===== -->
+<div class="modal fade" id="modalAddUser" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header-custom">
+        <div class="modal-title"><span class="material-icons">person_add</span> เพิ่ม / แก้ไขผู้ใช้</div>
+        <button class="btn-close-white" onclick="closeModal('modalAddUser')"><span class="material-icons" style="font-size:1rem;">close</span></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="u-row-id">
+        <div class="mb-3">
+          <label class="form-label">LINE User ID <span class="req">*</span></label>
+          <input type="text" class="form-control" id="u-line-id" placeholder="Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">ชื่อ-นามสกุล <span class="req">*</span></label>
+          <input type="text" class="form-control" id="u-name" placeholder="ชื่อจริง">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">แผนก / ตำแหน่ง</label>
+          <input type="text" class="form-control" id="u-dept" placeholder="เช่น ฝ่ายบริหาร">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">บทบาท</label>
+          <select class="form-select" id="u-role">
+            <option value="user">👤 User — ผู้ใช้ทั่วไป</option>
+            <option value="supervisor">👔 Supervisor — หัวหน้า</option>
+            <option value="manager">🏢 Manager — ผู้บริหาร</option>
+            <option value="admin">👑 Admin — ผู้ดูแลระบบ</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer justify-content-end gap-2">
+        <button class="btn-outline-custom" onclick="closeModal('modalAddUser')">ยกเลิก</button>
+        <button class="btn-primary-custom" onclick="saveUser()">
+          <span class="material-icons" style="font-size:1rem;">save</span> บันทึก
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: ADD VEHICLE ===== -->
+<div class="modal fade" id="modalAddVehicle" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header-custom">
+        <div class="modal-title"><span class="material-icons">directions_car</span> เพิ่มทะเบียนรถ</div>
+        <button class="btn-close-white" onclick="closeModal('modalAddVehicle')"><span class="material-icons" style="font-size:1rem;">close</span></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">เลขทะเบียนรถ <span class="req">*</span></label>
+          <input type="text" class="form-control" id="v-plate" placeholder="เช่น กข-1234 กรุงเทพมหานคร">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">ยี่ห้อ / รุ่น</label>
+          <input type="text" class="form-control" id="v-model" placeholder="เช่น Toyota Hilux Revo">
+        </div>
+      </div>
+      <div class="modal-footer justify-content-end gap-2">
+        <button class="btn-outline-custom" onclick="closeModal('modalAddVehicle')">ยกเลิก</button>
+        <button class="btn-primary-custom" onclick="saveVehicle()">
+          <span class="material-icons" style="font-size:1rem;">save</span> บันทึก
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: IMAGE VIEWER ===== -->
+<div class="modal fade" id="modalImage" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="background:transparent;border:none;box-shadow:none;">
+      <div class="text-end mb-2">
+        <button class="btn-close-white" onclick="closeModal('modalImage')" style="background:rgba(0,0,0,.5);"><span class="material-icons" style="font-size:1rem;">close</span></button>
+      </div>
+      <img id="modal-img-src" src="" style="width:100%;border-radius:var(--radius);">
+    </div>
+  </div>
+</div>
+
+
+<!-- =====================================================
+     SCRIPTS
+====================================================== -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Libraries โหลด lazy เมื่อจำเป็น — ไม่ block หน้าหลัก -->
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+<script>
+/* ============================================================
+   CONFIG — แก้ค่าเหล่านี้ให้ตรงกับของคุณ
+   ============================================================ */
+const CONFIG = {
+  LIFF_ID:    'YOUR_LIFF_ID',   // LIFF ID จาก LINE Developers
+  GAS_URL:    'YOUR_GAS_URL',   // URL จาก Deploy > Web App ใน GAS
+  API_SECRET: 'YOUR_API_SECRET_KEY', // ต้องตรงกับ API_SECRET ใน Code.gs
+};
+
+/* ============================================================
+   LAZY SCRIPT LOADER
+   ============================================================ */
+const _scriptCache = {};
+function loadScript(url) {
+  if (_scriptCache[url]) return _scriptCache[url];
+  _scriptCache[url] = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = url; s.async = true;
+    s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+  return _scriptCache[url];
+}
+
+const LIBS = {
+  chartjs:     'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
+  html2canvas: 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+  jspdf:       'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+  qrcodejs:    'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js',
+};
+
+async function ensureChartJs()     { await loadScript(LIBS.chartjs); }
+async function ensurePdfLibs()     { await Promise.all([loadScript(LIBS.html2canvas), loadScript(LIBS.jspdf)]); }
+async function ensureQRCode()      { await loadScript(LIBS.qrcodejs); }
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let currentUser   = null;   // { lineUid, name, avatar, role, dept }
+let allJobs       = [];
+let vehicles      = [];
+let users         = [];
+let filterStatus  = '';
+let editingJobId  = null;
+let submitting    = false;
+let currentPage   = 1;
+const PAGE_SIZE   = 20;
+
+/* ============================================================
+   LIFF INIT
+   ============================================================ */
+async function initLiff() {
+  showLoading(true);
+  try {
+    // ===== เช็ค sessionStorage ก่อน — ถ้ามีข้อมูลเก่าให้ใช้ทันที =====
+    const cached = sessionStorage.getItem('_repairUser');
+    if (cached) {
+      try {
+        currentUser = JSON.parse(cached);
+        bootApp();
+        // refresh user ล่าสุดจาก Sheet แบบ silent (background)
+        gasCall('getUser', { lineUid: currentUser.lineUid }).then(res => {
+          if (res.status === 'ok' && res.user) {
+            currentUser = { ...res.user, avatar: currentUser.avatar };
+            sessionStorage.setItem('_repairUser', JSON.stringify(currentUser));
+          }
+        });
+        showLoading(false);
+        return; // ออกจากฟังก์ชันได้เลย ไม่ต้อง init LIFF ใหม่
+      } catch(e) {
+        sessionStorage.removeItem('_repairUser'); // ถ้า parse ไม่ได้ให้ล้างทิ้ง
+      }
+    }
+
+    // ===== ไม่มี cache — init LIFF ปกติ =====
+    await liff.init({ liffId: CONFIG.LIFF_ID });
+    if (!liff.isLoggedIn()) { liff.login(); return; }
+
+    const profile    = await liff.getProfile();
+    const lineUid    = profile.userId;
+    const lineAvatar = profile.pictureUrl || AVATAR_DEFAULT;
+    const lineName   = profile.displayName || 'ผู้ใช้งาน';
+
+    const res = await gasCall('getUser', { lineUid });
+
+    if (res.status === 'ok' && res.user) {
+      currentUser = { ...res.user, avatar: lineAvatar };
+      gasCall('updateUserAvatar', { lineUid, avatar: lineAvatar, name: lineName });
+    } else {
+      // ยังไม่มีในระบบ — สมัครอัตโนมัติ
+      const regRes = await gasCall('registerUser', {
+        lineUid, name: lineName, avatar: lineAvatar, role: 'user', dept: '',
+      });
+      if (regRes.status !== 'ok') {
+        showLoading(false);
+        showToast('ไม่สามารถลงทะเบียนได้: ' + (regRes.message || ''), 'error');
+        return;
+      }
+      currentUser = { lineUid, name: lineName, avatar: lineAvatar, role: 'user', dept: '' };
+      showToast('ลงทะเบียนเข้าสู่ระบบสำเร็จ ยินดีต้อนรับ! 🎉');
+    }
+
+    // บันทึก session
+    sessionStorage.setItem('_repairUser', JSON.stringify(currentUser));
+    bootApp();
+
+  } catch (e) {
+    showLoading(false);
+    console.error(e);
+    showToast('เกิดข้อผิดพลาด: ' + e.message, 'error');
+  }
+}
+
+
+
+/* ============================================================
+   BOOT APP
+   ============================================================ */
+// Keep GAS warm — ping ทุก 4 นาที ป้องกัน cold start
+let _warmTimer = null;
+function startKeepWarm() {
+  if (_warmTimer) return;
+  _warmTimer = setInterval(() => {
+    gasCall('ping', {}).catch(() => {});
+  }, 4 * 60 * 1000); // 4 นาที
+}
+
+function bootApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('main-app').style.display = 'block';
+  startKeepWarm();
+
+  const role = currentUser.role || 'user';
+
+  // Set nav
+  document.getElementById('nav-username').textContent = currentUser.name;
+  document.getElementById('nav-role').textContent = {admin:'Admin', supervisor:'หัวหน้า', manager:'ผู้บริหาร', user:'User'}[role] || 'User';
+  document.getElementById('nav-avatar').src = currentUser.avatar;
+  document.getElementById('dash-avatar').src = currentUser.avatar;
+  document.getElementById('form-avatar').src = currentUser.avatar;
+  document.getElementById('dash-name').textContent = currentUser.name;
+  document.getElementById('dash-dept').textContent = currentUser.dept || '-';
+  document.getElementById('form-username').textContent = currentUser.name;
+  document.getElementById('form-lineuid').textContent = currentUser.dept || '-';
+
+  // Sidebar menus
+  if (['admin','supervisor'].includes(role)) {
+    document.getElementById('admin-menu').style.display = 'block';
+  }
+  if (role === 'manager') {
+    document.getElementById('manager-menu').style.display = 'block';
+  }
+
+  // Admin-only extras
+  if (role === 'admin') {
+    document.getElementById('admin-note-section').classList.remove('d-none');
+    const exportBtn = document.getElementById('btn-export-csv');
+    if (exportBtn) exportBtn.style.display = 'inline-flex';
+  }
+
+  // Manager — ซ่อน FAB และ sidebar เมนูหลักทั้งก้อน
+  if (role === 'manager') {
+    const fab = document.getElementById('fab-repair');
+    if (fab) { fab.style.display = 'none'; fab.style.setProperty('display','none','important'); }
+    const mainMenu = document.getElementById('main-menu');
+    if (mainMenu) mainMenu.style.display = 'none';
+  }
+
+  // navigate ทันทีก่อน (ให้ถูกหน้าตั้งแต่ต้น ไม่กระพริบ)
+  if (role === 'manager') {
+    navigate('manager-jobs');
+  } else {
+    navigate('dashboard');
+  }
+
+  // โหลดข้อมูล — ถ้ามี cache แสดงทันที ถ้าไม่มีค่อย fetch
+  loadData();
+}
+
+/* ============================================================
+   DATA LOADING
+   ============================================================ */
+async function manualSync() {
+  const btn = document.getElementById('btn-sync');
+  if (!btn || btn.classList.contains('syncing')) return; // ป้องกันกด 2 ครั้ง
+  btn.classList.add('syncing');
+  await loadData(true);
+  btn.classList.remove('syncing');
+  showToast('อัปเดตข้อมูลแล้ว ✅');
+}
+
+let _loadingInProgress = false;
+
+/* --- Session Cache (TTL 5 นาที) --- */
+const _CACHE_KEY = '_repairData';
+const _CACHE_TTL = 5 * 60 * 1000;
+
+function _saveCache() {
+  try { sessionStorage.setItem(_CACHE_KEY, JSON.stringify({ ts: Date.now(), allJobs, vehicles, users })); } catch(e) {}
+}
+function _loadCache() {
+  try {
+    const d = JSON.parse(sessionStorage.getItem(_CACHE_KEY) || 'null');
+    if (!d || Date.now() - d.ts > _CACHE_TTL) return false;
+    allJobs = d.allJobs || []; vehicles = d.vehicles || []; users = d.users || [];
+    return true;
+  } catch(e) { return false; }
+}
+
+function _renderAll() {
+  const role = currentUser?.role;
+  const isAdmin = ['admin','supervisor'].includes(role);
+  const isManager = role === 'manager';
+
+  populateVehicleSelect();
+  populateVehicleHistorySelect();
+  renderStats();
+  renderRecentJobs();
+  renderRepairTable();
+  if (isAdmin) { renderUserList(); renderVehicleList(); }
+  // อัปเดต badge รออนุมัติ
+  if (isManager) {
+    const count = allJobs.filter(j => j.status === 'รอการอนุมัติ').length;
+    const b = document.getElementById('badge-approval');
+    if (b) { b.textContent = count; b.style.display = count ? 'inline' : 'none'; }
+    // refresh หน้า manager ถ้ากำลังอยู่หน้านั้น
+    if (document.getElementById('page-manager-jobs')?.classList.contains('active')) renderManagerJobs();
+  }
+}
+
+async function _fetchFresh(silent = false) {
+  try {
+    const isAdmin = ['admin','supervisor','manager'].includes(currentUser?.role);
+    const [jobsRes, vehiclesRes, usersRes] = await Promise.all([
+      gasCall('getJobs',    { lineUid: currentUser.lineUid, isAdmin }),
+      gasCall('getVehicles', {}),
+      isAdmin ? gasCall('getUsers', {}) : Promise.resolve({ users: [] })
+    ]);
+    if (jobsRes.status === 'error') { if (!silent) showToast('getJobs: ' + jobsRes.message, 'error'); return; }
+    allJobs  = jobsRes.jobs      || [];
+    vehicles = vehiclesRes.vehicles || [];
+    users    = usersRes.users    || [];
+    _saveCache();
+    _renderAll();
+  } catch(e) {
+    console.error('loadData error:', e);
+    if (!silent) showToast('โหลดข้อมูลไม่สำเร็จ: ' + e.message, 'error');
+  }
+}
+
+async function loadData(silent = false) {
+  if (_loadingInProgress) return;
+  _loadingInProgress = true;
+  // มี cache — แสดงผลทันที แล้ว refresh background
+  if (_loadCache()) {
+    _renderAll();
+    _fetchFresh(true).finally(() => { _loadingInProgress = false; });
+    return;
+  }
+  if (!silent) showLoading(true);
+  await _fetchFresh(silent);
+  _loadingInProgress = false;
+  if (!silent) showLoading(false);
+}
+
+// ฟังก์ชัน loadData แบบรอให้เสร็จแน่นอน (ใช้ตอน bootApp)
+async function loadDataAndWait() {
+  _loadingInProgress = false; // reset ก่อน
+  if (_loadCache()) {
+    _renderAll();
+    await _fetchFresh(true);
+    return;
+  }
+  showLoading(true);
+  await _fetchFresh(false);
+  showLoading(false);
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function renderStats() {
+  const _isPriv = ['admin','supervisor','manager'].includes(currentUser.role);
+  const mine = _isPriv ? allJobs : allJobs.filter(j => j.lineUid === currentUser.lineUid);
+  const count = s => mine.filter(j => j.status === s).length;
+  animateNum('stat-waiting',   count('รอดำเนินการ'));
+  animateNum('stat-repairing', count('กำลังซ่อม'));
+  animateNum('stat-done',      count('เสร็จสิ้น'));
+  animateNum('stat-total',     mine.length);
+  if (['admin','supervisor'].includes(currentUser.role)) {
+    animateNum('stat-rejected', count('ไม่อนุมัติ'));
+    animateNum('stat-revise',   count('ส่งกลับแก้ไข'));
+    document.querySelectorAll('.admin-only-stat').forEach(el => el.style.display = '');
+  }
+
+
+  // badge
+  const pending = allJobs.filter(j => j.status === 'รอดำเนินการ').length;
+  const el = document.getElementById('badge-pending');
+  el.textContent = pending;
+  el.style.display = pending ? 'inline' : 'none';
+}
+
+function renderRecentJobs() {
+  const mine = ['admin','supervisor','manager'].includes(currentUser.role) ? allJobs : allJobs.filter(j => j.lineUid === currentUser.lineUid);
+  const recent = mine.slice(0,5);
+  const el = document.getElementById('recent-jobs-list');
+  if (!recent.length) { el.innerHTML = '<div class="empty-state"><span class="material-icons">inbox</span>ยังไม่มีรายการ</div>'; return; }
+  el.innerHTML = recent.map(jobCard).join('');
+}
+
+function renderRepairTable() {
+  try {
+  let jobs = ['admin','supervisor','manager'].includes(currentUser.role) ? allJobs : allJobs.filter(j => j.lineUid === currentUser.lineUid);
+
+  // filter status
+  if (filterStatus) jobs = jobs.filter(j => j.status === filterStatus);
+
+  // search
+  const q = document.getElementById('search-input').value.toLowerCase();
+  if (q) jobs = jobs.filter(j => ((j.jobId||'')+(j.plate||'')+(j.userName||'')+(j.detail||'')).toLowerCase().includes(q));
+
+  // date filter
+  const df = document.getElementById('filter-date').value;
+  if (df) {
+    const now = new Date(); const y=now.getFullYear(),m=now.getMonth(),d=now.getDate();
+    jobs = jobs.filter(j => {
+      const t = new Date(j.createdAt);
+      if (df==='today') return t.getFullYear()===y && t.getMonth()===m && t.getDate()===d;
+      if (df==='week')  { const s=new Date(now); s.setDate(d-7); return t>=s; }
+      if (df==='month') return t.getFullYear()===y && t.getMonth()===m;
+      return true;
+    });
+  }
+
+  // ===== SORT =====
+  const repairSort = document.getElementById('repair-sort')?.value || 'newest';
+  jobs = [...jobs].sort((a, b) => {
+    const ta = new Date(a.createdAt).getTime() || 0;
+    const tb = new Date(b.createdAt).getTime() || 0;
+    return repairSort === 'newest' ? tb - ta : ta - tb;
+  });
+
+  // ===== PAGINATION =====
+  const totalPages = Math.max(1, Math.ceil(jobs.length / PAGE_SIZE));
+  if (currentPage > totalPages) currentPage = totalPages;
+  const paged = jobs.slice((currentPage-1)*PAGE_SIZE, currentPage*PAGE_SIZE);
+
+  // table
+  const tbody = document.getElementById('repair-tbody');
+  if (!paged.length) { tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted">ไม่มีรายการที่ตรงกัน</td></tr>'; }
+  else {
+    tbody.innerHTML = paged.map(j => `
+      <tr>
+        <td><span style="font-weight:600;font-size:.82rem;color:var(--primary-dark);">${j.jobId}</span></td>
+        <td>${formatDate(j.createdAt)}</td>
+        <td>${j.userName || '-'}</td>
+        <td><strong>${j.plate}</strong></td>
+        <td>${Number(j.mileage).toLocaleString()} กม.</td>
+        <td>${j.location}</td>
+        <td><span class="badge-status ${statusClass(j.status)}">${j.status}</span></td>
+        <td>
+          <button class="btn-sm-icon" style="background:var(--info-light);color:var(--info);" title="รายละเอียด" onclick="openDetail('${j.jobId}')"><span class="material-icons">visibility</span></button>
+          ${['admin','supervisor'].includes(currentUser.role) ? `
+          ${j.status !== 'เสร็จสิ้น' ? `<button class="btn-sm-icon ms-1" style="background:var(--accent-light);color:var(--accent);" title="แก้ไข" onclick="openEditRepair('${j.jobId}')"><span class="material-icons">edit</span></button>` : ''}
+          ${j.status !== 'เสร็จสิ้น' ? `<button class="btn-sm-icon ms-1" style="background:var(--primary-xlight);color:var(--primary);" title="เปลี่ยนสถานะ" onclick="openStatusModal('${j.jobId}')"><span class="material-icons">update</span></button>` : ''}
+          <button class="btn-sm-icon ms-1" style="background:var(--danger-light);color:var(--danger);" title="ลบรายการ" onclick="confirmDeleteJob('${j.jobId}','${j.plate}')"><span class="material-icons">delete</span></button>
+          ` : currentUser.role === 'manager' ? `
+          ${j.status === 'รอการอนุมัติ' ? `
+          <button class="btn-sm-icon ms-1" style="background:#E8F5E9;color:var(--success);" title="อนุมัติ" onclick="quickDecision('${j.jobId}','อนุมัติ')"><span class="material-icons">check</span></button>
+          <button class="btn-sm-icon ms-1" style="background:#FFEBEE;color:var(--danger);" title="ไม่อนุมัติ" onclick="quickDecision('${j.jobId}','ไม่อนุมัติ')"><span class="material-icons">close</span></button>
+          <button class="btn-sm-icon ms-1" style="background:#FFF8E1;color:#F57F17;" title="ส่งกลับแก้ไข" onclick="quickDecision('${j.jobId}','ส่งกลับแก้ไข')"><span class="material-icons">undo</span></button>` : ''}
+          ` : (j.status==='ส่งกลับแก้ไข' && j.lineUid===currentUser.lineUid ? `<button class="btn-sm-icon ms-1" style="background:var(--warning-light);color:var(--warning);" title="แก้ไข" onclick="openEditRepair('${j.jobId}')"><span class="material-icons">edit</span></button>` : '')}
+        </td>
+      </tr>`).join('');
+  }
+
+  // render pagination bar
+  renderPagination(totalPages, jobs.length);
+
+  // mobile cards
+  const mc = document.getElementById('repair-cards-mobile');
+  if (!paged.length) { mc.innerHTML = '<div class="empty-state"><span class="material-icons">inbox</span>ไม่มีรายการ</div>'; }
+  else mc.innerHTML = paged.map(jobCard).join('');
+  } catch(e) {
+    console.error('renderRepairTable error:', e);
+    const tbody2 = document.getElementById('repair-tbody');
+    if (tbody2) tbody2.innerHTML = '<tr><td colspan="8" class="text-center py-3 text-danger">⚠️ render error: ' + e.message + '</td></tr>';
+  }
+}
+
+function renderPagination(totalPages, totalItems) {
+  let el = document.getElementById('pagination-bar');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'pagination-bar';
+    el.style.cssText = 'display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin-top:.75rem;font-size:.85rem;';
+    const wrapper = document.querySelector('#page-repair-list .data-table-wrapper');
+    if (wrapper) wrapper.after(el);
+  }
+  if (totalPages <= 1) { el.innerHTML = `<span style="color:var(--gray-500);">ทั้งหมด ${totalItems} รายการ</span>`; return; }
+
+  let pages = '';
+  for (let i=1; i<=totalPages; i++) {
+    const active = i===currentPage;
+    pages += `<button onclick="goPage(${i})" style="min-width:32px;height:32px;border-radius:6px;border:1.5px solid ${active?'var(--primary)':'var(--gray-300)'};background:${active?'var(--primary)':'#fff'};color:${active?'#fff':'var(--gray-700)'};font-weight:600;cursor:pointer;font-size:.82rem;">${i}</button>`;
+  }
+  el.innerHTML = `
+    <span style="color:var(--gray-500);">ทั้งหมด ${totalItems} รายการ | หน้า ${currentPage}/${totalPages}</span>
+    <div style="display:flex;gap:.3rem;align-items:center;">
+      <button onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''} style="min-width:32px;height:32px;border-radius:6px;border:1.5px solid var(--gray-300);background:#fff;cursor:pointer;">◀</button>
+      ${pages}
+      <button onclick="goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''} style="min-width:32px;height:32px;border-radius:6px;border:1.5px solid var(--gray-300);background:#fff;cursor:pointer;">▶</button>
+    </div>`;
+}
+
+function goPage(p) {
+  const totalPages = Math.max(1, Math.ceil(allJobs.length / PAGE_SIZE));
+  if (p < 1 || p > totalPages) return;
+  currentPage = p;
+  renderRepairTable();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function jobCard(j) {
+  const role = currentUser?.role || 'user';
+  const isSuperAdmin = ['admin','supervisor'].includes(role);
+  const isManager    = role === 'manager';
+
+  let adminBtns = '';
+  if (isSuperAdmin) {
+    adminBtns = `
+    <div class="d-flex gap-1 mt-2 justify-content-end" onclick="event.stopPropagation()">
+      <button class="btn-sm-icon" style="background:var(--info-light);color:var(--info);" onclick="openDetail('${j.jobId}')" title="รายละเอียด"><span class="material-icons">visibility</span></button>
+      ${j.status !== 'เสร็จสิ้น' ? `<button class="btn-sm-icon" style="background:var(--accent-light);color:var(--accent);" onclick="openEditRepair('${j.jobId}')" title="แก้ไข"><span class="material-icons">edit</span></button>` : ''}
+      ${j.status !== 'เสร็จสิ้น' ? `<button class="btn-sm-icon" style="background:var(--primary-xlight);color:var(--primary);" onclick="openStatusModal('${j.jobId}')" title="เปลี่ยนสถานะ"><span class="material-icons">update</span></button>` : ''}
+      <button class="btn-sm-icon" style="background:var(--danger-light);color:var(--danger);" onclick="confirmDeleteJob('${j.jobId}','${j.plate}')" title="ลบ"><span class="material-icons">delete</span></button>
+    </div>`;
+  } else if (isManager) {
+    adminBtns = `
+    <div class="d-flex gap-1 mt-2 justify-content-end" onclick="event.stopPropagation()">
+      <button class="btn-sm-icon" style="background:var(--info-light);color:var(--info);" onclick="openDetail('${j.jobId}')" title="รายละเอียด"><span class="material-icons">visibility</span></button>
+      ${j.status === 'รอการอนุมัติ' ? `
+      <button class="btn-sm-icon" style="background:#E8F5E9;color:var(--success);" onclick="quickDecision('${j.jobId}','อนุมัติ')" title="อนุมัติ"><span class="material-icons">check</span></button>
+      <button class="btn-sm-icon" style="background:#FFEBEE;color:var(--danger);" onclick="quickDecision('${j.jobId}','ไม่อนุมัติ')" title="ไม่อนุมัติ"><span class="material-icons">close</span></button>
+      <button class="btn-sm-icon" style="background:#FFF8E1;color:#F57F17;" onclick="quickDecision('${j.jobId}','ส่งกลับแก้ไข')" title="ส่งกลับแก้ไข"><span class="material-icons">undo</span></button>` : ''}
+    </div>`;
+  } else if (j.status === 'ส่งกลับแก้ไข' && j.lineUid === currentUser?.lineUid) {
+    adminBtns = `
+    <div class="d-flex gap-1 mt-2 justify-content-end" onclick="event.stopPropagation()">
+      <button class="btn-sm-icon" style="background:var(--warning-light);color:var(--warning);" onclick="openEditRepair('${j.jobId}')"><span class="material-icons">edit</span></button>
+    </div>`;
+  }
+
+  return `<div class="repair-card" onclick="openDetail('${j.jobId}')">
+    <div class="d-flex align-items-center justify-content-between mb-1">
+      <span class="job-id">${j.jobId}</span>
+      <span class="badge-status ${statusClass(j.status)}">${j.status}</span>
+    </div>
+    <div class="plate mb-1">${j.plate}</div>
+    <div style="font-size:.8rem;color:var(--gray-500);display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:.2rem;">
+      <span>👤 ${j.userName || '-'}</span>
+      <span>📏 ${Number(j.mileage||0).toLocaleString()} กม.</span>
+      <span>📍 ${j.location || '-'}</span>
+    </div>
+    <div style="font-size:.82rem;color:var(--gray-500);">🕐 ${formatDate(j.createdAt)}</div>
+    <div style="font-size:.83rem;color:var(--gray-700);margin-top:.25rem;">${(j.detail||'').substring(0,60)}${(j.detail||'').length>60?'...':''}</div>
+    ${adminBtns}
+  </div>`;
+}
+
+const AVATAR_DEFAULT = 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2244%22%20height%3D%2244%22%20viewBox%3D%220%200%2044%2044%22%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2222%22%20r%3D%2222%22%20fill%3D%22%23C8E6C9%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2217%22%20r%3D%227%22%20fill%3D%22%232E7D32%22%2F%3E%3Cellipse%20cx%3D%2222%22%20cy%3D%2236%22%20rx%3D%2212%22%20ry%3D%228%22%20fill%3D%22%232E7D32%22%2F%3E%3C%2Fsvg%3E';
+
+function renderUserList() {
+  const el = document.getElementById('user-list');
+  if (!users.length) { el.innerHTML = '<div class="empty-state"><span class="material-icons">people</span>ไม่มีข้อมูล</div>'; return; }
+  el.innerHTML = users.map(u => `
+    <div class="user-row">
+      <img src="${u.avatar||AVATAR_DEFAULT}" alt="">
+      <div class="flex-grow-1">
+        <div style="font-weight:600;font-size:.88rem;">${u.name}</div>
+        <div style="font-size:.78rem;color:var(--gray-500);">${u.dept||'-'} • ${ {admin:'👑 Admin',supervisor:'👔 หัวหน้า',manager:'🏢 ผู้บริหาร',user:'👤 User'}[u.role]||'👤 User' }</div>
+      </div>
+      <button class="btn-sm-icon" style="background:var(--accent-light);color:var(--accent);" onclick="openEditUser('${u.lineUid}')"><span class="material-icons">edit</span></button>
+      <button class="btn-sm-icon ms-1" style="background:var(--danger-light);color:var(--danger);" onclick="deleteUser('${u.lineUid}','${u.name}')"><span class="material-icons">delete</span></button>
+    </div>`).join('');
+}
+
+function renderVehicleList() {
+  const el = document.getElementById('vehicle-list');
+  if (!vehicles.length) { el.innerHTML = '<div class="empty-state"><span class="material-icons">directions_car</span>ไม่มีข้อมูล</div>'; return; }
+  el.innerHTML = vehicles.map(v => `
+    <div class="user-row">
+      <span class="material-icons" style="color:var(--primary);font-size:1.4rem;">directions_car</span>
+      <div class="flex-grow-1">
+        <div style="font-weight:600;font-size:.88rem;">${v.plate}</div>
+        <div style="font-size:.78rem;color:var(--gray-500);">${v.model||'-'}</div>
+      </div>
+      <button class="btn-sm-icon" style="background:var(--danger-light);color:var(--danger);" onclick="deleteVehicle('${v.plate}')"><span class="material-icons">delete</span></button>
+    </div>`).join('');
+}
+
+function populateVehicleSelect() {
+  const sel = document.getElementById('f-plate');
+  const prev = sel.value; // เก็บค่าที่เลือกไว้ก่อน
+  sel.innerHTML = '<option value="">-- เลือกเลขทะเบียน --</option>' +
+    vehicles.map(v => `<option value="${v.plate}">${v.plate}${v.model?' ('+v.model+')':''}</option>`).join('');
+  if (prev) sel.value = prev; // restore ค่าเดิม ถ้ายังมีอยู่ใน list
+}
+
+
+/* ============================================================
+   ข้อ 5 — ประวัติสถานะ
+   ============================================================ */
+async function openStatusLog(jobId) {
+  document.getElementById('log-job-id').textContent = jobId;
+  document.getElementById('status-log-tbody').innerHTML = '<tr><td colspan="5" class="text-center py-3">กำลังโหลด...</td></tr>';
+  document.getElementById('status-log-cards').innerHTML = '<div class="p-3 text-center">กำลังโหลด...</div>';
+  showModal('modalStatusLog');
+  const res = await gasCall('getStatusLog', { jobId });
+  if (res.status !== 'ok') {
+    showToast('โหลดประวัติไม่สำเร็จ', 'error');
+    const emptyMsg = '<tr><td colspan="5" class="text-center py-4 text-muted">โหลดไม่สำเร็จ</td></tr>';
+    document.getElementById('status-log-tbody').innerHTML = emptyMsg;
+    document.getElementById('status-log-cards').innerHTML = '<div class="p-3 text-center text-muted">โหลดไม่สำเร็จ</div>';
+    return;
+  }
+  const logs = res.logs || [];
+  const statusColor = s => ({'รอดำเนินการ':'#F57F17','อนุมัติ':'#2E7D32','กำลังซ่อม':'#1565C0','เสร็จสิ้น':'#1B5E20','ส่งกลับแก้ไข':'#6A1B9A','ไม่อนุมัติ':'#C62828'})[s] || '#555';
+
+  // หาชื่อ+ตำแหน่งจาก users array
+  const getChanger = uid => {
+    const u = users.find(x => x.lineUid === uid);
+    if (!u) return uid || '-';
+    return `${u.name}${u.dept ? '<br><span style="font-size:.75rem;color:var(--gray-400);">' + u.dept + '</span>' : ''}`;
+  };
+
+  if (!logs.length) {
+    document.getElementById('status-log-tbody').innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">ยังไม่มีประวัติ</td></tr>';
+    document.getElementById('status-log-cards').innerHTML = '<div class="p-4 text-center text-muted" style="color:var(--gray-400);"><span class="material-icons" style="font-size:2rem;display:block;margin-bottom:.5rem;">history</span>ยังไม่มีประวัติ</div>';
+    return;
+  }
+
+  document.getElementById('status-log-tbody').innerHTML = logs.map(l => `
+    <tr>
+      <td style="font-size:.82rem;white-space:nowrap;">${formatDate(l.changedAt)}</td>
+      <td><span style="color:${statusColor(l.oldStatus)};font-weight:600;">${l.oldStatus||'-'}</span></td>
+      <td><span style="color:${statusColor(l.newStatus)};font-weight:600;">→ ${l.newStatus}</span></td>
+      <td style="font-size:.82rem;">${l.note||'-'}</td>
+      <td style="font-size:.82rem;line-height:1.3;">${getChanger(l.changedBy)}</td>
+    </tr>`).join('');
+
+  document.getElementById('status-log-cards').innerHTML = logs.map(l => `
+    <div class="repair-card mb-2">
+      <div style="font-size:.78rem;color:var(--gray-500);">${formatDate(l.changedAt)}</div>
+      <div style="display:flex;gap:.5rem;align-items:center;margin:.25rem 0;flex-wrap:wrap;">
+        <span style="color:${statusColor(l.oldStatus)};font-weight:600;font-size:.85rem;">${l.oldStatus||'-'}</span>
+        <span class="material-icons" style="font-size:.9rem;color:var(--gray-400);">arrow_forward</span>
+        <span style="color:${statusColor(l.newStatus)};font-weight:600;font-size:.85rem;">${l.newStatus}</span>
+      </div>
+      ${l.note ? `<div style="font-size:.8rem;color:var(--gray-600);">📝 ${l.note}</div>` : ''}
+      <div style="font-size:.78rem;color:var(--gray-500);margin-top:.25rem;">
+        👤 ${(users.find(x=>x.lineUid===l.changedBy)?.name)||l.changedBy||'-'}
+        ${(users.find(x=>x.lineUid===l.changedBy)?.dept) ? `<span style="color:var(--gray-400);"> · ${users.find(x=>x.lineUid===l.changedBy).dept}</span>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+/* ============================================================
+   ข้อ 6 — ประวัติตามทะเบียน
+   ============================================================ */
+function populateVehicleHistorySelect() {
+  const sel = document.getElementById('vh-plate-select');
+  if (!sel) return;
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">-- เลือกทะเบียนรถ --</option>' +
+    vehicles.map(v => `<option value="${v.plate}">${v.plate}${v.model?' ('+v.model+')':''}</option>`).join('');
+  if (prev) sel.value = prev;
+}
+
+async function loadVehicleHistory() {
+  const plate = document.getElementById('vh-plate-select').value;
+  if (!plate) { showToast('กรุณาเลือกทะเบียนรถ', 'error'); return; }
+  showLoading(true);
+  const res = await gasCall('getVehicleHistory', { plate });
+  showLoading(false);
+  if (res.status !== 'ok') { showToast('โหลดประวัติไม่สำเร็จ', 'error'); return; }
+
+  const { jobs, totalCost, doneCount } = res;
+  document.getElementById('vh-summary').style.display = 'block';
+  document.getElementById('vh-total-jobs').textContent = jobs.length;
+  document.getElementById('vh-done-jobs').textContent = doneCount;
+  document.getElementById('vh-total-cost').textContent = Number(totalCost).toLocaleString();
+
+  if (!jobs.length) {
+    document.getElementById('vh-table-wrap').style.display = 'none';
+    document.getElementById('vh-empty').style.display = 'flex';
+    return;
+  }
+  document.getElementById('vh-empty').style.display = 'none';
+  document.getElementById('vh-table-wrap').style.display = 'block';
+
+  document.getElementById('vh-tbody').innerHTML = jobs.map(j => `
+    <tr>
+      <td style="font-weight:600;color:var(--primary);">${j.jobId}</td>
+      <td style="font-size:.82rem;">${formatDate(j.createdAt)}</td>
+      <td style="font-size:.82rem;max-width:200px;">${(j.detail||'').substring(0,60)}${(j.detail||'').length>60?'...':''}</td>
+      <td><span class="badge-status ${statusClass(j.status)}">${j.status}</span></td>
+      <td>${j.actualCost ? Number(j.actualCost).toLocaleString()+' ฿' : '-'}</td>
+      <td style="font-size:.82rem;">${j.note||'-'}</td>
+    </tr>`).join('');
+
+  document.getElementById('vh-cards').innerHTML = jobs.map(j => `
+    <div class="repair-card mb-2" onclick="openDetail('${j.jobId}')">
+      <div class="d-flex justify-content-between"><span class="job-id">${j.jobId}</span><span class="badge-status ${statusClass(j.status)}">${j.status}</span></div>
+      <div style="font-size:.82rem;color:var(--gray-500);">${formatDate(j.createdAt)}</div>
+      <div style="font-size:.83rem;">${(j.detail||'').substring(0,60)}${(j.detail||'').length>60?'...':''}</div>
+      ${j.actualCost ? `<div style="font-size:.82rem;color:var(--accent);font-weight:600;">💰 ${Number(j.actualCost).toLocaleString()} บาท</div>` : ''}
+    </div>`).join('');
+}
+
+/* ============================================================
+   ข้อ 7 — รายงานรายปี
+   ============================================================ */
+let _chartYearlyMonth = null;
+let _chartYearlyCost  = null;
+
+function initYearlySelectors() {
+  const sel = document.getElementById('yearly-year');
+  if (!sel || sel.options.length > 1) return;
+  const yr = new Date().getFullYear();
+  for (let y = yr; y >= yr - 4; y--) {
+    const o = document.createElement('option');
+    o.value = y; o.textContent = (y + 543) + ' (พ.ศ.)';
+    if (y === yr) o.selected = true;
+    sel.appendChild(o);
+  }
+}
+
+async function generateYearlyReport() {
+  const year = parseInt(document.getElementById('yearly-year').value);
+  showLoading(true);
+  const res = await gasCall('getYearlyReport', { year });
+  showLoading(false);
+  if (res.status !== 'ok') { showToast('โหลดรายงานไม่สำเร็จ', 'error'); return; }
+  _yearlyReportData = res;
+  renderYearlyReport(res);
+}
+
+async function renderYearlyReport(res) {
+  await ensureChartJs();
+  const { totalJobs, totalDone, totalCost, monthly, topPlates } = res;
+  const MONTHS = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+
+  const totalApproved = res.totalApproved ?? allJobs.filter(j=>j.status==='อนุมัติ').length;
+  const totalRejected = res.totalRejected ?? allJobs.filter(j=>j.status==='ไม่อนุมัติ').length;
+  const approvedBudgetY = res.approvedBudget ?? allJobs.filter(j=>j.status==='อนุมัติ').reduce((s,j)=>s+(Number(j.estimate)||0),0);
+  const summaryData = [
+    { icon:'build_circle', label:'งานซ่อมทั้งหมด',   val:totalJobs,  color:'#1565C0', bg:'#E3F2FD' },
+    { icon:'check_circle', label:'เสร็จสิ้น',          val:totalDone,  color:'#2E7D32', bg:'#E8F5E9' },
+    { icon:'thumb_up',     label:'อนุมัติ',            val:totalApproved, color:'#388E3C', bg:'#F1F8E9' },
+    { icon:'thumb_down',   label:'ไม่อนุมัติ',         val:totalRejected, color:'#C62828', bg:'#FFEBEE' },
+    { icon:'payments',     label:'ยอดอนุมัติ (ประเมิน)', val:Number(approvedBudgetY).toLocaleString()+' ฿', color:'#F57F17', bg:'#FFF8E1' },
+    { icon:'receipt',      label:'ค่าใช้จ่ายจริงรวม', val:Number(totalCost).toLocaleString()+' ฿', color:'#E65100', bg:'#FFF3E0' },
+    { icon:'percent',      label:'อัตราเสร็จสิ้น',    val:(totalJobs ? Math.round(totalDone/totalJobs*100) : 0)+'%', color:'#6A1B9A', bg:'#F3E5F5' },
+  ];
+  document.getElementById('yearly-summary-row').innerHTML = summaryData.map(s => `
+    <div class="report-summary-card" style="background:${s.bg};border-color:${s.color}20;flex:1;min-width:130px;">
+      <span class="material-icons" style="color:${s.color};">${s.icon}</span>
+      <div style="font-size:1.4rem;font-weight:700;color:${s.color};">${s.val}</div>
+      <div style="font-size:.78rem;color:var(--gray-600);">${s.label}</div>
+    </div>`).join('');
+
+  if (_chartYearlyMonth) _chartYearlyMonth.destroy();
+  _chartYearlyMonth = new Chart(document.getElementById('chart-yearly-monthly'), {
+    type: 'bar',
+    data: {
+      labels: MONTHS,
+      datasets: [
+        { label:'งานทั้งหมด', data: monthly.map(m=>m.total),    backgroundColor:'rgba(21,101,192,.7)',  borderRadius:4 },
+        { label:'เสร็จสิ้น',  data: monthly.map(m=>m.done),     backgroundColor:'rgba(46,125,50,.7)',   borderRadius:4 },
+        { label:'อนุมัติ',    data: monthly.map(m=>m.approved||0), backgroundColor:'rgba(56,142,60,.5)', borderRadius:4 },
+        { label:'ไม่อนุมัติ', data: monthly.map(m=>m.rejected||0), backgroundColor:'rgba(198,40,40,.5)', borderRadius:4 },
+      ]
+    },
+    options: { responsive:true, plugins:{ legend:{ position:'top' } }, scales:{ y:{ beginAtZero:true, ticks:{ stepSize:1 } } } }
+  });
+
+  if (_chartYearlyCost) _chartYearlyCost.destroy();
+  _chartYearlyCost = new Chart(document.getElementById('chart-yearly-cost'), {
+    type: 'line',
+    data: {
+      labels: MONTHS,
+      datasets: [{ label:'ค่าใช้จ่าย (บาท)', data: monthly.map(m=>m.cost),
+        borderColor:'#E65100', backgroundColor:'rgba(230,81,0,.1)',
+        fill:true, tension:.4, pointRadius:4 }]
+    },
+    options: { responsive:true, plugins:{ legend:{ position:'top' } }, scales:{ y:{ beginAtZero:true } } }
+  });
+
+  const maxCount = topPlates[0]?.count || 1;
+  document.getElementById('yearly-top-plates').innerHTML = topPlates.length
+    ? topPlates.map((p,i) => `
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.6rem;">
+        <div style="width:24px;font-weight:700;color:var(--gray-500);font-size:.85rem;">${i+1}</div>
+        <div style="font-weight:600;min-width:100px;font-size:.88rem;">${p.plate}</div>
+        <div style="flex:1;background:var(--gray-100);border-radius:4px;overflow:hidden;">
+          <div style="width:${Math.round(p.count/maxCount*100)}%;background:var(--primary);height:20px;border-radius:4px;"></div>
+        </div>
+        <div style="min-width:60px;font-size:.82rem;color:var(--gray-600);">${p.count} ครั้ง</div>
+        <div style="min-width:80px;font-size:.82rem;color:var(--accent);font-weight:600;">${Number(p.cost).toLocaleString()} ฿</div>
+      </div>`).join('')
+    : '<div class="empty-state"><span class="material-icons">directions_car</span>ไม่มีข้อมูล</div>';
+}
+
+/* ============================================================
+   ข้อ 7 — Export Yearly CSV และ PDF
+   ============================================================ */
+let _yearlyReportData = null; // เก็บข้อมูลล่าสุดที่ generate
+
+
+function exportYearlyCSV() {
+  if (!_yearlyReportData) { showToast('กรุณาสร้างรายงานก่อน', 'error'); return; }
+  const { year, monthly, topPlates, totalJobs, totalDone, totalCost } = _yearlyReportData;
+  const MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  const BOM = '﻿';
+  const esc = v => '"' + String(v||'').replace(/"/g,'""') + '"';
+
+  let csv = BOM + `รายงานสรุปรายปี ${year+543}
+
+`;
+  csv += `ภาพรวมทั้งปี
+`;
+  csv += `งานทั้งหมด,${totalJobs}
+เสร็จสิ้น,${totalDone}
+ค่าใช้จ่ายรวม,${totalCost}
+
+`;
+  csv += `สรุปรายเดือน
+`;
+  csv += `เดือน,งานทั้งหมด,เสร็จสิ้น,ค่าใช้จ่าย
+`;
+  monthly.forEach((m,i) => { csv += `${MONTHS[i]},${m.total},${m.done},${m.cost}
+`; });
+  csv += `
+รถที่ซ่อมบ่อย
+`;
+  csv += `อันดับ,ทะเบียน,จำนวนครั้ง,ค่าใช้จ่ายรวม
+`;
+  topPlates.forEach((p,i) => { csv += `${i+1},${esc(p.plate)},${p.count},${p.cost}
+`; });
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `รายงานรายปี_${year+543}.csv`;
+  a.click();
+  showToast('ดาวน์โหลด CSV สำเร็จ ✅');
+}
+
+async function printYearlyReport() {
+  if (!_yearlyReportData) { showToast('กรุณาสร้างรายงานก่อน', 'error'); return; }
+  const { year, monthly, topPlates, totalJobs, totalDone, totalCost } = _yearlyReportData;
+  const MONTHS = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const printDate = new Date().toLocaleDateString('th-TH', { year:'numeric', month:'long', day:'numeric' });
+
+  const monthRows = monthly.map((m,i) => `
+    <tr>
+      <td>${MONTHS[i]}</td>
+      <td style="text-align:center;">${m.total}</td>
+      <td style="text-align:center;">${m.done}</td>
+      <td style="text-align:right;">${Number(m.cost).toLocaleString()} ฿</td>
+    </tr>`).join('');
+
+  const plateRows = topPlates.map((p,i) => `
+    <tr>
+      <td style="text-align:center;">${i+1}</td>
+      <td>${p.plate}</td>
+      <td style="text-align:center;">${p.count}</td>
+      <td style="text-align:right;">${Number(p.cost).toLocaleString()} ฿</td>
+    </tr>`).join('');
+
+  const html = `<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8">
+  <style>
+    body { font-family: 'Sarabun', sans-serif; font-size: 13px; color: #222; margin: 20px; }
+    h2 { color: #2E7D32; text-align: center; margin-bottom: 4px; }
+    .subtitle { text-align:center; color:#555; margin-bottom:16px; font-size:12px; }
+    .summary { display:flex; gap:12px; margin-bottom:16px; }
+    .summary-card { flex:1; border:1px solid #e0e0e0; border-radius:8px; padding:10px; text-align:center; }
+    .summary-card .val { font-size:1.4rem; font-weight:700; color:#2E7D32; }
+    .summary-card .lbl { font-size:11px; color:#666; }
+    table { width:100%; border-collapse:collapse; margin-bottom:16px; }
+    th { background:#2E7D32; color:#fff; padding:6px 10px; font-size:12px; }
+    td { padding:5px 10px; border-bottom:1px solid #eee; }
+    tr:nth-child(even) td { background:#f9f9f9; }
+    h3 { color:#1B5E20; font-size:13px; margin:12px 0 6px; border-left:4px solid #2E7D32; padding-left:8px; }
+    .ft { display:flex; justify-content:space-between; font-size:11px; color:#888; margin-top:16px; }
+  </style></head><body>
+  <h2>รายงานสรุปรายปี พ.ศ. ${year+543}</h2>
+  <div class="subtitle">พิมพ์: ${printDate}</div>
+  <div class="summary">
+    <div class="summary-card"><div class="val">${totalJobs}</div><div class="lbl">งานทั้งหมด</div></div>
+    <div class="summary-card"><div class="val">${totalDone}</div><div class="lbl">เสร็จสิ้น</div></div>
+    <div class="summary-card"><div class="val">${totalJobs ? Math.round(totalDone/totalJobs*100) : 0}%</div><div class="lbl">อัตราเสร็จ</div></div>
+    <div class="summary-card"><div class="val" style="font-size:1rem;">${Number(totalCost).toLocaleString()}</div><div class="lbl">ค่าใช้จ่ายรวม (฿)</div></div>
+  </div>
+  <h3>สรุปรายเดือน</h3>
+  <table><thead><tr><th>เดือน</th><th>งานทั้งหมด</th><th>เสร็จสิ้น</th><th>ค่าใช้จ่าย</th></tr></thead>
+  <tbody>${monthRows}</tbody></table>
+  <h3>รถที่ซ่อมบ่อยที่สุด (Top 10)</h3>
+  <table><thead><tr><th>อันดับ</th><th>ทะเบียน</th><th>จำนวนครั้ง</th><th>ค่าใช้จ่ายรวม</th></tr></thead>
+  <tbody>${plateRows}</tbody></table>
+  <div class="ft"><span>รายงานรายปี ${year+543} | ระบบแจ้งซ่อมรถยนต์</span><span>${printDate}</span></div>
+  <script>window.onload=function(){window.print();}<\/script>
+  </body></html>`;
+
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if (isMobile) {
+    showToast('กำลังสร้าง PDF... รอสักครู่');
+    await savePDF(html, `รายงานรายปี_${year+543}.pdf`);
+  } else {
+    const win = window.open('','_blank');
+    if (!win) { showToast('กรุณาอนุญาต Popup', 'error'); return; }
+    win.document.write(html);
+    win.document.close();
+  }
+}
+
+/* ============================================================
+   QR CODE
+   ============================================================ */
+let _qrInstance       = null;
+let _qrPosterInstance = null;
+
+async function initQRCode() {
+  await ensureQRCode();
+  const url = window.location.href.split('?')[0];
+
+  document.getElementById('qr-url-display').textContent = url;
+  document.getElementById('qr-url-label').textContent   = url;
+
+  // ล้าง QR เก่า
+  const div1 = document.getElementById('qr-div');
+  const div2 = document.getElementById('qr-poster-div');
+  div1.innerHTML = '';
+  div2.innerHTML = '';
+
+  // สร้าง QR ใหม่ด้วย qrcodejs (render เป็น <img> + <canvas> ใน div)
+  new QRCode(div1, { text: url, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.M });
+  new QRCode(div2, { text: url, width: 160, height: 160, correctLevel: QRCode.CorrectLevel.M });
+}
+
+function downloadQR() {
+  setTimeout(() => {
+    const img = document.querySelector('#qr-div img');
+    if (!img) { showToast('ยังไม่มี QR Code', 'error'); return; }
+    const link = document.createElement('a');
+    link.download = 'QR_แจ้งซ่อม.png';
+    link.href = img.src;
+    link.click();
+    showToast('บันทึก QR Code แล้ว ✅');
+  }, 300);
+}
+
+function printQR() {
+  setTimeout(() => {
+    const img = document.querySelector('#qr-div img');
+    if (!img) { showToast('ยังไม่มี QR Code', 'error'); return; }
+    const url  = document.getElementById('qr-url-display').textContent;
+    const imgData = img.src;
+    const win  = window.open('', '_blank', 'width=400,height=500');
+    win.document.write(`<!DOCTYPE html><html><head><title>QR แจ้งซ่อม</title>
+      <style>
+        body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f5f5f5;}
+        .card{background:#fff;border-radius:16px;padding:32px 24px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.1);max-width:320px;}
+        h2{color:#1B5E20;font-family:sans-serif;margin:0 0 16px;}
+        img{width:220px;height:220px;border:2px solid #eee;border-radius:8px;padding:8px;}
+        p{font-size:12px;color:#666;margin-top:12px;word-break:break-all;}
+      </style></head><body>
+      <div class="card">
+        <h2>🔧 แจ้งซ่อมรถยนต์</h2>
+        <img src="${imgData}">
+        <p>สแกน QR Code เพื่อแจ้งซ่อม</p>
+        <p style="font-size:10px;color:#999;">${url}</p>
+      </div>
+      <script>window.onload=function(){window.print();}<\/script>
+      </body></html>`);
+    win.document.close();
+  }, 300);
+}
+
+function printPoster() {
+  setTimeout(() => {
+    const img = document.querySelector('#qr-poster-div img');
+    if (!img) { showToast('ยังไม่มี QR Code', 'error'); return; }
+    const url     = document.getElementById('qr-url-display').textContent;
+    const imgData = img.src;
+    const win     = window.open('', '_blank', 'width=500,height=700');
+    win.document.write(`<!DOCTYPE html><html><head><title>โปสเตอร์แจ้งซ่อม</title>
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700&display=swap');
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f0f0f0;}
+        .poster{background:linear-gradient(160deg,#1B5E20 0%,#2E7D32 60%,#388E3C 100%);
+          border-radius:20px;padding:40px 32px;text-align:center;color:#fff;
+          font-family:'Prompt',sans-serif;width:360px;box-shadow:0 8px 32px rgba(0,0,0,.25);}
+        .logo{font-size:2.5rem;margin-bottom:8px;}
+        h1{font-size:1.5rem;font-weight:700;margin-bottom:4px;letter-spacing:.5px;}
+        .sub{font-size:.9rem;opacity:.85;margin-bottom:20px;}
+        .qr-box{background:#fff;border-radius:14px;padding:16px;display:inline-block;margin-bottom:16px;}
+        .qr-box img{width:200px;height:200px;display:block;}
+        .cta{font-size:1rem;font-weight:600;margin-bottom:8px;}
+        .url{font-size:.6rem;opacity:.6;word-break:break-all;margin-top:8px;}
+        .steps{background:rgba(255,255,255,.15);border-radius:10px;padding:12px 16px;margin-top:16px;text-align:left;}
+        .steps p{font-size:.78rem;margin-bottom:4px;opacity:.9;}
+        .steps p:last-child{margin-bottom:0;}
+      </style></head><body>
+      <div class="poster">
+        <div class="logo">🔧</div>
+        <h1>แจ้งซ่อมรถยนต์</h1>
+        <div class="sub">ระบบแจ้งซ่อม Royal-D</div>
+        <div class="qr-box"><img src="${imgData}"></div>
+        <div class="cta">📱 สแกน QR Code เพื่อแจ้งซ่อม</div>
+        <div class="steps">
+          <p>1️⃣  เปิดกล้องมือถือ / LINE</p>
+          <p>2️⃣  ส่อง QR Code</p>
+          <p>3️⃣  กรอกข้อมูลแจ้งซ่อม</p>
+        </div>
+        <div class="url">${url}</div>
+      </div>
+      <script>window.onload=function(){window.print();}<\/script>
+      </body></html>`);
+    win.document.close();
+  }, 300);
+}
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+function navigate(page) {
+  document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+  const pEl = document.getElementById('page-' + page);
+  if (pEl) pEl.classList.add('active');
+  const sEl = document.querySelector(`.sidebar-item[data-page="${page}"]`);
+  if (sEl) sEl.classList.add('active');
+  if (page === 'repair-list') renderRepairTable();
+  if (page === 'admin-users') renderUserList();
+  if (page === 'admin-vehicles') renderVehicleList();
+  if (page === 'admin-report')   { initReportSelectors(); setTimeout(generateReport, 50); }
+  if (page === 'admin-yearly')   { initYearlySelectors(); }
+  if (page === 'admin-qr')       { setTimeout(initQRCode, 100); }
+  if (page === 'vehicle-history')    { populateVehicleHistorySelect(); }
+  if (page === 'manager-jobs') { _mgrFilter='all'; renderManagerJobs(); }
+
+  // FAB — แสดงเฉพาะหน้า dashboard และ repair-list และเฉพาะ non-manager
+  const fab = document.getElementById('fab-repair');
+  if (fab) {
+    const showFab = ['dashboard','repair-list'].includes(page) && currentUser?.role !== 'manager';
+    fab.style.display = showFab ? 'flex' : 'none';
+  }
+
+  // close sidebar on mobile
+  if (window.innerWidth < 768) document.getElementById('sidebar').style.display='none';
+}
+
+/* ============================================================
+   MANAGER — Jobs with filter
+   ============================================================ */
+let _mgrFilter = 'all';
+
+function filterManagerJobs(status) {
+  _mgrFilter = status;
+  document.querySelectorAll('[data-mgr-status]').forEach(el => {
+    el.classList.toggle('active', el.dataset.mgrStatus === status);
+  });
+  renderManagerJobs();
+}
+
+function renderManagerJobs() {
+  // ===== stats =====
+  const pending   = allJobs.filter(j => j.status === 'รอการอนุมัติ').length;
+  const approved  = allJobs.filter(j => j.status === 'อนุมัติ').length;
+  const totalCost = allJobs
+    .filter(j => j.status === 'อนุมัติ')
+    .reduce((s, j) => s + (Number(j.estimate) || 0), 0);
+  document.getElementById('mgr-stat-pending').textContent  = pending;
+  document.getElementById('mgr-stat-approved').textContent = approved;
+  document.getElementById('mgr-stat-cost').textContent     = totalCost.toLocaleString();
+
+  // badge sidebar
+  const badge = document.getElementById('badge-approval');
+  if (badge) { badge.textContent = pending; badge.style.display = pending ? 'inline' : 'none'; }
+
+  // ===== filter + search + sort =====
+  const q       = (document.getElementById('mgr-search')?.value || '').toLowerCase().trim();
+  const sortVal = document.getElementById('mgr-sort')?.value || 'oldest';
+
+  let jobs = allJobs;
+  if (_mgrFilter !== 'all') jobs = jobs.filter(j => j.status === _mgrFilter);
+  if (q) jobs = jobs.filter(j =>
+    (j.plate||'').toLowerCase().includes(q) ||
+    (j.userName||'').toLowerCase().includes(q) ||
+    (j.jobId||'').toLowerCase().includes(q) ||
+    (j.detail||'').toLowerCase().includes(q)
+  );
+  jobs = [...jobs].sort((a, b) => {
+    const ta = new Date(a.createdAt).getTime();
+    const tb = new Date(b.createdAt).getTime();
+    return sortVal === 'oldest' ? ta - tb : tb - ta;
+  });
+
+  const tbody = document.getElementById('mgr-jobs-tbody');
+  const cards = document.getElementById('mgr-jobs-cards');
+  const empty = document.getElementById('mgr-jobs-empty');
+
+  if (!jobs.length) {
+    // PC: แสดง empty ใน tbody
+    tbody.innerHTML = `<tr><td colspan="8">
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2.5rem;color:var(--gray-400);">
+        <span class="material-icons" style="font-size:2.5rem;margin-bottom:.5rem;">inbox</span>
+        <span style="font-size:.9rem;">ไม่พบรายการ</span>
+      </div></td></tr>`;
+    // Mobile: แสดง empty ใน cards
+    cards.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2.5rem;color:var(--gray-400);">
+      <span class="material-icons" style="font-size:2.5rem;margin-bottom:.5rem;">inbox</span>
+      <span style="font-size:.9rem;">ไม่พบรายการ</span>
+    </div>`;
+    empty.style.display = 'none'; // ซ่อน empty-state นอก table เสมอ
+    return;
+  }
+  empty.style.display = 'none';
+
+  // ปุ่มการดำเนินการ — เฉพาะ รอการอนุมัติ แสดง 3 ปุ่ม
+  const actionBtns = j => {
+    const viewBtn = `<button class="btn-outline-custom btn-sm" onclick="openDetail('${j.jobId}')" title="ดูรายละเอียด">
+      <span class="material-icons" style="font-size:.9rem;">visibility</span>
+    </button>`;
+    if (j.status !== 'รอการอนุมัติ') return viewBtn;
+    return `<div class="d-flex gap-1">
+      ${viewBtn}
+      <button class="btn-primary-custom btn-sm" style="background:var(--success);padding:.3rem .6rem;" onclick="quickDecision('${j.jobId}','อนุมัติ')" title="อนุมัติ">
+        <span class="material-icons" style="font-size:.9rem;">check</span>
+      </button>
+      <button class="btn-primary-custom btn-sm" style="background:var(--danger);padding:.3rem .6rem;" onclick="quickDecision('${j.jobId}','ไม่อนุมัติ')" title="ไม่อนุมัติ">
+        <span class="material-icons" style="font-size:.9rem;">close</span>
+      </button>
+      <button class="btn-primary-custom btn-sm" style="background:var(--warning);color:#333;padding:.3rem .6rem;" onclick="quickDecision('${j.jobId}','ส่งกลับแก้ไข')" title="ส่งกลับแก้ไข">
+        <span class="material-icons" style="font-size:.9rem;">undo</span>
+      </button>
+    </div>`;
+  };
+
+  // ===== Desktop =====
+  tbody.innerHTML = jobs.map(j => `
+    <tr style="${j.status==='รอการอนุมัติ'?'background:rgba(255,193,7,.05);':''}">
+      <td style="padding:.75rem .875rem;white-space:nowrap;">
+        <span style="font-weight:700;color:var(--primary-dark);font-size:.82rem;">${j.jobId}</span>
+      </td>
+      <td style="padding:.75rem .875rem;font-size:.85rem;">${j.userName}</td>
+      <td style="padding:.75rem .875rem;">
+        <span style="font-weight:600;font-size:.88rem;">${j.plate}</span>
+      </td>
+      <td style="padding:.75rem .875rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.84rem;color:var(--gray-700);" title="${j.detail}">${j.detail}</td>
+      <td style="padding:.75rem .875rem;text-align:right;font-weight:600;font-size:.88rem;white-space:nowrap;">
+        ${j.estimate ? Number(j.estimate).toLocaleString()+' ฿' : '<span style="color:var(--gray-400);">-</span>'}
+      </td>
+      <td style="padding:.75rem .875rem;">
+        <span class="badge-status ${statusClass(j.status)}">${j.status}</span>
+      </td>
+      <td style="padding:.75rem .875rem;white-space:nowrap;font-size:.82rem;color:var(--gray-600);">${formatDate(j.createdAt)}</td>
+      <td style="padding:.75rem .875rem;text-align:center;">
+        <div style="display:flex;gap:.4rem;justify-content:center;align-items:center;">${actionBtns(j)}</div>
+      </td>
+    </tr>`).join('');
+
+  // ===== Mobile =====
+  const borderColor = s => ({
+    'รอการอนุมัติ':'var(--warning)',
+    'อนุมัติ':'var(--success)',
+    'ไม่อนุมัติ':'var(--danger)',
+    'ส่งกลับแก้ไข':'#9C27B0',
+    'เสร็จสิ้น':'#1B5E20'
+  }[s] || 'var(--gray-300)');
+
+  cards.innerHTML = jobs.map(j => `
+    <div style="background:#fff;border-radius:12px;border:1px solid var(--gray-200);border-left:4px solid ${borderColor(j.status)};
+                padding:1rem;margin-bottom:.75rem;box-shadow:0 1px 4px rgba(0,0,0,.06);">
+      <!-- Row 1: JobID + Badge -->
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem;">
+        <span style="font-weight:700;color:var(--primary-dark);font-size:.88rem;">${j.jobId}</span>
+        <span class="badge-status ${statusClass(j.status)}">${j.status}</span>
+      </div>
+      <!-- Row 2: ชื่อ + ทะเบียน -->
+      <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.4rem;flex-wrap:wrap;">
+        <span style="font-size:.82rem;color:var(--gray-600);">👤 ${j.userName}</span>
+        <span style="color:var(--gray-300);">|</span>
+        <span style="font-size:.85rem;font-weight:600;color:var(--gray-800);">🚗 ${j.plate}</span>
+      </div>
+      <!-- Row 3: อาการ -->
+      <div style="font-size:.84rem;color:var(--gray-700);margin-bottom:.5rem;line-height:1.4;
+                  overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">
+        ${j.detail}
+      </div>
+      <!-- Row 4: ประเมิน + วันที่ -->
+      <div style="display:flex;gap:1rem;font-size:.8rem;color:var(--gray-500);margin-bottom:.75rem;flex-wrap:wrap;">
+        <span>💰 <strong style="color:var(--gray-800);">${j.estimate ? Number(j.estimate).toLocaleString()+' ฿' : 'ไม่ระบุ'}</strong></span>
+        <span>📅 ${formatDate(j.createdAt)}</span>
+        ${j.note ? `<span style="color:var(--warning-dark);">📝 ${j.note}</span>` : ''}
+      </div>
+      <!-- Row 5: ปุ่มการดำเนินการ -->
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;border-top:1px solid var(--gray-100);padding-top:.75rem;">
+        <button onclick="openDetail('${j.jobId}')"
+          style="flex:1;min-width:100px;display:flex;align-items:center;justify-content:center;gap:.3rem;
+                 padding:.5rem .75rem;border-radius:8px;border:1.5px solid var(--gray-300);
+                 background:#fff;color:var(--gray-700);font-size:.82rem;font-weight:600;cursor:pointer;">
+          <span class="material-icons" style="font-size:.95rem;">visibility</span> รายละเอียด
+        </button>
+        ${j.status==='รอการอนุมัติ' ? `
+        <button onclick="quickDecision('${j.jobId}','อนุมัติ')"
+          style="flex:1;min-width:80px;display:flex;align-items:center;justify-content:center;gap:.3rem;
+                 padding:.5rem .75rem;border-radius:8px;border:none;
+                 background:#E8F5E9;color:#2E7D32;font-size:.82rem;font-weight:700;cursor:pointer;">
+          <span class="material-icons" style="font-size:.95rem;">check_circle</span> อนุมัติ
+        </button>
+        <button onclick="quickDecision('${j.jobId}','ไม่อนุมัติ')"
+          style="flex:1;min-width:80px;display:flex;align-items:center;justify-content:center;gap:.3rem;
+                 padding:.5rem .75rem;border-radius:8px;border:none;
+                 background:#FFEBEE;color:#C62828;font-size:.82rem;font-weight:700;cursor:pointer;">
+          <span class="material-icons" style="font-size:.95rem;">cancel</span> ไม่อนุมัติ
+        </button>
+        <button onclick="quickDecision('${j.jobId}','ส่งกลับแก้ไข')"
+          style="flex:1;min-width:80px;display:flex;align-items:center;justify-content:center;gap:.3rem;
+                 padding:.5rem .75rem;border-radius:8px;border:none;
+                 background:#FFF8E1;color:#F57F17;font-size:.82rem;font-weight:700;cursor:pointer;">
+          <span class="material-icons" style="font-size:.95rem;">undo</span> ส่งกลับ
+        </button>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+// ตัดสินใจด่วน — ถ้าต้องใส่เหตุผลให้เปิด modal ก่อน
+function quickDecision(jobId, decision) {
+  if (['ไม่อนุมัติ','ส่งกลับแก้ไข'].includes(decision)) {
+    const icons = { 'ไม่อนุมัติ':'❌', 'ส่งกลับแก้ไข':'⚠️' };
+    document.getElementById('mgr-note-jobid').value    = jobId;
+    document.getElementById('mgr-note-decision').value = decision;
+    document.getElementById('mgr-note-text').value     = '';
+    document.getElementById('mgr-note-title').textContent = `${icons[decision]} ${decision}`;
+    const btn = document.getElementById('mgr-note-confirm-btn');
+    btn.style.background = decision === 'ไม่อนุมัติ' ? 'var(--danger)' : 'var(--warning)';
+    btn.style.color = decision === 'ไม่อนุมัติ' ? '#fff' : '#333';
+    closeModal('modalDetail'); // ปิด detail modal ถ้าเปิดอยู่
+    showModal('modalManagerNote');
+  } else {
+    // อนุมัติ — ไม่ต้องใส่เหตุผล ทำเลย
+    _submitManagerDecision(jobId, 'อนุมัติ', '');
+  }
+}
+
+async function confirmManagerDecision() {
+  const jobId    = document.getElementById('mgr-note-jobid').value;
+  const decision = document.getElementById('mgr-note-decision').value;
+  const note     = document.getElementById('mgr-note-text').value.trim();
+  closeModal('modalManagerNote');
+  await _submitManagerDecision(jobId, decision, note);
+}
+
+async function _submitManagerDecision(jobId, decision, note) {
+  const icons = { 'อนุมัติ':'✅', 'ไม่อนุมัติ':'❌', 'ส่งกลับแก้ไข':'⚠️' };
+  showLoading(true);
+  const res = await gasCall('updateStatus', {
+    jobId,
+    status: decision,
+    managerNote: note || '',  // บันทึกลง col M (managerNote) โดยเฉพาะ
+    actualCost: '',
+    adminUid: currentUser.lineUid,
+  });
+  showLoading(false);
+  if (res.status === 'ok') {
+    showToast(`${icons[decision]} ${decision}แล้ว`);
+    sessionStorage.removeItem('_repairData');
+    await loadData(true);
+    renderManagerJobs();
+  } else {
+    showToast('เกิดข้อผิดพลาด: ' + (res.message||'unknown'), 'error');
+  }
+}
+
+document.getElementById('sidebar-toggle').addEventListener('click', () => {
+  const sb = document.getElementById('sidebar');
+  sb.style.display = sb.style.display === 'none' ? 'block' : 'none';
+});
+
+/* ============================================================
+   REPAIR MODAL
+   ============================================================ */
+function openRepairModal() {
+  editingJobId = null;
+  document.getElementById('repair-modal-title').textContent = 'แจ้งซ่อมรถยนต์';
+  document.getElementById('repair-form').reset();
+  document.getElementById('repair-img-preview').innerHTML = '<span class="material-icons" style="font-size:2rem;color:var(--gray-300);">photo_camera</span><div class="placeholder-text">คลิกเพื่อเลือกรูป (ไม่บังคับ)</div>';
+  if (currentUser?.role !== 'admin') document.getElementById('admin-note-section').classList.add('d-none');
+  showModal('modalRepair');
+}
+
+function openEditRepair(jobId) {
+  const job = allJobs.find(j => j.jobId === jobId);
+  if (!job) return;
+  editingJobId = jobId;
+  document.getElementById('repair-modal-title').textContent = 'แก้ไขใบแจ้งซ่อม';
+  document.getElementById('f-job-id').value = jobId;
+  document.getElementById('f-plate').value = job.plate;
+  document.getElementById('f-mileage').value = job.mileage;
+  document.getElementById('f-detail').value = job.detail;
+  document.getElementById('f-estimate').value = job.estimate || '';
+  document.getElementById('f-location').value = job.location;
+  document.getElementById('f-note').value = job.note || '';
+  if (job.imageUrl) {
+    document.getElementById('repair-img-preview').innerHTML = `<img src="${job.imageUrl}" style="max-height:160px;border-radius:8px;">`;
+  }
+  showModal('modalRepair');
+}
+
+async function submitRepair() {
+  if (submitting) return;
+  const plate    = document.getElementById('f-plate').value.trim();
+  const mileage  = document.getElementById('f-mileage').value.trim();
+  const detail   = document.getElementById('f-detail').value.trim();
+  const estimate = document.getElementById('f-estimate').value.trim();
+  const location = document.getElementById('f-location').value.trim();
+  const note     = document.getElementById('f-note').value.trim();
+
+  if (!plate || !mileage || !detail) { showToast('กรุณากรอกข้อมูลที่จำเป็นให้ครบ', 'error'); return; }
+  if (isNaN(mileage) || Number(mileage) < 0) { showToast('เลขไมล์ต้องเป็นตัวเลข', 'error'); return; }
+  if (estimate && (isNaN(estimate) || Number(estimate) < 0)) { showToast('ประเมินค่าใช้จ่ายต้องเป็นตัวเลข', 'error'); return; }
+
+  submitting = true;
+  showLoading(true);
+
+  // Upload image if any
+  let imageUrl = ''; let viewUrl = '';
+  const imgFile = document.getElementById('f-image').files[0];
+  if (imgFile) {
+    const compressed = await compressImage(imgFile);
+    // ส่ง jobId ถ้าแก้ไข (editingJobId) หรือส่งค่าว่างถ้าสร้างใหม่ (GAS จะใช้ชื่อ temp ก่อน แล้ว rename หลัง createJob)
+    const upRes = await gasCall('uploadImage', {
+      base64: compressed.b64, mimeType: compressed.mime,
+      filename: compressed.filename, folderType: 'repair',
+      jobId: editingJobId || ''
+    });
+    if (upRes.status !== 'ok') { showLoading(false); submitting = false; showToast('อัปโหลดรูปไม่สำเร็จ: ' + (upRes.message || ''), 'error'); return; }
+    imageUrl = upRes.url || '';
+    viewUrl  = upRes.viewUrl || '';
+    window._lastUploadedFileId = upRes.fileId || '';
+  }
+
+  const action = editingJobId ? 'updateJob' : 'createJob';
+  const payload = {
+    lineUid: currentUser.lineUid,
+    userName: currentUser.name,
+    plate, mileage, detail, estimate, location, imageUrl, viewUrl, note,
+    jobId: editingJobId || '',
+    imageFileId: (!editingJobId && imgFile) ? (window._lastUploadedFileId || '') : ''
+  };
+
+  const res = await gasCall(action, payload);
+  showLoading(false);
+  submitting = false;
+
+  if (res.status === 'ok') {
+    showToast(editingJobId ? 'แก้ไขเรียบร้อย' : '✅ ส่งแจ้งซ่อมสำเร็จ');
+    closeModal('modalRepair');
+    loadData();
+  } else {
+    showToast('เกิดข้อผิดพลาด: ' + (res.message || ''), 'error');
+  }
+  submitting = false;
+  showLoading(false);
+}
+
+/* ============================================================
+   DETAIL MODAL
+   ============================================================ */
+function openDetail(jobId) {
+  const j = allJobs.find(x => x.jobId === jobId);
+  if (!j) return;
+  const isAdmin = ['admin','supervisor'].includes(currentUser.role);
+  const body = document.getElementById('detail-body');
+  body.innerHTML = `
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <div style="font-size:.78rem;color:var(--gray-500);">เลขที่งาน</div>
+        <div style="font-weight:700;font-size:1.05rem;color:var(--primary-dark);">${j.jobId}</div>
+      </div>
+      <span class="badge-status ${statusClass(j.status)}" style="font-size:.85rem;">${j.status}</span>
+    </div>
+    ${j.note ? `<div class="alert" style="background:var(--warning-light);border:1px solid #FFE082;border-radius:8px;padding:.65rem 1rem;font-size:.85rem;margin-bottom:1rem;">
+      <strong>📝 หมายเหตุ:</strong> ${j.note}</div>` : ''}
+    ${['ผู้แจ้ง','เลขทะเบียน','เลขไมล์','อาการที่พบ','ประเมินค่าใช้จ่าย','สถานที่ซ่อม','วันที่แจ้ง'].map((label,i) => {
+      const vals = [j.userName,j.plate,Number(j.mileage).toLocaleString()+' กม.',j.detail,(j.estimate?Number(j.estimate).toLocaleString()+' บาท':'-'),j.location,formatDate(j.createdAt)];
+      return `<div class="detail-row"><div class="detail-label">${label}</div><div class="detail-value">${vals[i]}</div></div>`;
+    }).join('')}
+    ${j.actualCost ? `<div class="detail-row"><div class="detail-label">ค่าใช้จ่ายจริง</div><div class="detail-value text-success fw-bold">${Number(j.actualCost).toLocaleString()} บาท</div></div>` : ''}
+    ${j.imageUrl ? `<div class="mt-3"><div class="form-label mb-1">📷 รูปประกอบ</div><div class="d-flex align-items-center gap-2 flex-wrap"><img src="${j.imageUrl}" class="bill-thumb" onclick="viewImage('${j.imageUrl}')" onerror="this.style.display='none'"><a href="${j.viewUrl||j.imageUrl}" target="_blank" class="btn-outline-custom btn-sm" style="font-size:.8rem;"><span class="material-icons" style="font-size:.9rem;">open_in_new</span> เปิดใน Drive</a></div></div>` : ''}
+    ${j.billUrl ? `<div class="mt-2"><div class="form-label mb-1">🧾 ใบเสร็จ / บิล</div><div class="d-flex align-items-center gap-2 flex-wrap"><img src="${j.billUrl}" class="bill-thumb" onclick="viewImage('${j.billUrl}')" onerror="this.style.display='none'"><a href="${j.billViewUrl||j.billUrl}" target="_blank" class="btn-outline-custom btn-sm" style="font-size:.8rem;"><span class="material-icons" style="font-size:.9rem;">open_in_new</span> เปิดใน Drive</a></div></div>` : ''}
+  `;
+  const footer = document.getElementById('detail-footer');
+  footer.innerHTML = '';
+  // ปุ่ม Print PDF ให้ทุกคนกดได้
+  const pdfBtn = `<button class="btn-outline-custom btn-sm" onclick="printJobPDF('${j.jobId}')"><span class="material-icons" style="font-size:.9rem;">picture_as_pdf</span> PDF</button>`;
+
+  const isManager = currentUser.role === 'manager';
+  if (isAdmin) {
+    const logBtn = `<button class="btn-outline-custom btn-sm" onclick="openStatusLog('${j.jobId}')"><span class="material-icons" style="font-size:.9rem;">history</span> ประวัติ</button>`;
+    if (j.status === 'เสร็จสิ้น') {
+      footer.innerHTML = pdfBtn + logBtn;
+    } else {
+      footer.innerHTML = pdfBtn + logBtn + `
+        <button class="btn-outline-custom btn-sm" onclick="closeModal('modalDetail');openEditRepair('${j.jobId}')"><span class="material-icons" style="font-size:.9rem;">edit</span> แก้ไข</button>
+        <button class="btn-primary-custom btn-sm" onclick="closeModal('modalDetail');openStatusModal('${j.jobId}')"><span class="material-icons" style="font-size:.9rem;">update</span> เปลี่ยนสถานะ</button>`;
+    }
+  } else if (isManager && j.status === 'รอการอนุมัติ') {
+    footer.innerHTML = pdfBtn + `
+      <button class="btn-primary-custom btn-sm" style="background:var(--success);" onclick="closeModal('modalDetail');quickDecision('${j.jobId}','อนุมัติ')">
+        <span class="material-icons" style="font-size:.9rem;">check</span> อนุมัติ
+      </button>
+      <button class="btn-primary-custom btn-sm" style="background:var(--danger);" onclick="closeModal('modalDetail');quickDecision('${j.jobId}','ไม่อนุมัติ')">
+        <span class="material-icons" style="font-size:.9rem;">close</span> ไม่อนุมัติ
+      </button>
+      <button class="btn-primary-custom btn-sm" style="background:var(--warning);color:#333;" onclick="closeModal('modalDetail');quickDecision('${j.jobId}','ส่งกลับแก้ไข')">
+        <span class="material-icons" style="font-size:.9rem;">undo</span> ส่งกลับแก้ไข
+      </button>`;
+  } else if (j.status === 'ส่งกลับแก้ไข' && j.lineUid === currentUser.lineUid) {
+    footer.innerHTML = pdfBtn + `<button class="btn-primary-custom btn-sm" onclick="closeModal('modalDetail');openEditRepair('${j.jobId}')"><span class="material-icons" style="font-size:.9rem;">edit</span> แก้ไขและส่งอีกครั้ง</button>`;
+  } else {
+    footer.innerHTML = pdfBtn;
+  }
+  showModal('modalDetail');
+}
+
+/* ============================================================
+   STATUS MODAL
+   ============================================================ */
+function openStatusModal(jobId) {
+  const j = allJobs.find(x => x.jobId === jobId);
+  if (!j) return;
+  if (j.status === 'เสร็จสิ้น') {
+    showToast('งานนี้เสร็จสิ้นแล้ว ไม่สามารถเปลี่ยนสถานะได้', 'error');
+    return;
+  }
+
+  // render options ตาม role
+  const role = currentUser?.role || 'user';
+  const roleOptions = {
+    supervisor: [
+      { v:'รอดำเนินการ',   l:'รอดำเนินการ' },
+      { v:'รอการอนุมัติ', l:'ส่งต่อผู้บริหาร (รอการอนุมัติ)' },
+      { v:'อนุมัติ',       l:'อนุมัติ' },
+      { v:'ไม่อนุมัติ',   l:'ไม่อนุมัติ' },
+      { v:'ส่งกลับแก้ไข', l:'ส่งกลับแก้ไข' },
+      { v:'กำลังซ่อม',    l:'กำลังซ่อม' },
+      { v:'เสร็จสิ้น',    l:'เสร็จสิ้น' },
+    ],
+    manager: [
+      { v:'รอการอนุมัติ', l:'รอการอนุมัติ' },
+      { v:'อนุมัติ',       l:'อนุมัติ ✅' },
+      { v:'ไม่อนุมัติ',   l:'ไม่อนุมัติ ❌' },
+      { v:'ส่งกลับแก้ไข', l:'ส่งกลับแก้ไข' },
+    ],
+    admin: [
+      { v:'รอดำเนินการ',       l:'รอดำเนินการ' },
+      { v:'รอการอนุมัติ', l:'รอการอนุมัติ' },
+      { v:'อนุมัติ',           l:'อนุมัติ' },
+      { v:'ไม่อนุมัติ',       l:'ไม่อนุมัติ' },
+      { v:'ส่งกลับแก้ไข',     l:'ส่งกลับแก้ไข' },
+      { v:'กำลังซ่อม',        l:'กำลังซ่อม' },
+      { v:'เสร็จสิ้น',        l:'เสร็จสิ้น' },
+    ],
+  };
+  const opts = roleOptions[role] || roleOptions['admin'];
+  const sel = document.getElementById('new-status');
+  sel.innerHTML = opts.map(o => `<option value="${o.v}">${o.l}</option>`).join('');
+
+  document.getElementById('status-job-id').value = jobId;
+  document.getElementById('new-status').value = j.status;
+  document.getElementById('status-note').value = j.note || '';
+  document.getElementById('actual-cost').value = '';
+  document.getElementById('bill-preview').innerHTML = '<span class="material-icons" style="font-size:2rem;color:var(--gray-300);">receipt</span><div class="placeholder-text">คลิกเพื่อแนบบิล</div>';
+  toggleCompleteSection();
+  showModal('modalStatus');
+}
+
+document.getElementById('new-status').addEventListener('change', toggleCompleteSection);
+function toggleCompleteSection() {
+  document.getElementById('complete-section').style.display = document.getElementById('new-status').value === 'เสร็จสิ้น' ? 'block' : 'none';
+}
+
+async function submitStatusChange() {
+  const jobId   = document.getElementById('status-job-id').value;
+  const status  = document.getElementById('new-status').value;
+  const note    = document.getElementById('status-note').value.trim();
+  const cost    = document.getElementById('actual-cost').value.trim();
+  const billFile = document.getElementById('bill-image').files[0];
+
+  if (status === 'เสร็จสิ้น') {
+    if (!cost || isNaN(cost)) { showToast('กรุณากรอกค่าใช้จ่ายจริง', 'error'); return; }
+    if (!billFile) { showToast('กรุณาแนบบิล/ใบเสร็จ', 'error'); return; }
+  }
+
+  showLoading(true);
+  let billUrl = ''; let billViewUrl = '';
+  if (billFile) {
+    const compressed = await compressImage(billFile, 1600, 1600, 0.85);
+    const upRes = await gasCall('uploadImage', {
+      base64: compressed.b64, mimeType: compressed.mime,
+      filename: compressed.filename, folderType: 'bill',
+      jobId: jobId  // ส่ง jobId ตั้งชื่อไฟล์ เช่น JOB2506001_bill.jpg
+    });
+    if (upRes.status !== 'ok') { showLoading(false); showToast('อัปโหลดบิลไม่สำเร็จ: ' + (upRes.message || ''), 'error'); return; }
+    billUrl     = upRes.url     || '';
+    billViewUrl = upRes.viewUrl || '';
+  }
+
+  const res = await gasCall('updateStatus', { jobId, status, note, actualCost: cost, billUrl, billViewUrl, adminUid: currentUser.lineUid });
+  showLoading(false);
+  if (res.status === 'ok') {
+    showToast('อัปเดตสถานะสำเร็จ');
+    closeModal('modalStatus');
+    loadData();
+  } else {
+    showToast('เกิดข้อผิดพลาด: ' + (res.message || ''), 'error');
+  }
+}
+
+/* ============================================================
+   USER MANAGEMENT
+   ============================================================ */
+function openAddUserModal() {
+  document.getElementById('u-row-id').value='';
+  document.getElementById('u-line-id').value='';
+  document.getElementById('u-name').value='';
+  document.getElementById('u-dept').value='';
+  document.getElementById('u-role').value='user';
+  document.getElementById('u-line-id').disabled=false;
+  showModal('modalAddUser');
+}
+function openEditUser(lineUid) {
+  const u = users.find(x => x.lineUid===lineUid);
+  if (!u) return;
+  document.getElementById('u-row-id').value = lineUid;
+  document.getElementById('u-line-id').value = u.lineUid;
+  document.getElementById('u-name').value = u.name;
+  document.getElementById('u-dept').value = u.dept||'';
+  document.getElementById('u-role').value = u.role||'user';
+  document.getElementById('u-line-id').disabled = true;
+  showModal('modalAddUser');
+}
+async function saveUser() {
+  const lineUid = document.getElementById('u-line-id').value.trim();
+  const name    = document.getElementById('u-name').value.trim();
+  const dept    = document.getElementById('u-dept').value.trim();
+  const role    = document.getElementById('u-role').value;
+  if (!lineUid || !name) { showToast('กรุณากรอก LINE UID และชื่อ', 'error'); return; }
+  showLoading(true);
+  const isEdit = !!document.getElementById('u-row-id').value;
+  const res = await gasCall(isEdit ? 'updateUser' : 'addUser', { lineUid, name, dept, role });
+  showLoading(false);
+  if (res.status==='ok') { showToast('บันทึกสำเร็จ'); closeModal('modalAddUser'); loadData(); }
+  else showToast('ผิดพลาด: '+(res.message||''), 'error');
+}
+async function deleteUser(lineUid, name) {
+  if (!confirm(`ลบผู้ใช้ "${name}" ออกจากระบบ?`)) return;
+  showLoading(true);
+  const res = await gasCall('deleteUser', { lineUid });
+  showLoading(false);
+  if (res.status==='ok') { showToast('ลบสำเร็จ'); loadData(); }
+  else showToast('ผิดพลาด', 'error');
+}
+
+/* ============================================================
+   VEHICLE MANAGEMENT
+   ============================================================ */
+function openAddVehicleModal() {
+  document.getElementById('v-plate').value='';
+  document.getElementById('v-model').value='';
+  showModal('modalAddVehicle');
+}
+async function saveVehicle() {
+  const plate = document.getElementById('v-plate').value.trim();
+  const model = document.getElementById('v-model').value.trim();
+  if (!plate) { showToast('กรุณากรอกเลขทะเบียน', 'error'); return; }
+  showLoading(true);
+  const res = await gasCall('addVehicle', { plate, model });
+  showLoading(false);
+  if (res.status==='ok') { showToast('เพิ่มทะเบียนสำเร็จ'); closeModal('modalAddVehicle'); loadData(); }
+  else showToast('ผิดพลาด: '+(res.message||''), 'error');
+}
+async function deleteVehicle(plate) {
+  if (!confirm(`ลบทะเบียน "${plate}"?`)) return;
+  showLoading(true);
+  const res = await gasCall('deleteVehicle', { plate });
+  showLoading(false);
+  if (res.status==='ok') { showToast('ลบสำเร็จ'); loadData(); }
+  else showToast('ผิดพลาด', 'error');
+}
+
+/* ============================================================
+   GAS CALL
+   ใช้ XMLHttpRequest แทน fetch เพราะ LIFF บน LINE app
+   บล็อก fetch ที่มี redirect (GAS redirect ทุก request)
+   XHR จัดการ redirect ได้อัตโนมัติและทำงานได้ใน LIFF
+   ============================================================ */
+function gasCall(action, params = {}) {
+  return new Promise((resolve) => {
+    try {
+      const hasBase64 = !!params.base64;
+      const xhr = new XMLHttpRequest();
+      xhr.withCredentials = false;
+      xhr.timeout = hasBase64 ? 120000 : 30000;
+
+      xhr.onload = function () {
+        try {
+          // GAS อาจ redirect → responseURL จะเป็น URL ใหม่ แต่ responseText คือ JSON
+          const text = xhr.responseText;
+          if (!text || text.trim() === '') {
+            resolve({ status: 'error', message: 'Empty response from GAS' });
+            return;
+          }
+          // หา JSON ใน response (บางครั้ง GAS แนบ HTML ไว้ด้านหน้า)
+          const jsonStart = text.indexOf('{');
+          const jsonEnd   = text.lastIndexOf('}');
+          if (jsonStart === -1) {
+            console.error('No JSON in response:', text.substring(0, 300));
+            resolve({ status: 'error', message: 'No JSON response' });
+            return;
+          }
+          const json = JSON.parse(text.substring(jsonStart, jsonEnd + 1));
+          resolve(json);
+        } catch (e) {
+          console.error('GAS parse error:', xhr.responseText.substring(0, 300));
+          resolve({ status: 'error', message: 'Parse error: ' + e.message });
+        }
+      };
+      xhr.onerror   = () => resolve({ status: 'error', message: 'Network error — ตรวจสอบ GAS_URL' });
+      xhr.ontimeout = () => resolve({ status: 'error', message: 'Request timeout (รูปอาจใหญ่เกินไป)' });
+
+      if (hasBase64) {
+        // upload รูป: POST พร้อม payload= urlencoded
+        // GAS รับได้ผ่าน e.parameter.payload หรือ e.postData.contents
+        const payloadStr = JSON.stringify({ action, ...params, _secret: CONFIG.API_SECRET || '' });
+        xhr.open('POST', CONFIG.GAS_URL, true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.send('payload=' + encodeURIComponent(payloadStr));
+      } else {
+        // request ปกติ: GET query string
+        const url = CONFIG.GAS_URL + '?payload=' + encodeURIComponent(JSON.stringify({ action, ...params, _secret: CONFIG.API_SECRET || '' }));
+        xhr.open('GET', url, true);
+        xhr.send();
+      }
+    } catch (e) {
+      console.error('gasCall exception:', e);
+      resolve({ status: 'error', message: e.message });
+    }
+  });
+}
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function showModal(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (el.classList.contains('modal-overlay')) {
+    el.style.display = 'flex';
+  } else {
+    // Bootstrap modal
+    const old = bootstrap.Modal.getInstance(el);
+    if (old) old.dispose();
+    new bootstrap.Modal(el).show();
+  }
+}
+function closeModal(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (el.classList.contains('modal-overlay')) {
+    el.style.display = 'none';
+  } else {
+    const inst = bootstrap.Modal.getInstance(el);
+    if (inst) inst.hide();
+    document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
+  }
+}
+function showLoading(v) { document.getElementById('loading-overlay').classList.toggle('show', v); }
+
+function showToast(msg, type='success') {
+  const c = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = `toast-msg${type==='error'?' error':type==='warning'?' warning':''}`;
+  el.innerHTML = `<span class="material-icons" style="font-size:1.1rem;color:${type==='error'?'var(--danger)':type==='warning'?'var(--warning)':'var(--primary)'};">${type==='error'?'error':type==='warning'?'warning':'check_circle'}</span>${msg}`;
+  c.appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+function statusClass(s) {
+  return { 'รอดำเนินการ':'status-waiting','รอการอนุมัติ':'status-pending-mgr','อนุมัติ':'status-approved','ไม่อนุมัติ':'status-rejected','ส่งกลับแก้ไข':'status-revise','กำลังซ่อม':'status-repairing','เสร็จสิ้น':'status-done' }[s] || '';
+}
+
+function formatDate(d) {
+  if (!d) return '-';
+  const t = new Date(d);
+  return isNaN(t) ? d : t.toLocaleString('th-TH', { day:'2-digit', month:'short', year:'2-digit', hour:'2-digit', minute:'2-digit' });
+}
+
+function animateNum(id, val) {
+  const el = document.getElementById(id);
+  let start = parseInt(el.textContent)||0; const end=val; const dur=500;
+  const step = (ts) => {
+    if (!start.startTime) start.startTime=ts;
+    const prog = Math.min((ts-start.startTime)/dur,1);
+    el.textContent = Math.floor(prog*(end-parseInt(el.textContent||0))+parseInt(el.textContent||0));
+    if (prog<1) requestAnimationFrame(step); else el.textContent=end;
+  };
+  el.textContent=start; requestAnimationFrame(ts=>{ start.startTime=ts; el.textContent=Math.round((ts-start.startTime)/dur*(end-start)+start); requestAnimationFrame(step); });
+  el.textContent = val; // fallback
+}
+
+function previewImage(input, previewId) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById(previewId).innerHTML = `<img src="${e.target.result}" style="max-height:160px;border-radius:8px;">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+function viewImage(url) {
+  document.getElementById('modal-img-src').src = url;
+  showModal('modalImage');
+}
+
+/* Compress รูปก่อน upload — resize ให้ไม่เกิน maxW/maxH และ quality 0.8 */
+function compressImage(file, maxW = 1200, maxH = 1200, quality = 0.82) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = e => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > maxW || h > maxH) {
+          const ratio = Math.min(maxW / w, maxH / h);
+          w = Math.round(w * ratio);
+          h = Math.round(h * ratio);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        const mime = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+        const dataUrl = canvas.toDataURL(mime, quality);
+        const b64 = dataUrl.split(',')[1];
+        const kb  = Math.round(b64.length * 0.75 / 1024);
+        console.log(`Compressed: ${img.width}x${img.height} → ${w}x${h} | ~${kb} KB`);
+        resolve({ b64, mime, filename: file.name });
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function toBase64(file) {
+  return new Promise((res,rej) => {
+    const r = new FileReader();
+    r.onload = ()=>res(r.result.split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
+/* ============================================================
+   DELETE JOB (Admin only)
+   ============================================================ */
+function confirmDeleteJob(jobId, plate) {
+  // Modal ยืนยันการลบ
+  const existingModal = document.getElementById('modalConfirmDelete');
+  if (existingModal) existingModal.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'modalConfirmDelete';
+  modal.className = 'modal fade';
+  modal.setAttribute('tabindex', '-1');
+  modal.innerHTML = `
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header-custom" style="background:linear-gradient(135deg,#C62828,#B71C1C);">
+          <div class="modal-title"><span class="material-icons">warning</span> ยืนยันการลบ</div>
+          <button class="btn-close-white" onclick="bootstrap.Modal.getInstance(document.getElementById('modalConfirmDelete')).hide()">
+            <span class="material-icons" style="font-size:1rem;">close</span>
+          </button>
+        </div>
+        <div class="modal-body text-center py-4">
+          <span class="material-icons" style="font-size:3rem;color:var(--danger);display:block;margin-bottom:.75rem;">delete_forever</span>
+          <div style="font-size:1rem;font-weight:600;margin-bottom:.4rem;">ลบรายการแจ้งซ่อม</div>
+          <div style="font-size:.88rem;color:var(--gray-600);">เลขที่งาน <strong>${jobId}</strong> (${plate})</div>
+          <div style="font-size:.82rem;color:var(--danger);margin-top:.75rem;background:var(--danger-light);border-radius:8px;padding:.5rem .75rem;">
+            ⚠️ ไม่สามารถกู้คืนได้หลังจากลบแล้ว
+          </div>
+        </div>
+        <div class="modal-footer justify-content-center gap-2">
+          <button class="btn-outline-custom" onclick="bootstrap.Modal.getInstance(document.getElementById('modalConfirmDelete')).hide()">ยกเลิก</button>
+          <button class="btn-primary-custom" style="background:linear-gradient(135deg,#C62828,#B71C1C);" onclick="executeDeleteJob('${jobId}')">
+            <span class="material-icons" style="font-size:1rem;">delete</span> ยืนยันลบ
+          </button>
+        </div>
+      </div>
+    </div>`;
+
+  document.body.appendChild(modal);
+  const bsModal = new bootstrap.Modal(modal);
+  bsModal.show();
+  modal.addEventListener('hidden.bs.modal', () => modal.remove());
+}
+
+async function executeDeleteJob(jobId) {
+  bootstrap.Modal.getInstance(document.getElementById('modalConfirmDelete'))?.hide();
+  showLoading(true);
+  const res = await gasCall('deleteJob', { jobId, adminUid: currentUser.lineUid });
+  showLoading(false);
+  if (res.status === 'ok') {
+    showToast('ลบรายการ ' + jobId + ' สำเร็จ');
+    loadData();
+  } else {
+    showToast('ลบไม่สำเร็จ: ' + (res.message || ''), 'error');
+  }
+}
+
+/* ============================================================
+   EXPORT CSV
+   ============================================================ */
+async function exportCSV() {
+  const btn = document.getElementById('btn-export-csv');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="material-icons" style="font-size:1rem;">hourglass_empty</span> กำลัง Export...'; }
+  showLoading(true);
+
+  const isAdmin = ['admin','supervisor','manager'].includes(currentUser.role);
+  const res = await gasCall('exportJobs', {
+    lineUid: currentUser.lineUid,
+    isAdmin,
+    filterStatus,
+  });
+  showLoading(false);
+  if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-icons" style="font-size:1rem;">download</span> Export CSV'; }
+
+  if (res.status !== 'ok') { showToast('Export ไม่สำเร็จ: ' + res.message, 'error'); return; }
+
+  // สร้าง CSV
+  const BOM    = '\uFEFF'; // UTF-8 BOM สำหรับ Excel ภาษาไทย
+  const escape = v => '"' + String(v).replace(/"/g, '""') + '"';
+  const lines  = [
+    res.headers.map(escape).join(','),
+    ...res.rows.map(row => row.map(escape).join(','))
+  ];
+  const csv  = BOM + lines.join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const date = new Date().toLocaleDateString('th-TH').replace(/\//g,'-');
+  a.href     = url;
+  a.download = `แจ้งซ่อมรถ_${date}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(`Export สำเร็จ ${res.total} รายการ ✅`);
+}
+
+/* ============================================================
+   PRINT / EXPORT PDF — ใบรายงานแจ้งซ่อมรถยนต์ (1 หน้า A4)
+   ============================================================ */
+/* ============================================================
+   PDF HELPER — สร้าง PDF จาก HTML แล้ว download (ใช้ได้บนมือถือ)
+   ============================================================ */
+async function savePDF(htmlContent, filename) {
+  await ensurePdfLibs();
+  // สร้าง hidden iframe render HTML
+  const iframe = document.createElement('iframe');
+  iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:794px;height:1123px;border:none;';
+  document.body.appendChild(iframe);
+
+  const iDoc = iframe.contentDocument || iframe.contentWindow.document;
+  iDoc.open(); iDoc.write(htmlContent); iDoc.close();
+
+  // รอ font/image โหลด
+  await new Promise(r => setTimeout(r, 1200));
+
+  try {
+    const canvas = await html2canvas(iDoc.body, {
+      scale: 1.8,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff',
+      width: 794,
+      windowWidth: 794,
+    });
+
+    const imgData = canvas.toDataURL('image/jpeg', 0.92);
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    const pW = pdf.internal.pageSize.getWidth();
+    const pH = pdf.internal.pageSize.getHeight();
+    // คำนวณ height ตามสัดส่วน
+    const imgH = (canvas.height / canvas.width) * pW;
+    if (imgH <= pH) {
+      pdf.addImage(imgData, 'JPEG', 0, 0, pW, imgH);
+    } else {
+      // กรณียาวเกิน 1 หน้า — แบ่งหน้า
+      let yOffset = 0;
+      while (yOffset < imgH) {
+        if (yOffset > 0) pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 0, -yOffset, pW, imgH);
+        yOffset += pH;
+      }
+    }
+    pdf.save(filename);
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isIOS) {
+      showToast('PDF เปิดใน browser → กด Share → Save to Files 📁');
+    } else {
+      showToast('PDF บันทึกลง Downloads แล้ว ✅');
+    }
+  } catch(e) {
+    console.error('PDF error:', e);
+    showToast('ไม่สามารถสร้าง PDF ได้: ' + e.message, 'error');
+  } finally {
+    document.body.removeChild(iframe);
+  }
+}
+
+async function printJobPDF(jobId) {
+  const j = allJobs.find(x => x.jobId === jobId);
+  if (!j) return;
+
+  const statusColorMap = {
+    'รอดำเนินการ': '#F57F17', 'อนุมัติ': '#2E7D32', 'กำลังซ่อม': '#1565C0',
+    'เสร็จสิ้น': '#1B5E20', 'ส่งกลับแก้ไข': '#6A1B9A', 'ไม่อนุมัติ': '#C62828', 'รอการอนุมัติ': '#BF360C',
+  };
+  const statusBgMap = {
+    'รอดำเนินการ': '#FFF8E1', 'อนุมัติ': '#E8F5E9', 'กำลังซ่อม': '#E3F2FD',
+    'เสร็จสิ้น': '#C8E6C9', 'ส่งกลับแก้ไข': '#F3E5F5', 'ไม่อนุมัติ': '#FFEBEE', 'รอการอนุมัติ': '#FBE9E7',
+  };
+  const sc = statusColorMap[j.status] || '#333';
+  const sb = statusBgMap[j.status]   || '#f5f5f5';
+
+  const printDate = new Date().toLocaleDateString('th-TH', {
+    year: 'numeric', month: 'long', day: 'numeric',
+    hour: '2-digit', minute: '2-digit'
+  });
+  const jobDate = j.createdAt ? new Date(j.createdAt).toLocaleDateString('th-TH', {
+    year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+  }) : '-';
+  const updateDate = j.updatedAt ? new Date(j.updatedAt).toLocaleDateString('th-TH', {
+    year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+  }) : '-';
+
+  const row = (label, value, highlight) => `
+    <tr>
+      <td style="padding:8px 14px;font-weight:600;color:#555;background:#fafafa;width:36%;border:1px solid #e0e0e0;font-size:13px;">${label}</td>
+      <td style="padding:8px 14px;color:${highlight||'#222'};background:#fff;border:1px solid #e0e0e0;font-size:13px;font-weight:${highlight?'700':'400'};">${value||'-'}</td>
+    </tr>`;
+
+  const logoSrc = document.querySelector('#login-logo-wrap img') ? document.querySelector('#login-logo-wrap img').src : '';
+  const logoHtml = logoSrc && !logoSrc.includes('placeholder')
+    ? `<img src="${logoSrc}" style="height:60px;object-fit:contain;">`
+    : `<div style="width:60px;height:60px;background:#2E7D32;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;">🚗</div>`;
+
+  const html = `<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>ใบรายงานแจ้งซ่อม ${j.jobId}</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=Prompt:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  /* ===== บังคับ 1 หน้า A4 ===== */
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html, body { width:210mm; height:297mm; overflow:hidden; }
+  body {
+    font-family:'Sarabun',sans-serif;
+    font-size:11px;
+    color:#222;
+    background:#fff;
+  }
+
+  /* ===== LAYOUT WRAPPER ===== */
+  .page {
+    width:210mm;
+    height:297mm;
+    display:flex;
+    flex-direction:column;
+    background:#fff;
+    overflow:hidden;
+  }
+
+  /* ===== HEADER ===== */
+  .hd {
+    background:linear-gradient(135deg,#1B5E20,#2E7D32,#388E3C);
+    color:#fff;
+    padding:10px 20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-shrink:0;
+  }
+  .hd-left { display:flex; align-items:center; gap:10px; }
+  .hd-left img, .hd-left .logo-fallback {
+    height:42px; width:42px; object-fit:contain;
+    border-radius:8px;
+  }
+  .hd-title h1 { font-family:'Prompt',sans-serif; font-size:14px; font-weight:700; margin:0; }
+  .hd-title p  { font-size:9.5px; opacity:.85; margin:1px 0 0; }
+  .hd-right { text-align:right; font-size:9px; opacity:.9; line-height:1.65; }
+
+  /* ===== STATUS BAR ===== */
+  .sb {
+    background:${sb};
+    border-left:5px solid ${sc};
+    padding:6px 20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-shrink:0;
+  }
+  .sb-id   { font-family:'Prompt',sans-serif; font-size:16px; font-weight:700; color:${sc}; }
+  .sb-badge {
+    background:${sc}; color:#fff;
+    padding:3px 14px; border-radius:20px;
+    font-family:'Prompt',sans-serif; font-size:11px; font-weight:700;
+  }
+
+  /* ===== BODY ===== */
+  .body {
+    flex:1;
+    padding:10px 20px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    overflow:hidden;
+  }
+
+  /* 2-column grid สำหรับข้อมูล */
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .grid1 { display:grid; grid-template-columns:1fr; }
+
+  .sec-title {
+    font-family:'Prompt',sans-serif;
+    font-size:9px; font-weight:700;
+    color:#2E7D32;
+    text-transform:uppercase;
+    letter-spacing:.4px;
+    border-bottom:1.5px solid #C8E6C9;
+    padding-bottom:3px;
+    margin-bottom:5px;
+  }
+  table { width:100%; border-collapse:collapse; }
+  td {
+    padding:4px 8px;
+    font-size:10.5px;
+    border:1px solid #e8e8e8;
+    vertical-align:top;
+  }
+  td.lbl {
+    width:38%; font-weight:600; color:#555;
+    background:#fafafa;
+  }
+  td.val { color:#111; }
+
+  /* detail text — ห่อบรรทัดได้ */
+  .detail-text {
+    background:#F8F9FA;
+    border:1px solid #e0e0e0;
+    border-radius:5px;
+    padding:5px 8px;
+    font-size:10.5px;
+    line-height:1.5;
+    min-height:32px;
+  }
+
+  /* note */
+  .note-box {
+    background:#FFFDE7;
+    border-left:3px solid #F9A825;
+    border-radius:4px;
+    padding:4px 8px;
+    font-size:10px;
+  }
+
+  /* cost */
+  .cost-box {
+    background:linear-gradient(135deg,#E8F5E9,#F1F8E9);
+    border:1.5px solid #4CAF50;
+    border-radius:6px;
+    padding:6px 12px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .cost-amount { font-family:'Prompt',sans-serif; font-size:20px; font-weight:700; color:#1B5E20; }
+
+  /* images */
+  .img-row { display:flex; gap:8px; }
+  .img-box { border:1px solid #ddd; border-radius:5px; overflow:hidden; flex:1; max-width:48%; }
+  .img-box .img-lbl { padding:3px 8px; font-size:9px; font-weight:700; }
+  .img-box img { width:100%; max-height:75px; object-fit:contain; display:block; background:#f9f9f9; }
+
+  /* sign */
+  .sign-row { display:flex; gap:8px; margin-top:2px; }
+  .sign-box {
+    flex:1; border:1px solid #ddd; border-radius:5px;
+    padding:6px 8px; text-align:center;
+  }
+  .sign-line { border-bottom:1px dashed #aaa; height:30px; margin-bottom:4px; }
+  .sign-lbl { font-size:9px; color:#666; line-height:1.3; }
+
+  /* ===== FOOTER ===== */
+  .ft {
+    padding:5px 20px;
+    background:#fafafa;
+    border-top:1px solid #e0e0e0;
+    display:flex;
+    justify-content:space-between;
+    font-size:9px;
+    color:#999;
+    flex-shrink:0;
+  }
+
+  @media print {
+    html, body { width:210mm; height:297mm; }
+    .page { page-break-after:avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="hd">
+    <div class="hd-left">
+      ${logoHtml}
+      <div class="hd-title">
+        <h1>ใบรายงานแจ้งซ่อมรถยนต์</h1>
+        <p>Vehicle Maintenance Report</p>
+      </div>
+    </div>
+    <div class="hd-right">
+      <div>พิมพ์: ${printDate}</div>
+      <div>โดย: ${currentUser.name}</div>
+    </div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="sb">
+    <div class="sb-id">${j.jobId}</div>
+    <div class="sb-badge">${j.status}</div>
+  </div>
+
+  <!-- BODY -->
+  <div class="body">
+
+    <!-- แถว 1: ข้อมูลแจ้งซ่อม + ข้อมูลรถ (2 คอลัมน์) -->
+    <div class="grid2">
+
+      <!-- ซ้าย: ข้อมูลแจ้งซ่อม -->
+      <div>
+        <div class="sec-title">📋 ข้อมูลการแจ้งซ่อม</div>
+        <table>
+          <tr><td class="lbl">เลขที่งาน</td><td class="val" style="font-weight:700;color:#1B5E20;">${j.jobId}</td></tr>
+          <tr><td class="lbl">ผู้แจ้งซ่อม</td><td class="val">${j.userName||'-'}</td></tr>
+          <tr><td class="lbl">วันที่แจ้ง</td><td class="val">${jobDate}</td></tr>
+          <tr><td class="lbl">อัปเดตล่าสุด</td><td class="val">${updateDate}</td></tr>
+        </table>
+      </div>
+
+      <!-- ขวา: ข้อมูลรถ -->
+      <div>
+        <div class="sec-title">🚙 ข้อมูลรถยนต์</div>
+        <table>
+          <tr><td class="lbl">เลขทะเบียน</td><td class="val" style="font-size:13px;font-weight:700;">${j.plate}</td></tr>
+          <tr><td class="lbl">เลขไมล์</td><td class="val">${Number(j.mileage).toLocaleString()} กม.</td></tr>
+          <tr><td class="lbl">สถานที่ซ่อม</td><td class="val">${j.location||'-'}</td></tr>
+          <tr><td class="lbl">ราคาประเมิน</td><td class="val">${j.estimate ? Number(j.estimate).toLocaleString()+' บาท' : '-'}</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- แถว 2: อาการที่พบ + หมายเหตุ -->
+    <div class="grid2">
+      <div>
+        <div class="sec-title">🔧 อาการที่พบ</div>
+        <div class="detail-text">${j.detail||'-'}</div>
+      </div>
+      <div>
+        <div class="sec-title">📝 หมายเหตุ</div>
+        ${j.note
+          ? `<div class="note-box">${j.note}</div>`
+          : `<div class="detail-text" style="color:#aaa;font-style:italic;">ไม่มีหมายเหตุ</div>`}
+        ${j.actualCost ? `
+        <div style="margin-top:6px;">
+          <div class="sec-title">💰 ค่าใช้จ่ายจริง</div>
+          <div class="cost-box">
+            <div>
+              <div style="font-size:9px;color:#666;">ยอดรวมค่าซ่อม</div>
+              <div class="cost-amount">${Number(j.actualCost).toLocaleString()} บาท</div>
+            </div>
+          </div>
+        </div>` : ''}
+      </div>
+    </div>
+
+    <!-- แถว 3: รูปภาพแนบ (ถ้ามี) -->
+    ${(j.imageUrl || j.billUrl) ? `
+    <div>
+      <div class="sec-title">📎 เอกสารแนบ</div>
+      <div class="img-row">
+        ${j.imageUrl ? `<div class="img-box"><div class="img-lbl" style="background:#E3F2FD;color:#1565C0;">📷 รูปประกอบ</div><img src="${j.imageUrl}" onerror="this.parentElement.style.display='none'"></div>` : ''}
+        ${j.billUrl  ? `<div class="img-box"><div class="img-lbl" style="background:#E8F5E9;color:#2E7D32;">🧾 บิล/ใบเสร็จ</div><img src="${j.billUrl}" onerror="this.parentElement.style.display='none'"></div>` : ''}
+      </div>
+    </div>` : ''}
+
+    <!-- ลายเซ็น -->
+    <div style="margin-top:auto;">
+      <div class="sec-title">✍️ ลายเซ็นรับรอง</div>
+      <div class="sign-row">
+        <div class="sign-box">
+          <div class="sign-line"></div>
+          <div class="sign-lbl">ผู้แจ้งซ่อม<br>(${j.userName||''})</div>
+        </div>
+        <div class="sign-box">
+          <div class="sign-line"></div>
+          <div class="sign-lbl">ผู้อนุมัติ / หัวหน้างาน</div>
+        </div>
+        <div class="sign-box">
+          <div class="sign-line"></div>
+          <div class="sign-lbl">ช่างผู้รับผิดชอบ</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /body -->
+
+  <!-- FOOTER -->
+  <div class="ft">
+    <span>อ้างอิง: ${j.jobId} | ระบบแจ้งซ่อมรถยนต์</span>
+    <span>พิมพ์: ${printDate}</span>
+  </div>
+
+</div>
+<script>window.onload=function(){window.print();}<\/script>
+<!-- ===== STATUS LOG MODAL (ข้อ 5) ===== -->
+<div class="modal fade" id="modalStatusLog" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header-custom">
+        <div class="modal-title"><span class="material-icons">history</span> ประวัติการเปลี่ยนสถานะ — <span id="log-job-id"></span></div>
+        <button class="btn-close-white" onclick="closeModal('modalStatusLog')"><span class="material-icons" style="font-size:1rem;">close</span></button>
+      </div>
+      <div class="modal-body p-0">
+        <div class="table-responsive d-none d-md-block">
+          <table class="table mb-0">
+            <thead><tr><th>วันที่</th><th>สถานะเดิม</th><th>สถานะใหม่</th><th>หมายเหตุ</th><th>ผู้เปลี่ยน</th></tr></thead>
+            <tbody id="status-log-tbody"></tbody>
+          </table>
+        </div>
+        <div class="d-md-none p-2" id="status-log-cards"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MANAGER NOTE MODAL ===== -->
+<div class="modal-overlay" id="modalManagerNote" style="display:none;">
+  <div class="modal-box" style="max-width:420px;">
+    <div class="modal-header">
+      <h5 class="modal-title" id="mgr-note-title">ระบุเหตุผล</h5>
+      <button class="modal-close" onclick="closeModal('modalManagerNote')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="mgr-note-jobid">
+      <input type="hidden" id="mgr-note-decision">
+      <div class="mb-3">
+        <label class="form-label">หมายเหตุ / เหตุผล <span style="color:var(--gray-400);font-size:.8rem;">(ไม่บังคับ)</span></label>
+        <textarea class="form-control" id="mgr-note-text" rows="3" placeholder="ระบุเหตุผลหรือหมายเหตุ..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer justify-content-end gap-2">
+      <button class="btn-outline-custom" onclick="closeModal('modalManagerNote')">ยกเลิก</button>
+      <button class="btn-primary-custom" id="mgr-note-confirm-btn" onclick="confirmManagerDecision()">ยืนยัน</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>`;
+
+  // ตรวจว่า desktop หรือมือถือ
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if (isMobile) {
+    showToast('กำลังสร้าง PDF... รอสักครู่');
+    await savePDF(html, `แจ้งซ่อม_${j.jobId}.pdf`);
+  } else {
+    const win = window.open('', '_blank');
+    if (!win) { showToast('กรุณาอนุญาต Popup', 'error'); return; }
+    win.document.write(html);
+    win.document.close();
+  }
+}
+
+// refresh ข้อมูลเมื่อกลับมาที่ tab (กรณีเปิด tab อื่นนานๆ)
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && currentUser) {
+    loadData(true);
+  }
+});
+
+/* ============================================================
+   MONTHLY REPORT — Admin only
+   ============================================================ */
+let chartStatus = null;
+let chartDaily  = null;
+
+function initReportSelectors() {
+  const yearSel  = document.getElementById('report-year');
+  const monthSel = document.getElementById('report-month');
+  if (!yearSel) return;
+
+  // clear แล้ว rebuild ทุกครั้ง เพื่อให้แน่ใจว่ามีค่า
+  yearSel.innerHTML = '';
+  monthSel.innerHTML = '';
+
+  const now = new Date();
+  for (let y = now.getFullYear(); y >= now.getFullYear()-2; y--) {
+    const o = document.createElement('option');
+    o.value = y; o.text = 'ปี ' + (y + 543);
+    yearSel.appendChild(o);
+  }
+  yearSel.value = now.getFullYear(); // ตั้ง default ปีปัจจุบัน
+
+  const months = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
+                  'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  months.forEach((m, i) => {
+    const o = document.createElement('option');
+    o.value = i+1; o.text = m;
+    monthSel.appendChild(o);
+  });
+  monthSel.value = now.getMonth() + 1; // ตั้ง default เดือนปัจจุบัน
+}
+
+async function generateReport() {
+  // ถ้า selector ยังไม่มีค่าให้ init ก่อน
+  const yearEl  = document.getElementById('report-year');
+  const monthEl = document.getElementById('report-month');
+  if (!yearEl.value || !monthEl.value) { initReportSelectors(); }
+
+  const year  = parseInt(yearEl.value);
+  const month = parseInt(monthEl.value);
+  if (isNaN(year) || isNaN(month)) { showToast('กรุณาเลือกปีและเดือน','error'); return; }
+
+  // reset canvas และ empty-state เก่าออกก่อน
+  ['chart-status','chart-daily'].forEach(id => {
+    const cv = document.getElementById(id);
+    if (!cv) return;
+    // ลบ empty-state div ที่อาจถูกเพิ่มไว้
+    const siblings = cv.parentElement.querySelectorAll('div:not([style*="font-weight"])');
+    siblings.forEach(s => { if (s.textContent.includes('ไม่มีข้อมูล')) s.remove(); });
+    cv.style.display = '';
+  });
+  const monthName = ['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
+                     'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'][month];
+
+  // กรองเฉพาะเดือนที่เลือก
+  const jobs = allJobs.filter(j => {
+    if (!j.createdAt) return false;
+    const d = new Date(j.createdAt);
+    return d.getFullYear() === year && d.getMonth()+1 === month;
+  });
+
+  // ===== Summary Cards =====
+  const statuses = ['รอดำเนินการ','อนุมัติ','กำลังซ่อม','เสร็จสิ้น','ส่งกลับแก้ไข','ไม่อนุมัติ'];
+  const colors   = ['#F57F17','#2E7D32','#1565C0','#1B5E20','#6A1B9A','#C62828'];
+  const totalCost = jobs.reduce((s,j) => s + (parseFloat(j.actualCost)||0), 0);
+
+  const approvedCount  = jobs.filter(j => j.status === 'อนุมัติ').length;
+  const rejectedCount  = jobs.filter(j => j.status === 'ไม่อนุมัติ').length;
+  const approvedBudget = jobs.filter(j => j.status === 'อนุมัติ').reduce((s,j) => s+(Number(j.estimate)||0), 0);
+  const summaryCards = [
+    { val: jobs.length,  lbl: 'งานทั้งหมด',    icon: 'list_alt',     c: '#283593', bg: '#E8EAF6' },
+    { val: jobs.filter(j=>j.status==='เสร็จสิ้น').length, lbl: 'เสร็จสิ้น', icon: 'check_circle', c: '#1B5E20', bg: '#E8F5E9' },
+    { val: approvedCount, lbl: 'อนุมัติ',       icon: 'thumb_up',     c: '#2E7D32', bg: '#E8F5E9' },
+    { val: rejectedCount, lbl: 'ไม่อนุมัติ',   icon: 'thumb_down',   c: '#C62828', bg: '#FFEBEE' },
+    { val: approvedBudget > 0 ? approvedBudget.toLocaleString()+' ฿' : '-', lbl: 'ยอดอนุมัติ (ประเมิน)', icon: 'payments', c: '#F57F17', bg: '#FFF8E1' },
+    { val: totalCost > 0 ? totalCost.toLocaleString()+' ฿' : '-', lbl: 'ค่าใช้จ่ายจริงรวม', icon: 'receipt', c: '#1565C0', bg: '#E3F2FD' },
+  ];
+
+  const monthLabel = monthName + ' ' + (year+543);
+  // label บรรทัดเดือน (วางก่อน grid)
+  const reportLabelEl = document.getElementById('report-month-label');
+  if (reportLabelEl) {
+    reportLabelEl.innerHTML = `📅 สรุปประจำเดือน <strong style="color:var(--primary-dark);">${monthLabel}</strong>
+      ${jobs.length===0 ? '<span style="margin-left:.5rem;color:var(--danger);font-size:.78rem;">⚠️ ไม่มีข้อมูลในเดือนนี้</span>' : ''}`;
+  }
+  document.getElementById('report-summary-row').innerHTML = summaryCards.map(s => `
+    <div class="report-summary-card">
+      <div style="width:40px;height:40px;background:${s.bg};border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto .5rem;">
+        <span class="material-icons" style="color:${s.c};font-size:1.3rem;">${s.icon}</span>
+      </div>
+      <div class="rs-val" style="color:${s.c};">${s.val}</div>
+      <div class="rs-lbl">${s.lbl}</div>
+    </div>`).join('');
+
+  // ===== Chart 1: Status Pie =====
+  const statusCounts = statuses.map(s => jobs.filter(j => j.status===s).length);
+  const hasStatusData = statusCounts.some(c => c > 0);
+  await ensureChartJs();
+  if (chartStatus) chartStatus.destroy();
+  const ctxStatus = document.getElementById('chart-status');
+  if (!hasStatusData) {
+    ctxStatus.style.display = 'none';
+    ctxStatus.parentElement.innerHTML += '<div style="text-align:center;padding:2rem;color:var(--gray-400);">ไม่มีข้อมูลในเดือนนี้</div>';
+  } else {
+    ctxStatus.style.display = '';
+    chartStatus = new Chart(ctxStatus, {
+      type: 'doughnut',
+      data: {
+        labels: statuses,
+        datasets: [{ data: statusCounts, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }]
+      },
+      options: {
+        plugins: {
+          legend: { position:'right', labels:{ font:{size:11}, boxWidth:14, padding:8 } }
+        },
+        cutout: '60%',
+        responsive: true,
+        maintainAspectRatio: true,
+      }
+    });
+  }
+
+  // ===== Chart 2: Daily Bar =====
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const dailyLabels = Array.from({length:daysInMonth},(_,i)=>i+1);
+  const dailyCounts = dailyLabels.map(d =>
+    jobs.filter(j => { const dt=new Date(j.createdAt); return dt.getDate()===d; }).length
+  );
+  if (chartDaily) chartDaily.destroy();
+  const ctxDaily = document.getElementById('chart-daily');
+  if (!jobs.length) {
+    ctxDaily.style.display = 'none';
+    ctxDaily.parentElement.innerHTML += '<div style="text-align:center;padding:2rem;color:var(--gray-400);">ไม่มีข้อมูลในเดือนนี้</div>';
+  } else {
+    ctxDaily.style.display = '';
+    // highlight วันที่มีงานมากสุด
+    const maxDay = Math.max(...dailyCounts);
+    const barColors = dailyCounts.map(c => c === maxDay && c > 0 ? 'rgba(46,125,50,1)' : 'rgba(46,125,50,.45)');
+    chartDaily = new Chart(ctxDaily, {
+      type: 'bar',
+      data: {
+        labels: dailyLabels,
+        datasets: [{
+          label: 'จำนวนงาน',
+          data: dailyCounts,
+          backgroundColor: barColors,
+          borderRadius: 4,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        plugins: {
+          legend:{ display:false },
+          tooltip: { callbacks: { title: ctx => 'วันที่ '+ctx[0].label } }
+        },
+        scales: {
+          x: { grid:{display:false}, ticks:{font:{size:10}} },
+          y: { beginAtZero:true, ticks:{ stepSize:1, precision:0, font:{size:10} }, grid:{ color:'#f0f0f0' } }
+        },
+        responsive: true,
+        maintainAspectRatio: true,
+      }
+    });
+  }
+
+  // ===== Top Users =====
+  const userMap = {};
+  jobs.forEach(j => {
+    const n = j.userName || 'ไม่ระบุ';
+    userMap[n] = (userMap[n]||0)+1;
+  });
+  const topUsers = Object.entries(userMap).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const maxU = topUsers[0]?.[1] || 1;
+  document.getElementById('report-top-users').innerHTML = topUsers.length
+    ? topUsers.map(([name,cnt],i) => `
+        <div class="report-bar-wrap">
+          <div style="width:18px;font-weight:700;color:var(--gray-500);text-align:right;">${i+1}.</div>
+          <div style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${name}</div>
+          <div style="width:80px;">
+            <div class="report-bar" style="width:${Math.round(cnt/maxU*100)}%;background:${i===0?'var(--primary)':'var(--gray-300)'};"></div>
+          </div>
+          <div style="width:24px;text-align:right;font-weight:700;color:var(--primary);">${cnt}</div>
+        </div>`).join('')
+    : '<div style="color:var(--gray-400);text-align:center;padding:1rem;">ไม่มีข้อมูล</div>';
+
+  // ===== Cost Summary =====
+  const costJobs    = jobs.filter(j=>parseFloat(j.actualCost)>0);
+  const maxCost     = Math.max(...costJobs.map(j=>parseFloat(j.actualCost)||0), 1);
+  const avgCost     = costJobs.length ? totalCost/costJobs.length : 0;
+  document.getElementById('report-cost-summary').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.75rem;">
+      <div style="background:var(--primary-xlight);border-radius:8px;padding:.6rem .8rem;text-align:center;">
+        <div style="font-size:1.2rem;font-weight:700;color:var(--primary);font-family:'Prompt',sans-serif;">${totalCost.toLocaleString()}</div>
+        <div style="font-size:.75rem;color:var(--gray-500);">รวมทั้งหมด (บาท)</div>
+      </div>
+      <div style="background:#E3F2FD;border-radius:8px;padding:.6rem .8rem;text-align:center;">
+        <div style="font-size:1.2rem;font-weight:700;color:#1565C0;font-family:'Prompt',sans-serif;">${Math.round(avgCost).toLocaleString()}</div>
+        <div style="font-size:.75rem;color:var(--gray-500);">เฉลี่ยต่องาน (บาท)</div>
+      </div>
+    </div>
+    ${costJobs.sort((a,b)=>parseFloat(b.actualCost)-parseFloat(a.actualCost)).slice(0,5).map(j=>`
+      <div class="report-bar-wrap">
+        <div style="flex:1;min-width:0;font-size:.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${j.jobId}</div>
+        <div style="width:80px;">
+          <div class="report-bar" style="width:${Math.round((parseFloat(j.actualCost)||0)/maxCost*100)}%;background:#1565C0;"></div>
+        </div>
+        <div style="font-size:.8rem;font-weight:700;color:#1565C0;white-space:nowrap;">${parseFloat(j.actualCost).toLocaleString()} ฿</div>
+      </div>`).join('') || '<div style="color:var(--gray-400);text-align:center;padding:.5rem;">ยังไม่มีค่าใช้จ่าย</div>'}`;
+
+  // ===== Detail Table =====
+  document.getElementById('report-job-count').textContent = `${jobs.length} รายการ | ${monthName} ${year+543}`;
+  document.getElementById('report-tbody').innerHTML = jobs.length
+    ? [...jobs].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).map(j=>`
+        <tr>
+          <td style="font-weight:700;color:var(--primary-dark);font-size:.8rem;">${j.jobId}</td>
+          <td style="font-size:.8rem;">${formatDate(j.createdAt)}</td>
+          <td style="font-size:.8rem;">${j.userName||'-'}</td>
+          <td style="font-weight:600;">${j.plate}</td>
+          <td><span class="badge-status ${statusClass(j.status)}" style="font-size:.75rem;">${j.status}</span></td>
+          <td style="font-size:.8rem;font-weight:600;color:${j.actualCost?'var(--primary)':'var(--gray-400)'};">${j.actualCost?Number(j.actualCost).toLocaleString()+' ฿':'-'}</td>
+        </tr>`).join('')
+    : '<tr><td colspan="6" class="text-center py-4 text-muted">ไม่มีข้อมูลในเดือนนี้</td></tr>';
+}
+
+function exportMonthlyCSV() {
+  const year  = parseInt(document.getElementById('report-year').value);
+  const month = parseInt(document.getElementById('report-month').value);
+  const monthName = ['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
+                     'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'][month];
+  const jobs = allJobs.filter(j => {
+    if (!j.createdAt) return false;
+    const d = new Date(j.createdAt);
+    return d.getFullYear()===year && d.getMonth()+1===month;
+  });
+  if (!jobs.length) { showToast('ไม่มีข้อมูลในเดือนนี้', 'error'); return; }
+
+  const BOM = '\uFEFF';
+  const esc = v => '"'+String(v||'').replace(/"/g,'""')+'"';
+  const headers = ['เลขที่งาน','วันที่แจ้ง','ผู้แจ้ง','ทะเบียน','ไมล์','อาการ','สถานที่','สถานะ','หมายเหตุ','ค่าใช้จ่าย'];
+  const rows = [...jobs]
+    .sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt))
+    .map(j=>[j.jobId,formatDate(j.createdAt),j.userName,j.plate,j.mileage,j.detail,j.location,j.status,j.note,j.actualCost||''].map(esc).join(','));
+
+  const csv  = BOM + [headers.map(esc).join(','), ...rows].join('\n');
+  const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = `รายงาน_${monthName}_${year+543}.csv`; a.click();
+  URL.revokeObjectURL(url);
+  showToast(`Export CSV ${jobs.length} รายการ ✅`);
+}
+
+async function printMonthlyReport() {
+  const year   = parseInt(document.getElementById('report-year').value);
+  const month  = parseInt(document.getElementById('report-month').value);
+  const monthName = ['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
+                     'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'][month];
+  const jobs = allJobs.filter(j => {
+    if (!j.createdAt) return false;
+    const d = new Date(j.createdAt);
+    return d.getFullYear()===year && d.getMonth()+1===month;
+  });
+  const totalCost = jobs.reduce((s,j) => s+(parseFloat(j.actualCost)||0), 0);
+  const done = jobs.filter(j=>j.status==='เสร็จสิ้น').length;
+  const pending = jobs.filter(j=>j.status==='รอดำเนินการ').length;
+
+  // capture chart images
+  const statusImg = document.getElementById('chart-status')?.toDataURL('image/png') || '';
+  const dailyImg  = document.getElementById('chart-daily')?.toDataURL('image/png')  || '';
+  const printDate = new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
+
+  // top users
+  const userMap = {};
+  jobs.forEach(j => { const n=j.userName||'ไม่ระบุ'; userMap[n]=(userMap[n]||0)+1; });
+  const topUsers = Object.entries(userMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
+
+  const html = `<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8">
+<title>รายงานประจำเดือน ${monthName} ${year+543}</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=Prompt:wght@600;700&display=swap" rel="stylesheet">
+<style>
+@page { size:A4 portrait; margin:0; }
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:210mm;height:297mm;overflow:hidden;font-family:'Sarabun',sans-serif;font-size:11px;color:#222;background:#fff;}
+.page{width:210mm;height:297mm;display:flex;flex-direction:column;}
+.hd{background:linear-gradient(135deg,#1B5E20,#2E7D32);color:#fff;padding:12px 20px;flex-shrink:0;}
+.hd h1{font-family:'Prompt',sans-serif;font-size:16px;font-weight:700;}
+.hd p{font-size:10px;opacity:.85;margin-top:2px;}
+.hd-sub{font-size:11px;opacity:.9;margin-top:4px;}
+.body{flex:1;padding:12px 20px;display:flex;flex-direction:column;gap:10px;overflow:hidden;}
+.cards{display:flex;gap:8px;}
+.card{flex:1;background:#f8f9fa;border:1px solid #e0e0e0;border-radius:8px;padding:8px;text-align:center;}
+.card-val{font-family:'Prompt',sans-serif;font-size:18px;font-weight:700;}
+.card-lbl{font-size:9px;color:#666;}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.chart-box{border:1px solid #e0e0e0;border-radius:8px;padding:8px;}
+.chart-box h3{font-family:'Prompt',sans-serif;font-size:10px;font-weight:700;color:#2E7D32;margin-bottom:6px;}
+.chart-box img{width:100%;max-height:130px;object-fit:contain;}
+.sec-title{font-family:'Prompt',sans-serif;font-size:10px;font-weight:700;color:#2E7D32;border-bottom:1.5px solid #C8E6C9;padding-bottom:3px;margin-bottom:5px;}
+table{width:100%;border-collapse:collapse;}
+th{background:#2E7D32;color:#fff;padding:4px 6px;font-size:9.5px;text-align:left;}
+td{padding:3.5px 6px;font-size:9.5px;border-bottom:1px solid #f0f0f0;}
+.ft{padding:6px 20px;background:#fafafa;border-top:1px solid #e0e0e0;display:flex;justify-content:space-between;font-size:9px;color:#999;flex-shrink:0;}
+</style></head><body><div class="page">
+<div class="hd">
+  <h1>📊 รายงานสรุปการแจ้งซ่อมรถยนต์</h1>
+  <div class="hd-sub">ประจำเดือน ${monthName} ${year+543} &nbsp;|&nbsp; พิมพ์: ${printDate} &nbsp;|&nbsp; โดย: ${currentUser.name}</div>
+</div>
+<div class="body">
+  <div class="cards">
+    <div class="card"><div class="card-val" style="color:#283593;">${jobs.length}</div><div class="card-lbl">งานทั้งหมด</div></div>
+    <div class="card"><div class="card-val" style="color:#1B5E20;">${done}</div><div class="card-lbl">เสร็จสิ้น</div></div>
+    <div class="card"><div class="card-val" style="color:#E65100;">${pending}</div><div class="card-lbl">รอดำเนินการ</div></div>
+    <div class="card"><div class="card-val" style="color:#2E7D32;">${totalCost.toLocaleString()}</div><div class="card-lbl">ค่าใช้จ่ายรวม (฿)</div></div>
+  </div>
+  <div class="charts">
+    <div class="chart-box"><h3>🍩 สัดส่วนสถานะ</h3>${statusImg?`<img src="${statusImg}">`:''}</div>
+    <div class="chart-box"><h3>📊 แจ้งซ่อมรายวัน</h3>${dailyImg?`<img src="${dailyImg}">`:''}</div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:1;min-height:0;">
+    <div>
+      <div class="sec-title">🏆 ผู้แจ้งซ่อมสูงสุด</div>
+      <table><thead><tr><th>#</th><th>ชื่อ</th><th>จำนวน</th></tr></thead><tbody>
+      ${topUsers.map(([n,c],i)=>`<tr><td>${i+1}</td><td>${n}</td><td style="font-weight:700;color:#2E7D32;">${c}</td></tr>`).join('')}
+      </tbody></table>
+    </div>
+    <div>
+      <div class="sec-title">📋 รายการล่าสุด</div>
+      <table><thead><tr><th>เลขงาน</th><th>ทะเบียน</th><th>สถานะ</th><th>ค่าใช้จ่าย</th></tr></thead><tbody>
+      ${[...jobs].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,10).map(j=>`
+        <tr><td style="font-weight:700;">${j.jobId}</td><td>${j.plate}</td><td>${j.status}</td><td>${j.actualCost?Number(j.actualCost).toLocaleString()+' ฿':'-'}</td></tr>`).join('')}
+      </tbody></table>
+    </div>
+  </div>
+</div>
+<div class="ft"><span>รายงานประจำเดือน ${monthName} ${year+543} | ระบบแจ้งซ่อมรถยนต์</span><span>พิมพ์: ${printDate}</span></div>
+</div><script>window.onload=function(){window.print();}<\/script></body></html>`;
+
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const monthName2 = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.',
+                      'ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][month];
+  if (isMobile) {
+    showToast('กำลังสร้าง PDF...');
+    await savePDF(html, `รายงาน_${monthName2}_${year+543}.pdf`);
+  } else {
+    const win = window.open('','_blank');
+    if (!win) { showToast('กรุณาอนุญาต Popup', 'error'); return; }
+    win.document.write(html);
+    win.document.close();
+  }
+}
+
+function logout() {
+  if (confirm('ออกจากระบบ?')) {
+    sessionStorage.removeItem('_repairUser');
+    sessionStorage.removeItem('_repairData');
+    if (_warmTimer) { clearInterval(_warmTimer); _warmTimer = null; }
+    currentUser = null;
+    try { liff.logout(); } catch(e){}
+    document.getElementById('main-app').style.display='none';
+    document.getElementById('login-screen').style.display='flex';
+  }
+}
+
+// Filter pills
+document.querySelectorAll('.filter-pill').forEach(p => {
+  p.addEventListener('click', () => {
+    document.querySelectorAll('.filter-pill').forEach(x=>x.classList.remove('active'));
+    p.classList.add('active');
+    filterStatus = p.dataset.status;
+    currentPage = 1;
+    renderRepairTable();
+  });
+});
+
+// Search & date filter live
+document.getElementById('search-input').addEventListener('input', () => { currentPage = 1; renderRepairTable(); });
+document.getElementById('filter-date').addEventListener('change', () => { currentPage = 1; renderRepairTable(); });
+document.getElementById('repair-sort').addEventListener('change', () => { currentPage = 1; renderRepairTable(); });
+</script>
+
+
+  <!-- FAB แจ้งซ่อม -->
+  <button class="fab-repair pulse" id="fab-repair" onclick="openRepairModal()" title="แจ้งซ่อมรถยนต์" style="display:none;">
+    <span class="fab-icon"><span class="material-icons">build</span></span>
+    <span class="fab-label">แจ้งซ่อมรถยนต์</span>
+  </button>
+
+<!-- ===== STATUS LOG MODAL (ข้อ 5) ===== -->
+
+<!-- ===== MANAGER NOTE MODAL ===== -->
+
+</body>
+</html>
