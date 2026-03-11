@@ -1320,11 +1320,11 @@
    CONFIG — แก้ค่าเหล่านี้ให้ตรงกับของคุณ
    ============================================================ */
 const CONFIG = {
-  LIFF_ID:    '2009307051-5UV6LT8a',   // LIFF ID จาก LINE Developers
-  GAS_URL:    'https://script.google.com/macros/s/AKfycbxXMkVqqmTvvCeYTq58wYb7Vl8QrVKoUXgiqEqv3FgvoTfrH6tA3UCxLznWpFBO5U_7Aw/exec',   // URL จาก Deploy > Web App ใน GAS
-  API_SECRET: 'UJ&8m@+<KL#S9z1$gB!6', // ต้องตรงกับ API_SECRET ใน Code.gs
+  LIFF_ID:    'YOUR_LIFF_ID',   // LIFF ID จาก LINE Developers
+  GAS_URL:    'YOUR_GAS_URL',   // URL จาก Deploy > Web App ใน GAS
+  API_SECRET: 'YOUR_API_SECRET_KEY', // ต้องตรงกับ API_SECRET ใน Code.gs
 };
-  
+
 /* ============================================================
    LAZY SCRIPT LOADER
    ============================================================ */
@@ -2098,7 +2098,7 @@ async function printYearlyReport() {
       <td style="text-align:right;">${Number(p.cost).toLocaleString()} ฿</td>
     </tr>`).join('');
 
-  const html = `<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8">
+  const html = `\x3c!DOCTYPE html>\x3chtml lang="th"><head><meta charset="UTF-8">
   <style>
     body { font-family: 'Sarabun', sans-serif; font-size: 13px; color: #222; margin: 20px; }
     h2 { color: #2E7D32; text-align: center; margin-bottom: 4px; }
@@ -2130,7 +2130,7 @@ async function printYearlyReport() {
   <tbody>${plateRows}</tbody></table>
   <div class="ft"><span>รายงานรายปี ${year+543} | ระบบแจ้งซ่อมรถยนต์</span><span>${printDate}</span></div>
   <script>window.onload=function(){window.print();}<\/script>
-  </body></html>`;
+  <\/body><\/html>`;
 
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   if (isMobile) {
@@ -2187,7 +2187,7 @@ function printQR() {
     const url  = document.getElementById('qr-url-display').textContent;
     const imgData = img.src;
     const win  = window.open('', '_blank', 'width=400,height=500');
-    win.document.write(`<!DOCTYPE html><html><head><title>QR แจ้งซ่อม</title>
+    win.document.write(`\x3c!DOCTYPE html>\x3chtml><head><title>QR แจ้งซ่อม</title>
       <style>
         body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f5f5f5;}
         .card{background:#fff;border-radius:16px;padding:32px 24px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.1);max-width:320px;}
@@ -2202,7 +2202,7 @@ function printQR() {
         <p style="font-size:10px;color:#999;">${url}</p>
       </div>
       <script>window.onload=function(){window.print();}<\/script>
-      </body></html>`);
+      <\/body><\/html>`);
     win.document.close();
   }, 300);
 }
@@ -2214,7 +2214,7 @@ function printPoster() {
     const url     = document.getElementById('qr-url-display').textContent;
     const imgData = img.src;
     const win     = window.open('', '_blank', 'width=500,height=700');
-    win.document.write(`<!DOCTYPE html><html><head><title>โปสเตอร์แจ้งซ่อม</title>
+    win.document.write(`\x3c!DOCTYPE html>\x3chtml><head><title>โปสเตอร์แจ้งซ่อม</title>
       <style>
         @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700&display=swap');
         *{margin:0;padding:0;box-sizing:border-box;}
@@ -2247,7 +2247,7 @@ function printPoster() {
         <div class="url">${url}</div>
       </div>
       <script>window.onload=function(){window.print();}<\/script>
-      </body></html>`);
+      <\/body><\/html>`);
     win.document.close();
   }, 300);
 }
@@ -3195,8 +3195,8 @@ async function printJobPDF(jobId) {
     ? `<img src="${logoSrc}" style="height:60px;object-fit:contain;">`
     : `<div style="width:60px;height:60px;background:#2E7D32;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;">🚗</div>`;
 
-  const html = `<!DOCTYPE html>
-<html lang="th">
+  const html = `\x3c!DOCTYPE html>
+\x3chtml lang="th">
 <head>
 <meta charset="UTF-8">
 <title>ใบรายงานแจ้งซ่อม ${j.jobId}</title>
@@ -3465,7 +3465,7 @@ async function printJobPDF(jobId) {
         </div>
         <div class="sign-box">
           <div class="sign-line"></div>
-          <div class="sign-lbl">ผู้อนุมัติ / ผู้บริหาร</div>
+          <div class="sign-lbl">ช่างผู้รับผิดชอบ</div>
         </div>
       </div>
     </div>
@@ -3523,8 +3523,8 @@ async function printJobPDF(jobId) {
   </div>
 </div>
 
-</body>
-</html>`;
+<\/body>
+<\/html>`;
 
   // ตรวจว่า desktop หรือมือถือ
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -3823,7 +3823,7 @@ async function printMonthlyReport() {
   jobs.forEach(j => { const n=j.userName||'ไม่ระบุ'; userMap[n]=(userMap[n]||0)+1; });
   const topUsers = Object.entries(userMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
 
-  const html = `<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8">
+  const html = `\x3c!DOCTYPE html>\x3chtml lang="th"><head><meta charset="UTF-8">
 <title>รายงานประจำเดือน ${monthName} ${year+543}</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=Prompt:wght@600;700&display=swap" rel="stylesheet">
 <style>
@@ -3882,7 +3882,7 @@ td{padding:3.5px 6px;font-size:9.5px;border-bottom:1px solid #f0f0f0;}
   </div>
 </div>
 <div class="ft"><span>รายงานประจำเดือน ${monthName} ${year+543} | ระบบแจ้งซ่อมรถยนต์</span><span>พิมพ์: ${printDate}</span></div>
-</div><script>window.onload=function(){window.print();}<\/script></body></html>`;
+</div><script>window.onload=function(){window.print();}<\/script><\/body><\/html>`;
 
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   const monthName2 = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.',
@@ -6036,7 +6036,7 @@ async function printYearlyReport() {
       <td style="text-align:right;">${Number(p.cost).toLocaleString()} ฿</td>
     </tr>`).join('');
 
-  const html = `<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8">
+  const html = `\x3c!DOCTYPE html>\x3chtml lang="th"><head><meta charset="UTF-8">
   <style>
     body { font-family: 'Sarabun', sans-serif; font-size: 13px; color: #222; margin: 20px; }
     h2 { color: #2E7D32; text-align: center; margin-bottom: 4px; }
@@ -6068,7 +6068,7 @@ async function printYearlyReport() {
   <tbody>${plateRows}</tbody></table>
   <div class="ft"><span>รายงานรายปี ${year+543} | ระบบแจ้งซ่อมรถยนต์</span><span>${printDate}</span></div>
   <script>window.onload=function(){window.print();}<\/script>
-  </body></html>`;
+  <\/body><\/html>`;
 
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   if (isMobile) {
@@ -6125,7 +6125,7 @@ function printQR() {
     const url  = document.getElementById('qr-url-display').textContent;
     const imgData = img.src;
     const win  = window.open('', '_blank', 'width=400,height=500');
-    win.document.write(`<!DOCTYPE html><html><head><title>QR แจ้งซ่อม</title>
+    win.document.write(`\x3c!DOCTYPE html>\x3chtml><head><title>QR แจ้งซ่อม</title>
       <style>
         body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f5f5f5;}
         .card{background:#fff;border-radius:16px;padding:32px 24px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.1);max-width:320px;}
@@ -6140,7 +6140,7 @@ function printQR() {
         <p style="font-size:10px;color:#999;">${url}</p>
       </div>
       <script>window.onload=function(){window.print();}<\/script>
-      </body></html>`);
+      <\/body><\/html>`);
     win.document.close();
   }, 300);
 }
@@ -6152,7 +6152,7 @@ function printPoster() {
     const url     = document.getElementById('qr-url-display').textContent;
     const imgData = img.src;
     const win     = window.open('', '_blank', 'width=500,height=700');
-    win.document.write(`<!DOCTYPE html><html><head><title>โปสเตอร์แจ้งซ่อม</title>
+    win.document.write(`\x3c!DOCTYPE html>\x3chtml><head><title>โปสเตอร์แจ้งซ่อม</title>
       <style>
         @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700&display=swap');
         *{margin:0;padding:0;box-sizing:border-box;}
@@ -6185,7 +6185,7 @@ function printPoster() {
         <div class="url">${url}</div>
       </div>
       <script>window.onload=function(){window.print();}<\/script>
-      </body></html>`);
+      <\/body><\/html>`);
     win.document.close();
   }, 300);
 }
@@ -7133,8 +7133,8 @@ async function printJobPDF(jobId) {
     ? `<img src="${logoSrc}" style="height:60px;object-fit:contain;">`
     : `<div style="width:60px;height:60px;background:#2E7D32;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;">🚗</div>`;
 
-  const html = `<!DOCTYPE html>
-<html lang="th">
+  const html = `\x3c!DOCTYPE html>
+\x3chtml lang="th">
 <head>
 <meta charset="UTF-8">
 <title>ใบรายงานแจ้งซ่อม ${j.jobId}</title>
@@ -7461,8 +7461,8 @@ async function printJobPDF(jobId) {
   </div>
 </div>
 
-</body>
-</html>`;
+<\/body>
+<\/html>`;
 
   // ตรวจว่า desktop หรือมือถือ
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -7761,7 +7761,7 @@ async function printMonthlyReport() {
   jobs.forEach(j => { const n=j.userName||'ไม่ระบุ'; userMap[n]=(userMap[n]||0)+1; });
   const topUsers = Object.entries(userMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
 
-  const html = `<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8">
+  const html = `\x3c!DOCTYPE html>\x3chtml lang="th"><head><meta charset="UTF-8">
 <title>รายงานประจำเดือน ${monthName} ${year+543}</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=Prompt:wght@600;700&display=swap" rel="stylesheet">
 <style>
@@ -7820,7 +7820,7 @@ td{padding:3.5px 6px;font-size:9.5px;border-bottom:1px solid #f0f0f0;}
   </div>
 </div>
 <div class="ft"><span>รายงานประจำเดือน ${monthName} ${year+543} | ระบบแจ้งซ่อมรถยนต์</span><span>พิมพ์: ${printDate}</span></div>
-</div><script>window.onload=function(){window.print();}<\/script></body></html>`;
+</div><script>window.onload=function(){window.print();}<\/script><\/body><\/html>`;
 
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   const monthName2 = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.',
