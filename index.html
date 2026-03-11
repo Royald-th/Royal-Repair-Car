@@ -1792,16 +1792,27 @@ const AVATAR_DEFAULT = 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.
 function renderUserList() {
   const el = document.getElementById('user-list');
   if (!users.length) { el.innerHTML = '<div class="empty-state"><span class="material-icons">people</span>ไม่มีข้อมูล</div>'; return; }
-  el.innerHTML = users.map(u => `
+  const isCallerAdmin = currentUser && currentUser.role === 'admin';
+  el.innerHTML = users.map(u => {
+    const isTargetAdmin = u.role === 'admin';
+    const canEdit = isCallerAdmin || !isTargetAdmin;
+    const roleLabel = {admin:'👑 Admin',supervisor:'👔 หัวหน้า',manager:'🏢 ผู้บริหาร',user:'👤 User'}[u.role]||u.role;
+    const editBtn = canEdit
+      ? `<button class="btn-sm-icon" style="background:var(--accent-light);color:var(--accent);" onclick="openEditUser('${u.lineUid}')"><span class="material-icons" style="font-size:1rem;">edit</span></button>`
+      : `<button class="btn-sm-icon" style="background:#f5f5f5;color:#bbb;cursor:not-allowed;" disabled title="ไม่มีสิทธิ์แก้ไข admin"><span class="material-icons" style="font-size:1rem;">lock</span></button>`;
+    const delBtn = canEdit
+      ? `<button class="btn-sm-icon ms-1" style="background:var(--danger-light);color:var(--danger);" onclick="deleteUser('${u.lineUid}','${u.name}')"><span class="material-icons" style="font-size:1rem;">delete</span></button>`
+      : '';
+    return `
     <div class="user-row">
       <img src="${u.avatar||AVATAR_DEFAULT}" alt="">
       <div class="flex-grow-1">
         <div style="font-weight:600;font-size:.88rem;">${u.name}</div>
-        <div style="font-size:.78rem;color:var(--gray-500);">${u.dept||'-'} • ${ {admin:'👑 Admin',supervisor:'👔 หัวหน้า',manager:'🏢 ผู้บริหาร',user:'👤 User'}[u.role]||'👤 User' }</div>
+        <div style="font-size:.78rem;color:var(--gray-500);">${u.dept||'-'} • ${roleLabel}</div>
       </div>
-      <button class="btn-sm-icon" style="background:var(--accent-light);color:var(--accent);" onclick="openEditUser('${u.lineUid}')"><span class="material-icons">edit</span></button>
-      <button class="btn-sm-icon ms-1" style="background:var(--danger-light);color:var(--danger);" onclick="deleteUser('${u.lineUid}','${u.name}')"><span class="material-icons">delete</span></button>
-    </div>`).join('');
+      ${editBtn}${delBtn}
+    </div>`;
+  }).join('');
 }
 
 function renderVehicleList() {
@@ -2754,6 +2765,30 @@ async function submitStatusChange() {
 /* ============================================================
    USER MANAGEMENT
    ============================================================ */
+/* ซ่อน/ล็อค option admin สำหรับ supervisor */
+function _syncAdminRoleOption(targetUser) {
+  const isCallerAdmin = currentUser && currentUser.role === 'admin';
+  const sel = document.getElementById('u-role');
+  const adminOpt = sel ? sel.querySelector('option[value="admin"]') : null;
+  if (!adminOpt) return;
+  if (isCallerAdmin) {
+    // admin เห็นและเลือกได้ทุก role
+    adminOpt.disabled = false;
+    adminOpt.style.display = '';
+    sel.disabled = false;
+  } else {
+    // supervisor: ซ่อน option admin
+    adminOpt.disabled = true;
+    adminOpt.style.display = 'none';
+    // ถ้า target เป็น admin → lock ทั้ง dropdown (ไม่ควรเข้ามาถึงตรงนี้เลย แต่ป้องกันไว้)
+    if (targetUser && targetUser.role === 'admin') {
+      sel.disabled = true;
+    } else {
+      sel.disabled = false;
+    }
+  }
+}
+
 function openAddUserModal() {
   document.getElementById('u-row-id').value='';
   document.getElementById('u-line-id').value='';
@@ -2761,6 +2796,7 @@ function openAddUserModal() {
   document.getElementById('u-dept').value='';
   document.getElementById('u-role').value='user';
   document.getElementById('u-line-id').disabled=false;
+  _syncAdminRoleOption(null);
   showModal('modalAddUser');
 }
 function openEditUser(lineUid) {
@@ -2772,6 +2808,7 @@ function openEditUser(lineUid) {
   document.getElementById('u-dept').value = u.dept||'';
   document.getElementById('u-role').value = u.role||'user';
   document.getElementById('u-line-id').disabled = true;
+  _syncAdminRoleOption(u);
   showModal('modalAddUser');
 }
 async function saveUser() {
@@ -2782,7 +2819,7 @@ async function saveUser() {
   if (!lineUid || !name) { showToast('กรุณากรอก LINE UID และชื่อ', 'error'); return; }
   showLoading(true);
   const isEdit = !!document.getElementById('u-row-id').value;
-  const res = await gasCall(isEdit ? 'updateUser' : 'addUser', { lineUid, name, dept, role });
+  const res = await gasCall(isEdit ? 'updateUser' : 'addUser', { lineUid, name, dept, role, adminUid: currentUser.lineUid });
   showLoading(false);
   if (res.status==='ok') { showToast('บันทึกสำเร็จ'); closeModal('modalAddUser'); loadData(); }
   else showToast('ผิดพลาด: '+(res.message||''), 'error');
@@ -2790,7 +2827,7 @@ async function saveUser() {
 async function deleteUser(lineUid, name) {
   if (!confirm(`ลบผู้ใช้ "${name}" ออกจากระบบ?`)) return;
   showLoading(true);
-  const res = await gasCall('deleteUser', { lineUid });
+  const res = await gasCall('deleteUser', { lineUid, adminUid: currentUser.lineUid });
   showLoading(false);
   if (res.status==='ok') { showToast('ลบสำเร็จ'); loadData(); }
   else showToast('ผิดพลาด', 'error');
@@ -3465,7 +3502,7 @@ async function printJobPDF(jobId) {
         </div>
         <div class="sign-box">
           <div class="sign-line"></div>
-          <div class="sign-lbl">ผู้อนุมัติ / ผู้บริหาร</div>
+          <div class="sign-lbl">ช่างผู้รับผิดชอบ</div>
         </div>
       </div>
     </div>
