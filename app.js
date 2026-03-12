@@ -1213,6 +1213,8 @@ function openRepairModal() {
   document.getElementById('repair-img-preview').innerHTML = '<span class="material-icons" style="font-size:2rem;color:var(--gray-300);">photo_camera</span><div class="placeholder-text">คลิกเพื่อเลือกรูป (ไม่บังคับ)</div>';
   if (currentUser?.role !== 'admin') document.getElementById('admin-note-section').classList.add('d-none');
   showModal('modalRepair');
+  // Warm-up GAS ทันทีที่เปิด modal — ปลุก cold start ล่วงหน้าขณะ user กรอกฟอร์ม
+  gasCall('ping', {}).catch(() => {});
 }
 
 function openEditRepair(jobId) {
@@ -1282,7 +1284,17 @@ async function submitRepair() {
   if (res.status === 'ok') {
     showToast(editingJobId ? 'แก้ไขเรียบร้อย' : '✅ ส่งแจ้งซ่อมสำเร็จ');
     closeModal('modalRepair');
-    loadData();
+    // refresh ข้อมูลใน background โดยไม่แสดง loading ซ้ำ
+    loadData(true);
+    // ยิง LINE notify แบบ fire-and-forget (ไม่รอ — ไม่ให้ loading หมุนรอ)
+    if (!editingJobId) {
+      gasCall('notifyNewJob', {
+        jobId: res.jobId || '',
+        userName: currentUser.name,
+        plate, mileage, detail, estimate, location,
+        now: new Date().toISOString()
+      }).catch(() => {});
+    }
   } else {
     showToast('เกิดข้อผิดพลาด: ' + (res.message || ''), 'error');
   }
@@ -1681,7 +1693,7 @@ function viewImage(url) {
 }
 
 /* Compress รูปก่อน upload — resize ให้ไม่เกิน maxW/maxH และ quality 0.8 */
-function compressImage(file, maxW = 1200, maxH = 1200, quality = 0.82) {
+function compressImage(file, maxW = 800, maxH = 800, quality = 0.72) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onerror = reject;
@@ -1698,7 +1710,7 @@ function compressImage(file, maxW = 1200, maxH = 1200, quality = 0.82) {
         const canvas = document.createElement('canvas');
         canvas.width = w; canvas.height = h;
         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        const mime = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+        const mime = 'image/jpeg'; // force JPEG — PNG ใหญ่กว่า 3-5x ไม่จำเป็นสำหรับรูปซ่อมรถ
         const dataUrl = canvas.toDataURL(mime, quality);
         const b64 = dataUrl.split(',')[1];
         const kb  = Math.round(b64.length * 0.75 / 1024);
@@ -2184,7 +2196,7 @@ async function printJobPDF(jobId) {
         </div>
         <div class="sign-box">
           <div class="sign-line"></div>
-          <div class="sign-lbl">ผู้อนุมัติ / ผู้บริหาร</div>
+          <div class="sign-lbl">ช่างผู้รับผิดชอบ</div>
         </div>
       </div>
     </div>
