@@ -347,7 +347,8 @@
   /* ======= LOGIN SCREEN ======= */
   #login-screen { display:flex; align-items:center; justify-content:center; min-height:100vh; background:linear-gradient(160deg, var(--primary-dark) 0%, var(--primary) 60%, #E53935 100%); }
   .login-card { background:#fff; border-radius:var(--radius-lg); padding:2.5rem 2rem; width:100%; max-width:380px; text-align:center; box-shadow:var(--shadow-lg); }
-  .login-logo { width:250px; height:250px; border-radius:20px; margin:0 auto 1.25rem; overflow:hidden; display:flex; align-items:center; justify-content:center; background:var(--primary-xlight); border:2px solid var(--primary-xlight); }
+  .login-logo { width:140px; height:140px; border-radius:20px; margin:0 auto 1.25rem; overflow:hidden; display:flex; align-items:center; justify-content:center; background:transparent; border:none; }
+.login-logo img { width:100%; height:100%; object-fit:contain; display:block; }
   .login-logo img { width:100%; height:100%; object-fit:contain; }
   .login-logo .material-icons { font-size:2.5rem; color:var(--primary); }
 

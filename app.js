@@ -367,8 +367,8 @@ function renderRepairTable() {
           <button class="btn-sm-icon ms-1" style="background:var(--danger-light);color:var(--danger);" title="ลบรายการ" onclick="confirmDeleteJob('${j.jobId}','${j.plate}')"><span class="material-icons">delete</span></button>
           ` : currentUser.role === 'manager' ? `
           ${j.status === 'รอการอนุมัติ' ? `
-          <button class="btn-sm-icon ms-1" style="background:#FFEBEE;color:var(--success);" title="อนุมัติ" onclick="quickDecision('${j.jobId}','อนุมัติ')"><span class="material-icons">check</span></button>
-          <button class="btn-sm-icon ms-1" style="background:#FFEBEE;color:var(--danger);" title="ไม่อนุมัติ" onclick="quickDecision('${j.jobId}','ไม่อนุมัติ')"><span class="material-icons">close</span></button>
+          <button class="btn-sm-icon ms-1" style="background:#E8F5E9;color:#2E7D32;" title="อนุมัติ" onclick="quickDecision('${j.jobId}','อนุมัติ')"><span class="material-icons">check</span></button>
+          <button class="btn-sm-icon ms-1" style="background:#FFEBEE;color:#C62828;" title="ไม่อนุมัติ" onclick="quickDecision('${j.jobId}','ไม่อนุมัติ')"><span class="material-icons">close</span></button>
           <button class="btn-sm-icon ms-1" style="background:#FFF8E1;color:#F57F17;" title="ส่งกลับแก้ไข" onclick="quickDecision('${j.jobId}','ส่งกลับแก้ไข')"><span class="material-icons">undo</span></button>` : ''}
           ` : (j.status==='ส่งกลับแก้ไข' && j.lineUid===currentUser.lineUid ? `<button class="btn-sm-icon ms-1" style="background:var(--warning-light);color:var(--warning);" title="แก้ไข" onclick="openEditRepair('${j.jobId}')"><span class="material-icons">edit</span></button>` : '')}
         </td>
@@ -441,8 +441,8 @@ function jobCard(j) {
     <div class="d-flex gap-1 mt-2 justify-content-end" onclick="event.stopPropagation()">
       <button class="btn-sm-icon" style="background:var(--info-light);color:var(--info);" onclick="openDetail('${j.jobId}')" title="รายละเอียด"><span class="material-icons">visibility</span></button>
       ${j.status === 'รอการอนุมัติ' ? `
-      <button class="btn-sm-icon" style="background:#FFEBEE;color:var(--success);" onclick="quickDecision('${j.jobId}','อนุมัติ')" title="อนุมัติ"><span class="material-icons">check</span></button>
-      <button class="btn-sm-icon" style="background:#FFEBEE;color:var(--danger);" onclick="quickDecision('${j.jobId}','ไม่อนุมัติ')" title="ไม่อนุมัติ"><span class="material-icons">close</span></button>
+      <button class="btn-sm-icon" style="background:#E8F5E9;color:#2E7D32;" onclick="quickDecision('${j.jobId}','อนุมัติ')" title="อนุมัติ"><span class="material-icons">check</span></button>
+      <button class="btn-sm-icon" style="background:#FFEBEE;color:#C62828;" onclick="quickDecision('${j.jobId}','ไม่อนุมัติ')" title="ไม่อนุมัติ"><span class="material-icons">close</span></button>
       <button class="btn-sm-icon" style="background:#FFF8E1;color:#F57F17;" onclick="quickDecision('${j.jobId}','ส่งกลับแก้ไข')" title="ส่งกลับแก้ไข"><span class="material-icons">undo</span></button>` : ''}
     </div>`;
   } else if (j.status === 'ส่งกลับแก้ไข' && j.lineUid === currentUser?.lineUid) {
@@ -1131,7 +1131,7 @@ function renderManagerJobs() {
         <button onclick="quickDecision('${j.jobId}','อนุมัติ')"
           style="flex:1;min-width:80px;display:flex;align-items:center;justify-content:center;gap:.3rem;
                  padding:.5rem .75rem;border-radius:8px;border:none;
-                 background:#FFEBEE;color:#B71C1C;font-size:.82rem;font-weight:700;cursor:pointer;">
+                 background:#E8F5E9;color:#2E7D32;font-size:.82rem;font-weight:700;cursor:pointer;">
           <span class="material-icons" style="font-size:.95rem;">check_circle</span> อนุมัติ
         </button>
         <button onclick="quickDecision('${j.jobId}','ไม่อนุมัติ')"
@@ -2184,7 +2184,7 @@ async function printJobPDF(jobId) {
         </div>
         <div class="sign-box">
           <div class="sign-line"></div>
-          <div class="sign-lbl">ผู้อนุมัติ / ผู้บริหาร</div>
+          <div class="sign-lbl">ช่างผู้รับผิดชอบ</div>
         </div>
       </div>
     </div>
