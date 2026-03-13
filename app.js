@@ -985,13 +985,17 @@ function filterManagerJobs(status) {
 
 function renderManagerJobs() {
   // ===== stats =====
+  // งานที่ manager เคยอนุมัติ = สถานะที่ downstream จาก อนุมัติ
+  const APPROVED_DOWNSTREAM = ['อนุมัติ','กำลังซ่อม','เสร็จสิ้น'];
   const pending   = allJobs.filter(j => j.status === 'รอการอนุมัติ').length;
-  const approved  = allJobs.filter(j => j.status === 'อนุมัติ').length;
+  const approved  = allJobs.filter(j => APPROVED_DOWNSTREAM.includes(j.status)).length;
+  const done      = allJobs.filter(j => j.status === 'เสร็จสิ้น').length;
   const totalCost = allJobs
-    .filter(j => j.status === 'อนุมัติ')
+    .filter(j => APPROVED_DOWNSTREAM.includes(j.status))
     .reduce((s, j) => s + (Number(j.estimate) || 0), 0);
   document.getElementById('mgr-stat-pending').textContent  = pending;
   document.getElementById('mgr-stat-approved').textContent = approved;
+  document.getElementById('mgr-stat-done').textContent     = done;
   document.getElementById('mgr-stat-cost').textContent     = totalCost.toLocaleString();
 
   // badge sidebar
@@ -1002,8 +1006,8 @@ function renderManagerJobs() {
   const q       = (document.getElementById('mgr-search')?.value || '').toLowerCase().trim();
   const sortVal = document.getElementById('mgr-sort')?.value || 'oldest';
 
-  // สถานะที่ manager ไม่ต้องเห็น (เป็นงานของ supervisor ฝั่งเดียว)
-  const MGR_VISIBLE = ['รอการอนุมัติ','อนุมัติ','เสร็จสิ้น','ส่งกลับแก้ไข','ไม่อนุมัติ'];
+  // สถานะที่ manager เห็น — รวม downstream ของ อนุมัติ ด้วย
+  const MGR_VISIBLE = ['รอการอนุมัติ','อนุมัติ','กำลังซ่อม','เสร็จสิ้น','ส่งกลับแก้ไข','ไม่อนุมัติ'];
 
   let jobs = allJobs.filter(j => MGR_VISIBLE.includes(j.status));
   if (_mgrFilter !== 'all') jobs = jobs.filter(j => j.status === _mgrFilter);
@@ -2206,7 +2210,7 @@ async function printJobPDF(jobId) {
         </div>
         <div class="sign-box">
           <div class="sign-line"></div>
-          <div class="sign-lbl">ผู้อนุมัติ / ผู้บริหาร</div>
+          <div class="sign-lbl">ช่างผู้รับผิดชอบ</div>
         </div>
       </div>
     </div>
