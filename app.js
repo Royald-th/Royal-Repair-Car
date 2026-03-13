@@ -658,9 +658,10 @@ async function renderYearlyReport(res) {
   const { totalJobs, totalDone, totalCost, monthly, topPlates } = res;
   const MONTHS = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 
-  const totalApproved = res.totalApproved ?? allJobs.filter(j=>j.status==='อนุมัติ').length;
+  const APPROVED_DS_F = ['อนุมัติ','กำลังซ่อม','เสร็จสิ้น'];
+  const totalApproved = res.totalApproved ?? allJobs.filter(j=>APPROVED_DS_F.includes(j.status)).length;
   const totalRejected = res.totalRejected ?? allJobs.filter(j=>j.status==='ไม่อนุมัติ').length;
-  const approvedBudgetY = res.approvedBudget ?? allJobs.filter(j=>j.status==='อนุมัติ').reduce((s,j)=>s+(Number(j.estimate)||0),0);
+  const approvedBudgetY = res.approvedBudget ?? allJobs.filter(j=>APPROVED_DS_F.includes(j.status)).reduce((s,j)=>s+(Number(j.estimate)||0),0);
   const summaryData = [
     { icon:'build_circle', label:'งานซ่อมทั้งหมด',   val:totalJobs,  color:'#1565C0', bg:'#E3F2FD' },
     { icon:'check_circle', label:'เสร็จสิ้น',          val:totalDone,  color:'#1B5E20', bg:'#E8F5E9' },
@@ -2283,7 +2284,7 @@ async function printJobPDF(jobId) {
         </div>
         <div class="sign-box">
           <div class="sign-line"></div>
-          <div class="sign-lbl">ผู้อนุมัติ / ผู้บริหาร</div>
+          <div class="sign-lbl">ช่างผู้รับผิดชอบ</div>
         </div>
       </div>
     </div>
