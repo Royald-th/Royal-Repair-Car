@@ -2410,9 +2410,10 @@ async function generateReport() {
   const colors   = ['#F57F17','#B71C1C','#1565C0','#7F0000','#6A1B9A','#C62828'];
   const totalCost = jobs.reduce((s,j) => s + (parseFloat(j.actualCost)||0), 0);
 
-  const approvedCount  = jobs.filter(j => j.status === 'อนุมัติ').length;
+  const APPROVED_DS = ['อนุมัติ','กำลังซ่อม','เสร็จสิ้น'];
+  const approvedCount  = jobs.filter(j => APPROVED_DS.includes(j.status)).length;
   const rejectedCount  = jobs.filter(j => j.status === 'ไม่อนุมัติ').length;
-  const approvedBudget = jobs.filter(j => j.status === 'อนุมัติ').reduce((s,j) => s+(Number(j.estimate)||0), 0);
+  const approvedBudget = jobs.filter(j => APPROVED_DS.includes(j.status)).reduce((s,j) => s+(Number(j.estimate)||0), 0);
   const summaryCards = [
     { val: jobs.length,  lbl: 'งานทั้งหมด',    icon: 'list_alt',     c: '#283593', bg: '#E8EAF6' },
     { val: jobs.filter(j=>j.status==='เสร็จสิ้น').length, lbl: 'เสร็จสิ้น', icon: 'check_circle', c: '#1B5E20', bg: '#E8F5E9' },
