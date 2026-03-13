@@ -2283,7 +2283,7 @@ async function printJobPDF(jobId) {
         </div>
         <div class="sign-box">
           <div class="sign-line"></div>
-          <div class="sign-lbl">ช่างผู้รับผิดชอบ</div>
+          <div class="sign-lbl">ผู้อนุมัติ / ผู้บริหาร</div>
         </div>
       </div>
     </div>
