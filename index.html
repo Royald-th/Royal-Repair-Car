@@ -58,7 +58,7 @@
       <button class="btn-sm-icon" style="background:rgba(255,255,255,.15);color:#fff;" id="sidebar-toggle">
         <span class="material-icons">menu</span>
       </button>
-      <img id="nav-logo" src=""
+      <img id="nav-logo" src="royal-d.png"
            onerror="this.style.display='none';document.getElementById('nav-logo-fallback').style.display='inline';"
            style="height:80px;width:80px;object-fit:contain;border-radius:8px;padding:0;">
       <span class="material-icons" id="nav-logo-fallback" style="color:#fff;font-size:1.4rem;display:none;">directions_car</span>
@@ -87,7 +87,7 @@
     <div class="sidebar" id="sidebar">
       <!-- เมนูหลัก -->
       <div id="main-menu">
-        <div class="sidebar-section-label">เมนูหลักหัวหน้างาน</div>
+        <div class="sidebar-section-label">เมนูหลัก</div>
         <a class="sidebar-item active" data-page="dashboard" onclick="navigate('dashboard')">
           <span class="material-icons">dashboard</span> แดชบอร์ด
         </a>
@@ -99,12 +99,12 @@
 
       <!-- เมนู Manager -->
       <div id="manager-menu" style="display:none;">
-        <div class="sidebar-section-label" style="margin-top:.75rem;">เมนูหลักผู้บริหาร</div>
+        <div class="sidebar-section-label" style="margin-top:.75rem;">ผู้บริหาร</div>
         <a class="sidebar-item" data-page="manager-jobs" onclick="navigate('manager-jobs')">
           <span class="material-icons">rule_folder</span> รายการแจ้งซ่อม
           <span class="badge-count" id="badge-approval">0</span>
         </a>
-        <div class="sidebar-section-label" style="margin-top:.75rem;">รายงานผู้บริหาร</div>
+        <div class="sidebar-section-label" style="margin-top:.75rem;">รายงาน</div>
         <a class="sidebar-item" data-page="admin-report" onclick="navigate('admin-report')">
           <span class="material-icons">bar_chart</span> รายงานรายเดือน
         </a>
@@ -127,7 +127,7 @@
           <span class="material-icons">manage_search</span> ประวัติตามทะเบียน
         </a>
         <!-- รายงาน -->
-        <div class="sidebar-section-label" style="margin-top:.75rem;">รายงานหัวหน้างาน</div>
+        <div class="sidebar-section-label" style="margin-top:.75rem;">รายงาน</div>
         <a class="sidebar-item" data-page="admin-report" onclick="navigate('admin-report')">
           <span class="material-icons">bar_chart</span> รายงานรายเดือน
         </a>
@@ -868,7 +868,7 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header-custom">
-        <div class="modal-title"><span class="material-icons">directions_car</span> เพิ่มทะเบียนรถ</div>
+        <div class="modal-title" id="v-modal-title"><span class="material-icons">directions_car</span> เพิ่มทะเบียนรถ</div>
         <button class="btn-close-white" onclick="closeModal('modalAddVehicle')"><span class="material-icons" style="font-size:1rem;">close</span></button>
       </div>
       <div class="modal-body">

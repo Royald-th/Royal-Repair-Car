@@ -510,7 +510,8 @@ function renderVehicleList() {
         <div style="font-weight:600;font-size:.88rem;">${v.plate}</div>
         <div style="font-size:.78rem;color:var(--gray-500);">${v.model||'-'}</div>
       </div>
-      <button class="btn-sm-icon" style="background:var(--danger-light);color:var(--danger);" onclick="deleteVehicle('${v.plate}')"><span class="material-icons">delete</span></button>
+      <button class="btn-sm-icon" style="background:var(--accent-light);color:var(--accent);" onclick="openEditVehicle(this)" data-plate="${v.plate}" data-model="${(v.model||'').replace(/"/g,'&quot;')}"><span class="material-icons">edit</span></button>
+      <button class="btn-sm-icon ms-1" style="background:var(--danger-light);color:var(--danger);" onclick="deleteVehicle('${v.plate}')"><span class="material-icons">delete</span></button>
     </div>`).join('');
 }
 
@@ -1574,9 +1575,25 @@ async function deleteUser(lineUid, name) {
 /* ============================================================
    VEHICLE MANAGEMENT
    ============================================================ */
+let _editingPlate = null; // เก็บ plate เดิมตอนแก้ไข
+
 function openAddVehicleModal() {
-  document.getElementById('v-plate').value='';
-  document.getElementById('v-model').value='';
+  _editingPlate = null;
+  document.getElementById('v-modal-title').innerHTML = '<span class="material-icons">directions_car</span> เพิ่มทะเบียนรถ';
+  document.getElementById('v-plate').value = '';
+  document.getElementById('v-plate').disabled = false;
+  document.getElementById('v-model').value = '';
+  showModal('modalAddVehicle');
+}
+
+function openEditVehicle(el) {
+  const plate = el.dataset.plate;
+  const model = el.dataset.model || '';
+  _editingPlate = plate;
+  document.getElementById('v-modal-title').innerHTML = '<span class="material-icons">edit</span> แก้ไขทะเบียนรถ';
+  document.getElementById('v-plate').value = plate;
+  document.getElementById('v-plate').disabled = true; // ป้องกันแก้ plate (ใช้เป็น key)
+  document.getElementById('v-model').value = model;
   showModal('modalAddVehicle');
 }
 async function saveVehicle() {
@@ -1584,10 +1601,21 @@ async function saveVehicle() {
   const model = document.getElementById('v-model').value.trim();
   if (!plate) { showToast('กรุณากรอกเลขทะเบียน', 'error'); return; }
   showLoading(true);
-  const res = await gasCall('addVehicle', { plate, model, adminUid: currentUser.lineUid });
+  let res;
+  if (_editingPlate) {
+    // แก้ไข — ลบเก่าแล้วเพิ่มใหม่ (plate เดิม model ใหม่)
+    res = await gasCall('updateVehicle', { plate: _editingPlate, model, adminUid: currentUser.lineUid });
+  } else {
+    res = await gasCall('addVehicle', { plate, model, adminUid: currentUser.lineUid });
+  }
   showLoading(false);
-  if (res.status==='ok') { showToast('เพิ่มทะเบียนสำเร็จ'); closeModal('modalAddVehicle'); loadData(); }
-  else showToast('ผิดพลาด: '+(res.message||''), 'error');
+  if (res.status==='ok') {
+    showToast(_editingPlate ? 'แก้ไขทะเบียนสำเร็จ' : 'เพิ่มทะเบียนสำเร็จ');
+    closeModal('modalAddVehicle');
+    loadData();
+  } else {
+    showToast('ผิดพลาด: '+(res.message||''), 'error');
+  }
 }
 async function deleteVehicle(plate) {
   if (!confirm(`ลบทะเบียน "${plate}"?`)) return;
@@ -2290,7 +2318,7 @@ async function printJobPDF(jobId) {
         </div>
         <div class="sign-box">
           <div class="sign-line"></div>
-          <div class="sign-lbl">ผู้อนุมัติ / ผู้บริหาร</div>
+          <div class="sign-lbl">ช่างผู้รับผิดชอบ</div>
         </div>
       </div>
     </div>
