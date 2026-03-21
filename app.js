@@ -44,7 +44,9 @@ let filterStatus  = '';
 let editingJobId  = null;
 let submitting    = false;
 let currentPage   = 1;
-const PAGE_SIZE   = 20;
+const PAGE_SIZE   = 80;       // rows ต่อหน้า
+let _totalJobs    = 0;        // จำนวนงานทั้งหมด (จาก server)
+let _loadingMore  = false;    // กัน double-fetch
 
 /* ============================================================
    LIFF INIT
@@ -156,6 +158,8 @@ function bootApp() {
     document.getElementById('admin-note-section').classList.remove('d-none');
     const exportBtn = document.getElementById('btn-export-csv');
     if (exportBtn) exportBtn.style.display = 'inline-flex';
+    const archiveBtn = document.getElementById('btn-archive');
+    if (archiveBtn) archiveBtn.style.display = 'inline-flex';
   }
 
   // Manager — ซ่อน FAB และ sidebar เมนูหลักทั้งก้อน
@@ -196,13 +200,14 @@ const _CACHE_KEY = '_repairData';
 const _CACHE_TTL = 5 * 60 * 1000;
 
 function _saveCache() {
-  try { sessionStorage.setItem(_CACHE_KEY, JSON.stringify({ ts: Date.now(), allJobs, vehicles, users })); } catch(e) {}
+  try { sessionStorage.setItem(_CACHE_KEY, JSON.stringify({ ts: Date.now(), allJobs, vehicles, users, totalJobs: _totalJobs, page: currentPage })); } catch(e) {}
 }
 function _loadCache() {
   try {
     const d = JSON.parse(sessionStorage.getItem(_CACHE_KEY) || 'null');
     if (!d || Date.now() - d.ts > _CACHE_TTL) return false;
     allJobs = d.allJobs || []; vehicles = d.vehicles || []; users = d.users || [];
+    _totalJobs = d.totalJobs || allJobs.length; currentPage = d.page || 1;
     return true;
   } catch(e) { return false; }
 }
@@ -228,20 +233,32 @@ function _renderAll() {
   }
 }
 
-async function _fetchFresh(silent = false) {
+async function _fetchFresh(silent = false, appendMode = false) {
   try {
     const isAdmin = ['admin','supervisor','manager'].includes(currentUser?.role);
+    const jobParams = {
+      lineUid:  currentUser.lineUid,
+      isAdmin,
+      page:     currentPage,
+      pageSize: PAGE_SIZE,
+    };
     const [jobsRes, vehiclesRes, usersRes] = await Promise.all([
-      gasCall('getJobs',    { lineUid: currentUser.lineUid, isAdmin }),
+      gasCall('getJobs', jobParams),
       gasCall('getVehicles', {}),
       isAdmin ? gasCall('getUsers', { adminUid: currentUser.lineUid }) : Promise.resolve({ users: [] })
     ]);
     if (jobsRes.status === 'error') { if (!silent) showToast('getJobs: ' + jobsRes.message, 'error'); return; }
-    allJobs  = jobsRes.jobs      || [];
-    vehicles = vehiclesRes.vehicles || [];
-    users    = usersRes.users    || [];
+    if (appendMode) {
+      allJobs = allJobs.concat(jobsRes.jobs || []);
+    } else {
+      allJobs = jobsRes.jobs || [];
+    }
+    _totalJobs = jobsRes.total  || allJobs.length;
+    vehicles   = vehiclesRes.vehicles || [];
+    users      = usersRes.users || [];
     _saveCache();
     _renderAll();
+    _updateLoadMoreBtn();
   } catch(e) {
     console.error('loadData error:', e);
     if (!silent) showToast('โหลดข้อมูลไม่สำเร็จ: ' + e.message, 'error');
@@ -251,6 +268,7 @@ async function _fetchFresh(silent = false) {
 async function loadData(silent = false) {
   if (_loadingInProgress) return;
   _loadingInProgress = true;
+  currentPage = 1; // reset ไปหน้าแรกเสมอ
   // มี cache — แสดงผลทันที แล้ว refresh background
   if (_loadCache()) {
     _renderAll();
@@ -261,6 +279,32 @@ async function loadData(silent = false) {
   await _fetchFresh(silent);
   _loadingInProgress = false;
   if (!silent) showLoading(false);
+}
+
+/* โหลดหน้าถัดไป */
+async function loadMore() {
+  if (_loadingMore) return;
+  if (allJobs.length >= _totalJobs) return; // โหลดครบแล้ว
+  _loadingMore = true;
+  currentPage++;
+  const btn = document.getElementById('btn-load-more');
+  if (btn) { btn.disabled = true; btn.textContent = 'กำลังโหลด...'; }
+  await _fetchFresh(true, true); // appendMode = true
+  _loadingMore = false;
+}
+
+/* อัปเดตปุ่ม Load More */
+function _updateLoadMoreBtn() {
+  const btn = document.getElementById('btn-load-more');
+  if (!btn) return;
+  const remaining = _totalJobs - allJobs.length;
+  if (remaining > 0) {
+    btn.style.display = 'flex';
+    btn.disabled = false;
+    btn.textContent = `โหลดเพิ่ม (${remaining} รายการ)`;
+  } else {
+    btn.style.display = 'none';
+  }
 }
 
 // ฟังก์ชัน loadData แบบรอให้เสร็จแน่นอน (ใช้ตอน bootApp)
@@ -1626,6 +1670,23 @@ async function deleteVehicle(plate) {
   else showToast('ผิดพลาด', 'error');
 }
 
+/* Archive งานเก่า — เรียกจากปุ่ม admin */
+async function runArchive() {
+  const months = prompt('Archive งานที่ปิดแล้ว (เสร็จสิ้น/ไม่อนุมัติ) เก่ากว่ากี่เดือน?', '12');
+  if (!months || isNaN(months)) return;
+  if (!confirm(`Archive งานเก่ากว่า ${months} เดือน ?
+งานเหล่านี้จะย้ายไป Sheet "Jobs_Archive" และไม่แสดงในหน้าหลัก`)) return;
+  showLoading(true);
+  const res = await gasCall('archiveOldJobs', { adminUid: currentUser.lineUid, monthsOld: parseInt(months) });
+  showLoading(false);
+  if (res.status === 'ok') {
+    showToast(res.archived > 0 ? `✅ Archive ${res.archived} รายการสำเร็จ` : 'ไม่มีงานที่ต้อง archive');
+    if (res.archived > 0) loadData();
+  } else {
+    showToast('Archive ไม่สำเร็จ: ' + (res.message || ''), 'error');
+  }
+}
+
 /* ============================================================
    GAS CALL
    ใช้ XMLHttpRequest แทน fetch เพราะ LIFF บน LINE app
@@ -2432,6 +2493,16 @@ async function generateReport() {
   const monthName = ['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
                      'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'][month];
 
+  // แจ้งเตือนถ้าดูปีก่อนหน้าที่อาจถูก archive
+  const thisYear = new Date().getFullYear();
+  if (year < thisYear) {
+    const archiveNote = document.getElementById('report-archive-note');
+    if (archiveNote) archiveNote.style.display = 'block';
+  } else {
+    const archiveNote = document.getElementById('report-archive-note');
+    if (archiveNote) archiveNote.style.display = 'none';
+  }
+
   // กรองเฉพาะเดือนที่เลือก
   const jobs = allJobs.filter(j => {
     if (!j.createdAt) return false;
@@ -2608,6 +2679,16 @@ function exportMonthlyCSV() {
   const month = parseInt(document.getElementById('report-month').value);
   const monthName = ['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
                      'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'][month];
+
+  // แจ้งเตือนถ้าดูปีก่อนหน้าที่อาจถูก archive
+  const thisYear = new Date().getFullYear();
+  if (year < thisYear) {
+    const archiveNote = document.getElementById('report-archive-note');
+    if (archiveNote) archiveNote.style.display = 'block';
+  } else {
+    const archiveNote = document.getElementById('report-archive-note');
+    if (archiveNote) archiveNote.style.display = 'none';
+  }
   const jobs = allJobs.filter(j => {
     if (!j.createdAt) return false;
     const d = new Date(j.createdAt);
@@ -2636,6 +2717,16 @@ async function printMonthlyReport() {
   const month  = parseInt(document.getElementById('report-month').value);
   const monthName = ['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
                      'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'][month];
+
+  // แจ้งเตือนถ้าดูปีก่อนหน้าที่อาจถูก archive
+  const thisYear = new Date().getFullYear();
+  if (year < thisYear) {
+    const archiveNote = document.getElementById('report-archive-note');
+    if (archiveNote) archiveNote.style.display = 'block';
+  } else {
+    const archiveNote = document.getElementById('report-archive-note');
+    if (archiveNote) archiveNote.style.display = 'none';
+  }
   const jobs = allJobs.filter(j => {
     if (!j.createdAt) return false;
     const d = new Date(j.createdAt);

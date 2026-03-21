@@ -58,7 +58,7 @@
       <button class="btn-sm-icon" style="background:rgba(255,255,255,.15);color:#fff;" id="sidebar-toggle">
         <span class="material-icons">menu</span>
       </button>
-      <img id="nav-logo" src=""
+      <img id="nav-logo" src="royal-d.png"
            onerror="this.style.display='none';document.getElementById('nav-logo-fallback').style.display='inline';"
            style="height:80px;width:80px;object-fit:contain;border-radius:8px;padding:0;">
       <span class="material-icons" id="nav-logo-fallback" style="color:#fff;font-size:1.4rem;display:none;">directions_car</span>
@@ -142,7 +142,7 @@
       </div>
 
       <div class="sidebar-section-label" style="margin-top:.75rem;">อื่นๆ</div>
-      <a class="sidebar-item" onclick="ut()">
+      <a class="sidebar-item" onclick="logout()">
         <span class="material-icons">logout</span> ออกจากระบบ
       </a>
     </div>
@@ -234,6 +234,10 @@
               <span class="material-icons" style="font-size:1rem;">download</span>
               <span class="d-none d-sm-inline">Export </span>CSV
             </button>
+            <button class="btn-outline-custom" id="btn-archive" onclick="runArchive()" style="display:none;" title="Archive งานเก่ากว่า 1 ปี">
+              <span class="material-icons" style="font-size:1rem;">archive</span>
+              <span class="d-none d-sm-inline">Archive</span>
+            </button>
             <button class="btn-repair-header" id="btn-repair-list" onclick="openRepairModal()">
               <span class="material-icons" style="font-size:1.2rem;">add_circle</span>
               <span>แจ้งซ่อม</span>
@@ -299,6 +303,16 @@
           <div class="empty-state"><span class="material-icons">inbox</span>กำลังโหลด...</div>
         </div>
       </div>
+
+        <!-- Load More -->
+        <div style="text-align:center;padding:1rem 0 .5rem;">
+          <button id="btn-load-more" onclick="loadMore()"
+            style="display:none;margin:0 auto;padding:.55rem 1.5rem;border-radius:8px;
+                   border:2px solid var(--primary);background:#fff;color:var(--primary);
+                   font-weight:600;cursor:pointer;gap:.4rem;align-items:center;">
+            โหลดเพิ่ม
+          </button>
+        </div>
 
 
       <!-- ===== VEHICLE HISTORY PAGE (ข้อ 6) ===== -->
@@ -481,6 +495,9 @@
         </div>
 
         <!-- Summary Cards -->
+        <div id="report-archive-note" style="display:none;background:#FFF8E1;border:1px solid #FFE082;border-radius:8px;padding:.6rem 1rem;font-size:.82rem;color:#F57F17;margin-bottom:.75rem;">
+          ⚠️ ข้อมูลปีก่อนหน้าบางส่วนอาจถูก Archive ไปแล้ว — รายงานรายปีจะแสดงข้อมูลครบถ้วน
+        </div>
         <div id="report-month-label" style="font-family:'Prompt',sans-serif;font-size:.82rem;color:var(--gray-500);margin-bottom:.5rem;"></div>
         <div id="report-summary-row" class="report-summary-grid"></div>
 
