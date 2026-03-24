@@ -136,7 +136,7 @@ function bootApp() {
 
   // Set nav
   document.getElementById('nav-username').textContent = currentUser.name;
-  document.getElementById('nav-role').textContent = {admin:'Admin', supervisor:'หัวหน้า', manager:'ผู้บริหาร', user:'User'}[role] || 'User';
+  document.getElementById('nav-role').textContent = {admin:'Admin', supervisor:'หัวหน้า', purchasing:'ฝ่ายจัดซื้อ', manager:'ผู้บริหาร', user:'User'}[role] || 'User';
   document.getElementById('nav-avatar').src = currentUser.avatar;
   document.getElementById('dash-avatar').src = currentUser.avatar;
   document.getElementById('form-avatar').src = currentUser.avatar;
@@ -146,11 +146,14 @@ function bootApp() {
   document.getElementById('form-lineuid').textContent = currentUser.dept || '-';
 
   // Sidebar menus
-  if (['admin','supervisor'].includes(role)) {
+  if (['admin','supervisor','purchasing'].includes(role)) {
     document.getElementById('admin-menu').style.display = 'block';
   }
   if (['admin','manager'].includes(role)) {
     document.getElementById('manager-menu').style.display = 'block';
+  }
+  if (['admin','purchasing'].includes(role)) {
+    document.getElementById('purchasing-menu').style.display = 'block';
   }
 
   // Admin-only extras
@@ -162,17 +165,19 @@ function bootApp() {
     if (archiveBtn) archiveBtn.style.display = 'inline-flex';
   }
 
-  // Manager — ซ่อน FAB และ sidebar เมนูหลักทั้งก้อน
-  if (role === 'manager') {
+  // Manager/Purchasing — ซ่อน FAB และ sidebar เมนูหลักทั้งก้อน
+  if (['manager','purchasing'].includes(role)) {
     const fab = document.getElementById('fab-repair');
     if (fab) { fab.style.display = 'none'; fab.style.setProperty('display','none','important'); }
     const mainMenu = document.getElementById('main-menu');
     if (mainMenu) mainMenu.style.display = 'none';
   }
 
-  // navigate ทันทีก่อน (ให้ถูกหน้าตั้งแต่ต้น ไม่กระพริบ)
+  // navigate ทันทีก่อน
   if (role === 'manager') {
     navigate('manager-jobs');
+  } else if (role === 'purchasing') {
+    navigate('purchasing-jobs');
   } else {
     navigate('dashboard');
   }
@@ -214,8 +219,9 @@ function _loadCache() {
 
 function _renderAll() {
   const role = currentUser?.role;
-  const isAdmin = ['admin','supervisor'].includes(role);
+  const isAdmin = ['admin','supervisor','purchasing'].includes(role);
   const isManager = role === 'manager';
+  const isPurchasing = role === 'purchasing';
 
   populateVehicleSelect();
   populateVehicleHistorySelect();
@@ -235,7 +241,7 @@ function _renderAll() {
 
 async function _fetchFresh(silent = false, appendMode = false) {
   try {
-    const isAdmin = ['admin','supervisor','manager'].includes(currentUser?.role);
+    const isAdmin = ['admin','supervisor','purchasing','manager'].includes(currentUser?.role);
     const jobParams = {
       lineUid:  currentUser.lineUid,
       isAdmin,
@@ -350,6 +356,12 @@ function renderStats() {
     const badge = document.getElementById('badge-approval');
     if (badge) { badge.textContent = approvalCount; badge.style.display = approvalCount ? 'inline' : 'none'; }
     if (document.getElementById('page-manager-jobs')?.classList.contains('active')) renderManagerJobs();
+  }
+  if (['admin','purchasing'].includes(currentUser?.role)) {
+    const reviewCount = allJobs.filter(j => j.status === 'รอตรวจสอบ').length;
+    const badge = document.getElementById('badge-review');
+    if (badge) { badge.textContent = reviewCount; badge.style.display = reviewCount ? 'inline' : 'none'; }
+    if (document.getElementById('page-purchasing-jobs')?.classList.contains('active')) renderPurchasingJobs();
   }
 }
 
@@ -1011,12 +1023,13 @@ function navigate(page) {
   if (page === 'admin-yearly')   { initYearlySelectors(); }
   if (page === 'admin-qr')       { setTimeout(initQRCode, 100); }
   if (page === 'vehicle-history')    { populateVehicleHistorySelect(); }
-  if (page === 'manager-jobs') { _mgrFilter='all'; renderManagerJobs(); }
+  if (page === 'manager-jobs')    { _mgrFilter='all'; renderManagerJobs(); }
+  if (page === 'purchasing-jobs') { _purFilter='all'; renderPurchasingJobs(); }
 
   // FAB — แสดงเฉพาะหน้า dashboard และ repair-list และเฉพาะ non-manager
   const fab = document.getElementById('fab-repair');
   if (fab) {
-    const showFab = ['dashboard','repair-list'].includes(page) && currentUser?.role !== 'manager';
+    const showFab = ['dashboard','repair-list'].includes(page) && !['manager','purchasing'].includes(currentUser?.role);
     fab.style.display = showFab ? 'flex' : 'none';
   }
 
@@ -1028,6 +1041,7 @@ function navigate(page) {
    MANAGER — Jobs with filter
    ============================================================ */
 let _mgrFilter = 'all';
+let _purFilter = 'all';
 
 function filterManagerJobs(status) {
   _mgrFilter = status;
@@ -1230,7 +1244,12 @@ async function confirmManagerDecision() {
   const decision = document.getElementById('mgr-note-decision').value;
   const note     = document.getElementById('mgr-note-text').value.trim();
   closeModal('modalManagerNote');
-  await _submitManagerDecision(jobId, decision, note);
+  // purchasing ส่งกลับ หรือ manager ตัดสินใจ
+  if (currentUser.role === 'purchasing') {
+    await _submitPurchasingDecision(jobId, decision, note);
+  } else {
+    await _submitManagerDecision(jobId, decision, note);
+  }
 }
 
 async function _submitManagerDecision(jobId, decision, note) {
@@ -1370,7 +1389,7 @@ async function submitRepair() {
 function openDetail(jobId) {
   const j = allJobs.find(x => x.jobId === jobId);
   if (!j) return;
-  const isAdmin = ['admin','supervisor'].includes(currentUser.role);
+  const isAdmin = ['admin','supervisor','purchasing'].includes(currentUser.role);
   const body = document.getElementById('detail-body');
   body.innerHTML = `
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -1432,6 +1451,11 @@ function openStatusModal(jobId) {
     showToast('งานนี้ปิดแล้ว ไม่สามารถเปลี่ยนสถานะได้', 'error');
     return;
   }
+  // purchasing เปลี่ยนได้เฉพาะ รอตรวจสอบ
+  if (currentUser.role === 'purchasing' && j.status !== 'รอตรวจสอบ') {
+    showToast('ฝ่ายจัดซื้อตรวจสอบได้เฉพาะงานที่รอตรวจสอบ', 'error');
+    return;
+  }
 
   // render options ตาม role
   const role = currentUser?.role || 'user';
@@ -1439,7 +1463,7 @@ function openStatusModal(jobId) {
     supervisor: (function() {
       // รอดำเนินการ / ส่งกลับแก้ไข → ส่งต่อผู้บริหารอย่างเดียว
       if (['รอดำเนินการ','ส่งกลับแก้ไข'].includes(j.status)) {
-        return [{ v:'รอการอนุมัติ', l:'📋 ส่งต่อผู้บริหาร (รอการอนุมัติ)' }];
+        return [{ v:'รอตรวจสอบ', l:'📊 ส่งให้ฝ่ายจัดซื้อตรวจสอบ' }];
       }
       // อนุมัติ → กำลังซ่อม หรือ เสร็จสิ้น
       if (j.status === 'อนุมัติ') {
@@ -1454,6 +1478,10 @@ function openStatusModal(jobId) {
       }
       return [];
     })(),
+    purchasing: [
+      { v:'รอการอนุมัติ', l:'✅ ผ่านการตรวจสอบ (ส่งผู้บริหาร)' },
+      { v:'ส่งกลับแก้ไข', l:'↩️ ส่งกลับให้หัวหน้าแก้ไข' },
+    ],
     manager: [
       { v:'รอการอนุมัติ', l:'รอการอนุมัติ' },
       { v:'อนุมัติ',       l:'อนุมัติ ✅' },
@@ -1543,6 +1571,132 @@ async function uploadMultiImages(files, folderType, jobId = '') {
     return { url: res.url || '', viewUrl: res.viewUrl || '', fileId: res.fileId || '' };
   });
   return Promise.all(tasks); // parallel ทั้งหมดพร้อมกัน
+}
+
+/* ============================================================
+   PURCHASING JOBS PAGE
+   ============================================================ */
+function filterPurchasingJobs(status) {
+  _purFilter = status;
+  document.querySelectorAll('[data-pur-status]').forEach(el => {
+    el.classList.toggle('active', el.dataset.purStatus === status);
+  });
+  renderPurchasingJobs();
+}
+
+function renderPurchasingJobs() {
+  // stats
+  const PUR_VISIBLE = ['รอตรวจสอบ','รอการอนุมัติ','ส่งกลับแก้ไข','อนุมัติ','กำลังซ่อม','เสร็จสิ้น','ไม่อนุมัติ'];
+  const pending  = allJobs.filter(j => j.status === 'รอตรวจสอบ').length;
+  const approved = allJobs.filter(j => ['รอการอนุมัติ','อนุมัติ','กำลังซ่อม','เสร็จสิ้น'].includes(j.status)).length;
+  const done     = allJobs.filter(j => j.status === 'เสร็จสิ้น').length;
+  document.getElementById('pur-stat-pending')?.textContent  !== undefined && (document.getElementById('pur-stat-pending').textContent  = pending);
+  document.getElementById('pur-stat-approved')?.textContent !== undefined && (document.getElementById('pur-stat-approved').textContent = approved);
+  document.getElementById('pur-stat-done')?.textContent     !== undefined && (document.getElementById('pur-stat-done').textContent     = done);
+
+  // badge
+  const badge = document.getElementById('badge-review');
+  if (badge) { badge.textContent = pending; badge.style.display = pending ? 'inline' : 'none'; }
+
+  // filter + search
+  const q = (document.getElementById('pur-search')?.value || '').toLowerCase().trim();
+  let jobs = allJobs.filter(j => PUR_VISIBLE.includes(j.status));
+  if (_purFilter !== 'all') jobs = jobs.filter(j => j.status === _purFilter);
+  if (q) jobs = jobs.filter(j =>
+    (j.plate||'').toLowerCase().includes(q) ||
+    (j.userName||'').toLowerCase().includes(q) ||
+    (j.jobId||'').toLowerCase().includes(q) ||
+    (j.detail||'').toLowerCase().includes(q)
+  );
+  jobs = [...jobs].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  const tbody = document.getElementById('pur-jobs-tbody');
+  const cards = document.getElementById('pur-jobs-cards');
+  if (!tbody || !cards) return;
+
+  if (!jobs.length) {
+    tbody.innerHTML = `<tr><td colspan="7"><div style="display:flex;flex-direction:column;align-items:center;padding:2.5rem;color:var(--gray-400);">
+      <span class="material-icons" style="font-size:2.5rem;">inbox</span><span style="font-size:.9rem;">ไม่พบรายการ</span></div></td></tr>`;
+    cards.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;padding:2rem;color:var(--gray-400);">
+      <span class="material-icons" style="font-size:2.5rem;">inbox</span><span>ไม่พบรายการ</span></div>`;
+    return;
+  }
+
+  const actionBtns = j => {
+    const viewBtn = `<button class="btn-outline-custom btn-sm" onclick="openDetail('${j.jobId}')" title="ดูรายละเอียด">
+      <span class="material-icons" style="font-size:.9rem;">visibility</span></button>`;
+    if (j.status !== 'รอตรวจสอบ') return viewBtn;
+    return `<div class="d-flex gap-1">
+      ${viewBtn}
+      <button class="btn-primary-custom btn-sm" style="background:var(--success);padding:.3rem .6rem;" onclick="quickPurchasingDecision('${j.jobId}','รอการอนุมัติ')" title="ผ่านการตรวจสอบ">
+        <span class="material-icons" style="font-size:.9rem;">check</span>
+      </button>
+      <button class="btn-primary-custom btn-sm" style="background:var(--warning);color:#333;padding:.3rem .6rem;" onclick="quickPurchasingDecision('${j.jobId}','ส่งกลับแก้ไข')" title="ส่งกลับแก้ไข">
+        <span class="material-icons" style="font-size:.9rem;">undo</span>
+      </button>
+    </div>`;
+  };
+
+  // Desktop
+  tbody.innerHTML = jobs.map(j => `
+    <tr style="${j.status==='รอตรวจสอบ'?'background:rgba(255,193,7,.05);':''}">
+      <td style="padding:.75rem .875rem;white-space:nowrap;"><span style="font-weight:700;color:var(--primary-dark);font-size:.82rem;">${j.jobId}</span></td>
+      <td style="padding:.75rem .875rem;font-size:.85rem;">${j.userName}</td>
+      <td style="padding:.75rem .875rem;"><span style="font-weight:600;font-size:.88rem;">${j.plate}</span></td>
+      <td style="padding:.75rem .875rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.82rem;">${j.detail}</td>
+      <td style="padding:.75rem .875rem;text-align:right;font-weight:600;font-size:.88rem;white-space:nowrap;">${j.estimate ? Number(j.estimate).toLocaleString()+' ฿' : '-'}</td>
+      <td style="padding:.75rem .875rem;"><span class="badge-status ${statusClass(j.status)}">${j.status}</span></td>
+      <td style="padding:.75rem .875rem;text-align:center;">${actionBtns(j)}</td>
+    </tr>`).join('');
+
+  // Mobile
+  cards.innerHTML = jobs.map(j => `
+    <div class="repair-card" onclick="openDetail('${j.jobId}')">
+      <div class="d-flex justify-content-between align-items-start mb-2">
+        <span style="font-weight:700;font-size:.8rem;color:var(--primary-dark);">${j.jobId}</span>
+        <span class="badge-status ${statusClass(j.status)}">${j.status}</span>
+      </div>
+      <div style="font-weight:600;margin-bottom:.25rem;">${j.plate}</div>
+      <div style="font-size:.82rem;color:var(--gray-600);margin-bottom:.5rem;">${j.detail}</div>
+      <div class="d-flex justify-content-between align-items-center">
+        <span style="font-size:.78rem;color:var(--gray-500);">${j.userName} • ${formatDate(j.createdAt)}</span>
+        ${j.status === 'รอตรวจสอบ' ? `<div class="d-flex gap-1" onclick="event.stopPropagation()">
+          <button class="btn-sm-icon" style="background:#E8F5E9;color:#2E7D32;" onclick="quickPurchasingDecision('${j.jobId}','รอการอนุมัติ')"><span class="material-icons">check</span></button>
+          <button class="btn-sm-icon" style="background:#FFF8E1;color:#F57F17;" onclick="quickPurchasingDecision('${j.jobId}','ส่งกลับแก้ไข')"><span class="material-icons">undo</span></button>
+        </div>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+function quickPurchasingDecision(jobId, decision) {
+  if (decision === 'ส่งกลับแก้ไข') {
+    document.getElementById('mgr-note-jobid').value    = jobId;
+    document.getElementById('mgr-note-decision').value = decision;
+    document.getElementById('mgr-note-text').value     = '';
+    document.getElementById('mgr-note-title').textContent = '↩️ ส่งกลับให้หัวหน้าแก้ไข';
+    const btn = document.getElementById('mgr-note-confirm-btn');
+    btn.style.background = 'var(--warning)'; btn.style.color = '#333';
+    showModal('modalManagerNote');
+  } else {
+    _submitPurchasingDecision(jobId, decision, '');
+  }
+}
+
+async function _submitPurchasingDecision(jobId, decision, note) {
+  showLoading(true);
+  const res = await gasCall('updateStatus', {
+    jobId, status: decision, note: note || '',
+    adminUid: currentUser.lineUid,
+  });
+  showLoading(false);
+  if (res.status === 'ok') {
+    showToast(decision === 'รอการอนุมัติ' ? '✅ ส่งให้ผู้บริหารแล้ว' : '↩️ ส่งกลับให้หัวหน้าแล้ว');
+    sessionStorage.removeItem('_repairData');
+    await loadData(true);
+    renderPurchasingJobs();
+  } else {
+    showToast('เกิดข้อผิดพลาด: ' + (res.message || ''), 'error');
+  }
 }
 
 /* ============================================================
@@ -1788,7 +1942,7 @@ function showToast(msg, type='success') {
 }
 
 function statusClass(s) {
-  return { 'รอดำเนินการ':'status-waiting','รอการอนุมัติ':'status-pending-mgr','อนุมัติ':'status-approved','ไม่อนุมัติ':'status-rejected','ส่งกลับแก้ไข':'status-revise','กำลังซ่อม':'status-repairing','เสร็จสิ้น':'status-done' }[s] || '';
+  return { 'รอดำเนินการ':'status-waiting','รอตรวจสอบ':'status-review','รอการอนุมัติ':'status-pending-mgr','อนุมัติ':'status-approved','ไม่อนุมัติ':'status-rejected','ส่งกลับแก้ไข':'status-revise','กำลังซ่อม':'status-repairing','เสร็จสิ้น':'status-done' }[s] || '';
 }
 
 function formatDate(d) {
@@ -1980,7 +2134,7 @@ async function exportCSV() {
   if (btn) { btn.disabled = true; btn.innerHTML = '<span class="material-icons" style="font-size:1rem;">hourglass_empty</span> กำลัง Export...'; }
   showLoading(true);
 
-  const isAdmin = ['admin','supervisor','manager'].includes(currentUser.role);
+  const isAdmin = ['admin','supervisor','purchasing','manager'].includes(currentUser.role);
   const res = await gasCall('exportJobs', {
     lineUid: currentUser.lineUid,
     isAdmin,

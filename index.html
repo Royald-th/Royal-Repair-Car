@@ -58,7 +58,7 @@
       <button class="btn-sm-icon" style="background:rgba(255,255,255,.15);color:#fff;" id="sidebar-toggle">
         <span class="material-icons">menu</span>
       </button>
-      <img id="nav-logo" src=""
+      <img id="nav-logo" src="royal-d.png"
            onerror="this.style.display='none';document.getElementById('nav-logo-fallback').style.display='inline';"
            style="height:80px;width:80px;object-fit:contain;border-radius:8px;padding:0;">
       <span class="material-icons" id="nav-logo-fallback" style="color:#fff;font-size:1.4rem;display:none;">directions_car</span>
@@ -110,6 +110,15 @@
         </a>
         <a class="sidebar-item" data-page="admin-yearly" onclick="navigate('admin-yearly')">
           <span class="material-icons">calendar_month</span> รายงานรายปี
+        </a>
+      </div>
+
+      <!-- เมนู Purchasing -->
+      <div id="purchasing-menu" style="display:none;">
+        <div class="sidebar-section-label" style="margin-top:.75rem;">ฝ่ายจัดซื้อ</div>
+        <a class="sidebar-item" data-page="purchasing-jobs" onclick="navigate('purchasing-jobs')">
+          <span class="material-icons">fact_check</span> รายการตรวจสอบ
+          <span class="badge-count" id="badge-review">0</span>
         </a>
       </div>
 
@@ -314,6 +323,71 @@
           </button>
         </div>
 
+
+      <!-- ===== PURCHASING JOBS PAGE ===== -->
+      <div class="page-section" id="page-purchasing-jobs">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;gap:.75rem;">
+          <h2 style="font-size:1.15rem;font-weight:700;color:var(--gray-800);margin:0;">
+            <span class="material-icons" style="vertical-align:middle;color:var(--primary);">fact_check</span>
+            รายการตรวจสอบ
+          </h2>
+        </div>
+
+        <!-- Stat Cards -->
+        <div style="display:flex;gap:.75rem;overflow-x:auto;padding-bottom:.5rem;scrollbar-width:none;margin-bottom:1.25rem;">
+          <div class="stat-card-h" style="cursor:default;min-width:140px;flex:1;">
+            <div class="stat-icon-h" style="background:#FFF8E1;color:#F57F17;"><span class="material-icons">pending</span></div>
+            <div class="stat-val-h" id="pur-stat-pending">0</div>
+            <div class="stat-lbl-h">รอตรวจสอบ</div>
+          </div>
+          <div class="stat-card-h" style="cursor:default;min-width:140px;flex:1;">
+            <div class="stat-icon-h" style="background:#E8F5E9;color:#2E7D32;"><span class="material-icons">check_circle</span></div>
+            <div class="stat-val-h" id="pur-stat-approved">0</div>
+            <div class="stat-lbl-h">ผ่านการตรวจสอบ</div>
+          </div>
+          <div class="stat-card-h" style="cursor:default;min-width:140px;flex:1;">
+            <div class="stat-icon-h" style="background:#E8F5E9;color:#1B5E20;"><span class="material-icons">task_alt</span></div>
+            <div class="stat-val-h" id="pur-stat-done">0</div>
+            <div class="stat-lbl-h">เสร็จสิ้น</div>
+          </div>
+        </div>
+
+        <!-- Filter Pills -->
+        <div style="display:flex;gap:.5rem;overflow-x:auto;padding-bottom:.5rem;scrollbar-width:none;margin-bottom:1rem;-webkit-overflow-scrolling:touch;">
+          <div class="filter-pill active" data-pur-status="all"           onclick="filterPurchasingJobs('all')"           style="white-space:nowrap;flex-shrink:0;">ทั้งหมด</div>
+          <div class="filter-pill"        data-pur-status="รอตรวจสอบ"    onclick="filterPurchasingJobs('รอตรวจสอบ')"    style="white-space:nowrap;flex-shrink:0;">📊 รอตรวจสอบ</div>
+          <div class="filter-pill"        data-pur-status="รอการอนุมัติ" onclick="filterPurchasingJobs('รอการอนุมัติ')" style="white-space:nowrap;flex-shrink:0;">⏳ รอการอนุมัติ</div>
+          <div class="filter-pill"        data-pur-status="อนุมัติ"       onclick="filterPurchasingJobs('อนุมัติ')"       style="white-space:nowrap;flex-shrink:0;">✅ อนุมัติ</div>
+          <div class="filter-pill"        data-pur-status="กำลังซ่อม"    onclick="filterPurchasingJobs('กำลังซ่อม')"    style="white-space:nowrap;flex-shrink:0;">🔧 กำลังซ่อม</div>
+          <div class="filter-pill"        data-pur-status="เสร็จสิ้น"    onclick="filterPurchasingJobs('เสร็จสิ้น')"    style="white-space:nowrap;flex-shrink:0;">🏁 เสร็จสิ้น</div>
+          <div class="filter-pill"        data-pur-status="ส่งกลับแก้ไข" onclick="filterPurchasingJobs('ส่งกลับแก้ไข')" style="white-space:nowrap;flex-shrink:0;">↩️ ส่งกลับแก้ไข</div>
+          <div class="filter-pill"        data-pur-status="ไม่อนุมัติ"   onclick="filterPurchasingJobs('ไม่อนุมัติ')"   style="white-space:nowrap;flex-shrink:0;">❌ ไม่อนุมัติ</div>
+        </div>
+
+        <!-- Search -->
+        <div class="mb-3">
+          <input type="text" class="form-control" id="pur-search" placeholder="🔍 ค้นหา เลขที่งาน / ทะเบียน / ชื่อ..." oninput="renderPurchasingJobs()">
+        </div>
+
+        <!-- Desktop Table -->
+        <div class="data-table-wrapper d-none d-md-block">
+          <table class="repair-table">
+            <thead><tr>
+              <th>เลขที่งาน</th><th>ผู้แจ้ง</th><th>ทะเบียน</th>
+              <th>อาการ</th><th style="text-align:right;">ประเมิน</th>
+              <th>สถานะ</th><th style="text-align:center;">การดำเนินการ</th>
+            </tr></thead>
+            <tbody id="pur-jobs-tbody">
+              <tr><td colspan="7" class="text-center py-4 text-muted">กำลังโหลด...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Mobile Cards -->
+        <div class="d-md-none" id="pur-jobs-cards">
+          <div class="empty-state"><span class="material-icons">inbox</span>กำลังโหลด...</div>
+        </div>
+      </div>
 
       <!-- ===== VEHICLE HISTORY PAGE (ข้อ 6) ===== -->
       <div class="page-section" id="page-vehicle-history">
