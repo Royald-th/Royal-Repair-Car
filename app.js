@@ -537,7 +537,7 @@ function renderUserList() {
   el.innerHTML = users.map(u => {
     const isTargetAdmin = u.role === 'admin';
     const canEdit = isCallerAdmin || !isTargetAdmin;
-    const roleLabel = {admin:'👑 Admin',supervisor:'👔 หัวหน้า',accountant:'🛒 ฝ่ายบัญชี',manager:'🏢 ผู้บริหาร',user:'👤 User'}[u.role]||u.role;
+    const roleLabel = {admin:'👑 Admin',supervisor:'👔 หัวหน้า',accountant:'📊 ฝ่ายบัญชี',manager:'🏢 ผู้บริหาร',user:'👤 User'}[u.role]||u.role;
     const editBtn = canEdit
       ? `<button class="btn-sm-icon" style="background:var(--accent-light);color:var(--accent);" onclick="openEditUser('${u.lineUid}')"><span class="material-icons" style="font-size:1rem;">edit</span></button>`
       : `<button class="btn-sm-icon" style="background:#f5f5f5;color:#bbb;cursor:not-allowed;" disabled title="ไม่มีสิทธิ์แก้ไข admin"><span class="material-icons" style="font-size:1rem;">lock</span></button>`;
@@ -1584,7 +1584,7 @@ async function uploadMultiImages(files, folderType, jobId = '') {
 }
 
 /* ============================================================
-   PURCHASING JOBS PAGE
+   ACCOUNTANT JOBS PAGE
    ============================================================ */
 function filterAccountantJobs(status) {
   _purFilter = status;
