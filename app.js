@@ -330,14 +330,14 @@ async function loadDataAndWait() {
    RENDER
    ============================================================ */
 function renderStats() {
-  const _isPriv = ['admin','supervisor','manager'].includes(currentUser.role);
+  const _isPriv = ['admin','supervisor','purchasing','manager'].includes(currentUser.role);
   const mine = _isPriv ? allJobs : allJobs.filter(j => j.lineUid === currentUser.lineUid);
   const count = s => mine.filter(j => j.status === s).length;
   animateNum('stat-waiting',   count('รอดำเนินการ'));
   animateNum('stat-repairing', count('กำลังซ่อม'));
   animateNum('stat-done',      count('เสร็จสิ้น'));
   animateNum('stat-total',     mine.length);
-  if (['admin','supervisor'].includes(currentUser.role)) {
+  if (['admin','supervisor','purchasing'].includes(currentUser.role)) {
     animateNum('stat-rejected', count('ไม่อนุมัติ'));
     animateNum('stat-revise',   count('ส่งกลับแก้ไข'));
     document.querySelectorAll('.admin-only-stat').forEach(el => el.style.display = '');
@@ -366,7 +366,7 @@ function renderStats() {
 }
 
 function renderRecentJobs() {
-  const mine = ['admin','supervisor','manager'].includes(currentUser.role) ? allJobs : allJobs.filter(j => j.lineUid === currentUser.lineUid);
+  const mine = ['admin','supervisor','purchasing','manager'].includes(currentUser.role) ? allJobs : allJobs.filter(j => j.lineUid === currentUser.lineUid);
   const recent = mine.slice(0,5);
   const el = document.getElementById('recent-jobs-list');
   if (!recent.length) { el.innerHTML = '<div class="empty-state"><span class="material-icons">inbox</span>ยังไม่มีรายการ</div>'; return; }
@@ -375,7 +375,7 @@ function renderRecentJobs() {
 
 function renderRepairTable() {
   try {
-  let jobs = ['admin','supervisor','manager'].includes(currentUser.role) ? allJobs : allJobs.filter(j => j.lineUid === currentUser.lineUid);
+  let jobs = ['admin','supervisor','purchasing','manager'].includes(currentUser.role) ? allJobs : allJobs.filter(j => j.lineUid === currentUser.lineUid);
 
   // filter status
   if (filterStatus) jobs = jobs.filter(j => j.status === filterStatus);
@@ -537,7 +537,7 @@ function renderUserList() {
   el.innerHTML = users.map(u => {
     const isTargetAdmin = u.role === 'admin';
     const canEdit = isCallerAdmin || !isTargetAdmin;
-    const roleLabel = {admin:'👑 Admin',supervisor:'👔 หัวหน้า',manager:'🏢 ผู้บริหาร',user:'👤 User'}[u.role]||u.role;
+    const roleLabel = {admin:'👑 Admin',supervisor:'👔 หัวหน้า',purchasing:'🛒 ฝ่ายจัดซื้อ',manager:'🏢 ผู้บริหาร',user:'👤 User'}[u.role]||u.role;
     const editBtn = canEdit
       ? `<button class="btn-sm-icon" style="background:var(--accent-light);color:var(--accent);" onclick="openEditUser('${u.lineUid}')"><span class="material-icons" style="font-size:1rem;">edit</span></button>`
       : `<button class="btn-sm-icon" style="background:#f5f5f5;color:#bbb;cursor:not-allowed;" disabled title="ไม่มีสิทธิ์แก้ไข admin"><span class="material-icons" style="font-size:1rem;">lock</span></button>`;
@@ -1490,6 +1490,7 @@ function openStatusModal(jobId) {
     ],
     admin: [
       { v:'รอดำเนินการ',       l:'รอดำเนินการ' },
+      { v:'รอตรวจสอบ',     l:'📊 รอตรวจสอบ (ฝ่ายจัดซื้อ)' },
       { v:'รอการอนุมัติ', l:'รอการอนุมัติ' },
       { v:'อนุมัติ',           l:'อนุมัติ' },
       { v:'ไม่อนุมัติ',       l:'ไม่อนุมัติ' },
@@ -1706,19 +1707,22 @@ async function _submitPurchasingDecision(jobId, decision, note) {
 function _syncAdminRoleOption(targetUser) {
   const isCallerAdmin = currentUser && currentUser.role === 'admin';
   const sel = document.getElementById('u-role');
-  const adminOpt = sel ? sel.querySelector('option[value="admin"]') : null;
+  const adminOpt      = sel ? sel.querySelector('option[value="admin"]') : null;
+  const purchasingOpt = sel ? sel.querySelector('option[value="purchasing"]') : null;
   if (!adminOpt) return;
   if (isCallerAdmin) {
     // admin เห็นและเลือกได้ทุก role
     adminOpt.disabled = false;
     adminOpt.style.display = '';
+    if (purchasingOpt) { purchasingOpt.disabled = false; purchasingOpt.style.display = ''; }
     sel.disabled = false;
   } else {
-    // supervisor: ซ่อน option admin
+    // supervisor: ซ่อน option admin และ purchasing
     adminOpt.disabled = true;
     adminOpt.style.display = 'none';
-    // ถ้า target เป็น admin → lock ทั้ง dropdown (ไม่ควรเข้ามาถึงตรงนี้เลย แต่ป้องกันไว้)
-    if (targetUser && targetUser.role === 'admin') {
+    if (purchasingOpt) { purchasingOpt.disabled = true; purchasingOpt.style.display = 'none'; }
+    // ถ้า target เป็น admin/purchasing → lock ทั้ง dropdown
+    if (targetUser && ['admin','purchasing'].includes(targetUser.role)) {
       sel.disabled = true;
     } else {
       sel.disabled = false;
