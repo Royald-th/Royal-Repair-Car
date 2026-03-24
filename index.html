@@ -113,10 +113,10 @@
         </a>
       </div>
 
-      <!-- เมนู Purchasing -->
-      <div id="purchasing-menu" style="display:none;">
-        <div class="sidebar-section-label" style="margin-top:.75rem;">ฝ่ายจัดซื้อ</div>
-        <a class="sidebar-item" data-page="purchasing-jobs" onclick="navigate('purchasing-jobs')">
+      <!-- เมนู Accountant -->
+      <div id="accountant-menu" style="display:none;">
+        <div class="sidebar-section-label" style="margin-top:.75rem;">ฝ่ายบัญชี</div>
+        <a class="sidebar-item" data-page="accountant-jobs" onclick="navigate('accountant-jobs')">
           <span class="material-icons">fact_check</span> รายการตรวจสอบ
           <span class="badge-count" id="badge-review">0</span>
         </a>
@@ -325,7 +325,7 @@
 
 
       <!-- ===== PURCHASING JOBS PAGE ===== -->
-      <div class="page-section" id="page-purchasing-jobs">
+      <div class="page-section" id="page-accountant-jobs">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;gap:.75rem;">
           <h2 style="font-size:1.15rem;font-weight:700;color:var(--gray-800);margin:0;">
             <span class="material-icons" style="vertical-align:middle;color:var(--primary);">fact_check</span>
@@ -354,19 +354,19 @@
 
         <!-- Filter Pills -->
         <div style="display:flex;gap:.5rem;overflow-x:auto;padding-bottom:.5rem;scrollbar-width:none;margin-bottom:1rem;-webkit-overflow-scrolling:touch;">
-          <div class="filter-pill active" data-pur-status="all"           onclick="filterPurchasingJobs('all')"           style="white-space:nowrap;flex-shrink:0;">ทั้งหมด</div>
-          <div class="filter-pill"        data-pur-status="รอตรวจสอบ"    onclick="filterPurchasingJobs('รอตรวจสอบ')"    style="white-space:nowrap;flex-shrink:0;">📊 รอตรวจสอบ</div>
-          <div class="filter-pill"        data-pur-status="รอการอนุมัติ" onclick="filterPurchasingJobs('รอการอนุมัติ')" style="white-space:nowrap;flex-shrink:0;">⏳ รอการอนุมัติ</div>
-          <div class="filter-pill"        data-pur-status="อนุมัติ"       onclick="filterPurchasingJobs('อนุมัติ')"       style="white-space:nowrap;flex-shrink:0;">✅ อนุมัติ</div>
-          <div class="filter-pill"        data-pur-status="กำลังซ่อม"    onclick="filterPurchasingJobs('กำลังซ่อม')"    style="white-space:nowrap;flex-shrink:0;">🔧 กำลังซ่อม</div>
-          <div class="filter-pill"        data-pur-status="เสร็จสิ้น"    onclick="filterPurchasingJobs('เสร็จสิ้น')"    style="white-space:nowrap;flex-shrink:0;">🏁 เสร็จสิ้น</div>
-          <div class="filter-pill"        data-pur-status="ส่งกลับแก้ไข" onclick="filterPurchasingJobs('ส่งกลับแก้ไข')" style="white-space:nowrap;flex-shrink:0;">↩️ ส่งกลับแก้ไข</div>
-          <div class="filter-pill"        data-pur-status="ไม่อนุมัติ"   onclick="filterPurchasingJobs('ไม่อนุมัติ')"   style="white-space:nowrap;flex-shrink:0;">❌ ไม่อนุมัติ</div>
+          <div class="filter-pill active" data-pur-status="all"           onclick="filterAccountantJobs('all')"           style="white-space:nowrap;flex-shrink:0;">ทั้งหมด</div>
+          <div class="filter-pill"        data-pur-status="รอตรวจสอบ"    onclick="filterAccountantJobs('รอตรวจสอบ')"    style="white-space:nowrap;flex-shrink:0;">📊 รอตรวจสอบ</div>
+          <div class="filter-pill"        data-pur-status="รอการอนุมัติ" onclick="filterAccountantJobs('รอการอนุมัติ')" style="white-space:nowrap;flex-shrink:0;">⏳ รอการอนุมัติ</div>
+          <div class="filter-pill"        data-pur-status="อนุมัติ"       onclick="filterAccountantJobs('อนุมัติ')"       style="white-space:nowrap;flex-shrink:0;">✅ อนุมัติ</div>
+          <div class="filter-pill"        data-pur-status="กำลังซ่อม"    onclick="filterAccountantJobs('กำลังซ่อม')"    style="white-space:nowrap;flex-shrink:0;">🔧 กำลังซ่อม</div>
+          <div class="filter-pill"        data-pur-status="เสร็จสิ้น"    onclick="filterAccountantJobs('เสร็จสิ้น')"    style="white-space:nowrap;flex-shrink:0;">🏁 เสร็จสิ้น</div>
+          <div class="filter-pill"        data-pur-status="ส่งกลับแก้ไข" onclick="filterAccountantJobs('ส่งกลับแก้ไข')" style="white-space:nowrap;flex-shrink:0;">↩️ ส่งกลับแก้ไข</div>
+          <div class="filter-pill"        data-pur-status="ไม่อนุมัติ"   onclick="filterAccountantJobs('ไม่อนุมัติ')"   style="white-space:nowrap;flex-shrink:0;">❌ ไม่อนุมัติ</div>
         </div>
 
         <!-- Search -->
         <div class="mb-3">
-          <input type="text" class="form-control" id="pur-search" placeholder="🔍 ค้นหา เลขที่งาน / ทะเบียน / ชื่อ..." oninput="renderPurchasingJobs()">
+          <input type="text" class="form-control" id="pur-search" placeholder="🔍 ค้นหา เลขที่งาน / ทะเบียน / ชื่อ..." oninput="renderAccountantJobs()">
         </div>
 
         <!-- Desktop Table -->
@@ -939,7 +939,7 @@
           <select class="form-select" id="u-role">
             <option value="user">👤 User — ผู้ใช้ทั่วไป</option>
             <option value="supervisor">👔 Supervisor — หัวหน้า</option>
-            <option value="purchasing">🛒 Purchasing — ฝ่ายจัดซื้อ</option>
+            <option value="accountant">🛒 Accountant — ฝ่ายบัญชี</option>
             <option value="manager">🏢 Manager — ผู้บริหาร</option>
             <option value="admin">👑 Admin — ผู้ดูแลระบบ</option>
           </select>

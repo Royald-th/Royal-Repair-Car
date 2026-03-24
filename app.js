@@ -136,7 +136,7 @@ function bootApp() {
 
   // Set nav
   document.getElementById('nav-username').textContent = currentUser.name;
-  document.getElementById('nav-role').textContent = {admin:'Admin', supervisor:'หัวหน้า', purchasing:'ฝ่ายจัดซื้อ', manager:'ผู้บริหาร', user:'User'}[role] || 'User';
+  document.getElementById('nav-role').textContent = {admin:'Admin', supervisor:'หัวหน้า', accountant:'ฝ่ายบัญชี', manager:'ผู้บริหาร', user:'User'}[role] || 'User';
   document.getElementById('nav-avatar').src = currentUser.avatar;
   document.getElementById('dash-avatar').src = currentUser.avatar;
   document.getElementById('form-avatar').src = currentUser.avatar;
@@ -146,14 +146,14 @@ function bootApp() {
   document.getElementById('form-lineuid').textContent = currentUser.dept || '-';
 
   // Sidebar menus
-  if (['admin','supervisor','purchasing'].includes(role)) {
+  if (['admin','supervisor','manager'].includes(role)) {
     document.getElementById('admin-menu').style.display = 'block';
   }
   if (['admin','manager'].includes(role)) {
     document.getElementById('manager-menu').style.display = 'block';
   }
-  if (['admin','purchasing'].includes(role)) {
-    document.getElementById('purchasing-menu').style.display = 'block';
+  if (['admin','accountant'].includes(role)) {
+    document.getElementById('accountant-menu').style.display = 'block';
   }
 
   // Admin-only extras
@@ -165,8 +165,8 @@ function bootApp() {
     if (archiveBtn) archiveBtn.style.display = 'inline-flex';
   }
 
-  // Manager/Purchasing — ซ่อน FAB และ sidebar เมนูหลักทั้งก้อน
-  if (['manager','purchasing'].includes(role)) {
+  // Manager/Accountant — ซ่อน FAB และ sidebar เมนูหลักทั้งก้อน
+  if (['manager','accountant'].includes(role)) {
     const fab = document.getElementById('fab-repair');
     if (fab) { fab.style.display = 'none'; fab.style.setProperty('display','none','important'); }
     const mainMenu = document.getElementById('main-menu');
@@ -176,8 +176,8 @@ function bootApp() {
   // navigate ทันทีก่อน
   if (role === 'manager') {
     navigate('manager-jobs');
-  } else if (role === 'purchasing') {
-    navigate('purchasing-jobs');
+  } else if (role === 'accountant') {
+    navigate('accountant-jobs');
   } else {
     navigate('dashboard');
   }
@@ -219,16 +219,16 @@ function _loadCache() {
 
 function _renderAll() {
   const role = currentUser?.role;
-  const isAdmin = ['admin','supervisor','purchasing'].includes(role);
+  const isAdmin = ['admin','supervisor','accountant'].includes(role);
   const isManager = role === 'manager';
-  const isPurchasing = role === 'purchasing';
+  const isAccountant = role === 'accountant';
 
   populateVehicleSelect();
   populateVehicleHistorySelect();
   renderStats();
   renderRecentJobs();
   renderRepairTable();
-  if (isAdmin) { renderUserList(); renderVehicleList(); }
+  if (['admin','supervisor','manager'].includes(role)) { renderUserList(); renderVehicleList(); }
   // อัปเดต badge รออนุมัติ
   if (isManager) {
     const count = allJobs.filter(j => j.status === 'รอการอนุมัติ').length;
@@ -241,7 +241,7 @@ function _renderAll() {
 
 async function _fetchFresh(silent = false, appendMode = false) {
   try {
-    const isAdmin = ['admin','supervisor','purchasing','manager'].includes(currentUser?.role);
+    const isAdmin = ['admin','supervisor','accountant','manager'].includes(currentUser?.role);
     const jobParams = {
       lineUid:  currentUser.lineUid,
       isAdmin,
@@ -330,14 +330,14 @@ async function loadDataAndWait() {
    RENDER
    ============================================================ */
 function renderStats() {
-  const _isPriv = ['admin','supervisor','purchasing','manager'].includes(currentUser.role);
+  const _isPriv = ['admin','supervisor','accountant','manager'].includes(currentUser.role);
   const mine = _isPriv ? allJobs : allJobs.filter(j => j.lineUid === currentUser.lineUid);
   const count = s => mine.filter(j => j.status === s).length;
   animateNum('stat-waiting',   count('รอดำเนินการ'));
   animateNum('stat-repairing', count('กำลังซ่อม'));
   animateNum('stat-done',      count('เสร็จสิ้น'));
   animateNum('stat-total',     mine.length);
-  if (['admin','supervisor','purchasing'].includes(currentUser.role)) {
+  if (['admin','supervisor'].includes(currentUser.role)) {
     animateNum('stat-rejected', count('ไม่อนุมัติ'));
     animateNum('stat-revise',   count('ส่งกลับแก้ไข'));
     document.querySelectorAll('.admin-only-stat').forEach(el => el.style.display = '');
@@ -357,16 +357,16 @@ function renderStats() {
     if (badge) { badge.textContent = approvalCount; badge.style.display = approvalCount ? 'inline' : 'none'; }
     if (document.getElementById('page-manager-jobs')?.classList.contains('active')) renderManagerJobs();
   }
-  if (['admin','purchasing'].includes(currentUser?.role)) {
+  if (['admin','accountant'].includes(currentUser?.role)) {
     const reviewCount = allJobs.filter(j => j.status === 'รอตรวจสอบ').length;
     const badge = document.getElementById('badge-review');
     if (badge) { badge.textContent = reviewCount; badge.style.display = reviewCount ? 'inline' : 'none'; }
-    if (document.getElementById('page-purchasing-jobs')?.classList.contains('active')) renderPurchasingJobs();
+    if (document.getElementById('page-accountant-jobs')?.classList.contains('active')) renderAccountantJobs();
   }
 }
 
 function renderRecentJobs() {
-  const mine = ['admin','supervisor','purchasing','manager'].includes(currentUser.role) ? allJobs : allJobs.filter(j => j.lineUid === currentUser.lineUid);
+  const mine = ['admin','supervisor','accountant','manager'].includes(currentUser.role) ? allJobs : allJobs.filter(j => j.lineUid === currentUser.lineUid);
   const recent = mine.slice(0,5);
   const el = document.getElementById('recent-jobs-list');
   if (!recent.length) { el.innerHTML = '<div class="empty-state"><span class="material-icons">inbox</span>ยังไม่มีรายการ</div>'; return; }
@@ -375,7 +375,7 @@ function renderRecentJobs() {
 
 function renderRepairTable() {
   try {
-  let jobs = ['admin','supervisor','purchasing','manager'].includes(currentUser.role) ? allJobs : allJobs.filter(j => j.lineUid === currentUser.lineUid);
+  let jobs = ['admin','supervisor','accountant','manager'].includes(currentUser.role) ? allJobs : allJobs.filter(j => j.lineUid === currentUser.lineUid);
 
   // filter status
   if (filterStatus) jobs = jobs.filter(j => j.status === filterStatus);
@@ -537,7 +537,7 @@ function renderUserList() {
   el.innerHTML = users.map(u => {
     const isTargetAdmin = u.role === 'admin';
     const canEdit = isCallerAdmin || !isTargetAdmin;
-    const roleLabel = {admin:'👑 Admin',supervisor:'👔 หัวหน้า',purchasing:'🛒 ฝ่ายจัดซื้อ',manager:'🏢 ผู้บริหาร',user:'👤 User'}[u.role]||u.role;
+    const roleLabel = {admin:'👑 Admin',supervisor:'👔 หัวหน้า',accountant:'🛒 ฝ่ายบัญชี',manager:'🏢 ผู้บริหาร',user:'👤 User'}[u.role]||u.role;
     const editBtn = canEdit
       ? `<button class="btn-sm-icon" style="background:var(--accent-light);color:var(--accent);" onclick="openEditUser('${u.lineUid}')"><span class="material-icons" style="font-size:1rem;">edit</span></button>`
       : `<button class="btn-sm-icon" style="background:#f5f5f5;color:#bbb;cursor:not-allowed;" disabled title="ไม่มีสิทธิ์แก้ไข admin"><span class="material-icons" style="font-size:1rem;">lock</span></button>`;
@@ -1024,12 +1024,12 @@ function navigate(page) {
   if (page === 'admin-qr')       { setTimeout(initQRCode, 100); }
   if (page === 'vehicle-history')    { populateVehicleHistorySelect(); }
   if (page === 'manager-jobs')    { _mgrFilter='all'; renderManagerJobs(); }
-  if (page === 'purchasing-jobs') { _purFilter='all'; renderPurchasingJobs(); }
+  if (page === 'accountant-jobs') { _purFilter='all'; renderAccountantJobs(); }
 
   // FAB — แสดงเฉพาะหน้า dashboard และ repair-list และเฉพาะ non-manager
   const fab = document.getElementById('fab-repair');
   if (fab) {
-    const showFab = ['dashboard','repair-list'].includes(page) && !['manager','purchasing'].includes(currentUser?.role);
+    const showFab = ['dashboard','repair-list'].includes(page) && !['manager','accountant'].includes(currentUser?.role);
     fab.style.display = showFab ? 'flex' : 'none';
   }
 
@@ -1244,9 +1244,9 @@ async function confirmManagerDecision() {
   const decision = document.getElementById('mgr-note-decision').value;
   const note     = document.getElementById('mgr-note-text').value.trim();
   closeModal('modalManagerNote');
-  // purchasing ส่งกลับ หรือ manager ตัดสินใจ
-  if (currentUser.role === 'purchasing') {
-    await _submitPurchasingDecision(jobId, decision, note);
+  // accountant ส่งกลับ หรือ manager ตัดสินใจ
+  if (currentUser.role === 'accountant') {
+    await _submitAccountantDecision(jobId, decision, note);
   } else {
     await _submitManagerDecision(jobId, decision, note);
   }
@@ -1389,7 +1389,7 @@ async function submitRepair() {
 function openDetail(jobId) {
   const j = allJobs.find(x => x.jobId === jobId);
   if (!j) return;
-  const isAdmin = ['admin','supervisor','purchasing'].includes(currentUser.role);
+  const isAdmin = ['admin','supervisor','accountant'].includes(currentUser.role);
   const body = document.getElementById('detail-body');
   body.innerHTML = `
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -1414,11 +1414,20 @@ function openDetail(jobId) {
   // ปุ่ม Print PDF ให้ทุกคนกดได้
   const pdfBtn = `<button class="btn-outline-custom btn-sm" onclick="printJobPDF('${j.jobId}')"><span class="material-icons" style="font-size:.9rem;">picture_as_pdf</span> PDF</button>`;
 
-  const isManager = currentUser.role === 'manager';
+  const isManager     = currentUser.role === 'manager';
+  const isAccountant  = currentUser.role === 'accountant';
+  const isSupervisorAdmin = ['admin','supervisor'].includes(currentUser.role);
+
   if (isAdmin) {
     const logBtn = `<button class="btn-outline-custom btn-sm" onclick="openStatusLog('${j.jobId}')"><span class="material-icons" style="font-size:.9rem;">history</span> ประวัติ</button>`;
     if (j.status === 'เสร็จสิ้น') {
       footer.innerHTML = pdfBtn + logBtn;
+    } else if (isAccountant) {
+      // accountant: ประวัติ + เปลี่ยนสถานะ เฉพาะ รอตรวจสอบ (ไม่มีปุ่มแก้ไข)
+      const statusBtn = j.status === 'รอตรวจสอบ'
+        ? `<button class="btn-primary-custom btn-sm" onclick="closeModal('modalDetail');openStatusModal('${j.jobId}')"><span class="material-icons" style="font-size:.9rem;">update</span> ตรวจสอบ</button>`
+        : '';
+      footer.innerHTML = pdfBtn + logBtn + statusBtn;
     } else {
       footer.innerHTML = pdfBtn + logBtn + `
         ${(currentUser.role==='admin' ? j.status!=='ไม่อนุมัติ' : ['รอดำเนินการ','ส่งกลับแก้ไข'].includes(j.status)) ? `<button class="btn-outline-custom btn-sm" onclick="closeModal('modalDetail');openEditRepair('${j.jobId}')"><span class="material-icons" style="font-size:.9rem;">edit</span> แก้ไข</button>` : ''}
@@ -1451,9 +1460,9 @@ function openStatusModal(jobId) {
     showToast('งานนี้ปิดแล้ว ไม่สามารถเปลี่ยนสถานะได้', 'error');
     return;
   }
-  // purchasing เปลี่ยนได้เฉพาะ รอตรวจสอบ
-  if (currentUser.role === 'purchasing' && j.status !== 'รอตรวจสอบ') {
-    showToast('ฝ่ายจัดซื้อตรวจสอบได้เฉพาะงานที่รอตรวจสอบ', 'error');
+  // accountant เปลี่ยนได้เฉพาะ รอตรวจสอบ
+  if (currentUser.role === 'accountant' && j.status !== 'รอตรวจสอบ') {
+    showToast('ฝ่ายบัญชีตรวจสอบได้เฉพาะงานที่รอตรวจสอบ', 'error');
     return;
   }
 
@@ -1463,7 +1472,7 @@ function openStatusModal(jobId) {
     supervisor: (function() {
       // รอดำเนินการ / ส่งกลับแก้ไข → ส่งต่อผู้บริหารอย่างเดียว
       if (['รอดำเนินการ','ส่งกลับแก้ไข'].includes(j.status)) {
-        return [{ v:'รอตรวจสอบ', l:'📊 ส่งให้ฝ่ายจัดซื้อตรวจสอบ' }];
+        return [{ v:'รอตรวจสอบ', l:'📊 ส่งให้ฝ่ายบัญชีตรวจสอบ' }];
       }
       // อนุมัติ → กำลังซ่อม หรือ เสร็จสิ้น
       if (j.status === 'อนุมัติ') {
@@ -1478,7 +1487,7 @@ function openStatusModal(jobId) {
       }
       return [];
     })(),
-    purchasing: [
+    accountant: [
       { v:'รอการอนุมัติ', l:'✅ ผ่านการตรวจสอบ (ส่งผู้บริหาร)' },
       { v:'ส่งกลับแก้ไข', l:'↩️ ส่งกลับให้หัวหน้าแก้ไข' },
     ],
@@ -1490,7 +1499,7 @@ function openStatusModal(jobId) {
     ],
     admin: [
       { v:'รอดำเนินการ',       l:'รอดำเนินการ' },
-      { v:'รอตรวจสอบ',     l:'📊 รอตรวจสอบ (ฝ่ายจัดซื้อ)' },
+      { v:'รอตรวจสอบ',     l:'📊 รอตรวจสอบ (ฝ่ายบัญชี)' },
       { v:'รอการอนุมัติ', l:'รอการอนุมัติ' },
       { v:'อนุมัติ',           l:'อนุมัติ' },
       { v:'ไม่อนุมัติ',       l:'ไม่อนุมัติ' },
@@ -1577,15 +1586,15 @@ async function uploadMultiImages(files, folderType, jobId = '') {
 /* ============================================================
    PURCHASING JOBS PAGE
    ============================================================ */
-function filterPurchasingJobs(status) {
+function filterAccountantJobs(status) {
   _purFilter = status;
   document.querySelectorAll('[data-pur-status]').forEach(el => {
     el.classList.toggle('active', el.dataset.purStatus === status);
   });
-  renderPurchasingJobs();
+  renderAccountantJobs();
 }
 
-function renderPurchasingJobs() {
+function renderAccountantJobs() {
   // stats
   const PUR_VISIBLE = ['รอตรวจสอบ','รอการอนุมัติ','ส่งกลับแก้ไข','อนุมัติ','กำลังซ่อม','เสร็จสิ้น','ไม่อนุมัติ'];
   const pending  = allJobs.filter(j => j.status === 'รอตรวจสอบ').length;
@@ -1629,10 +1638,10 @@ function renderPurchasingJobs() {
     if (j.status !== 'รอตรวจสอบ') return viewBtn;
     return `<div class="d-flex gap-1">
       ${viewBtn}
-      <button class="btn-primary-custom btn-sm" style="background:var(--success);padding:.3rem .6rem;" onclick="quickPurchasingDecision('${j.jobId}','รอการอนุมัติ')" title="ผ่านการตรวจสอบ">
+      <button class="btn-primary-custom btn-sm" style="background:var(--success);padding:.3rem .6rem;" onclick="quickAccountantDecision('${j.jobId}','รอการอนุมัติ')" title="ผ่านการตรวจสอบ">
         <span class="material-icons" style="font-size:.9rem;">check</span>
       </button>
-      <button class="btn-primary-custom btn-sm" style="background:var(--warning);color:#333;padding:.3rem .6rem;" onclick="quickPurchasingDecision('${j.jobId}','ส่งกลับแก้ไข')" title="ส่งกลับแก้ไข">
+      <button class="btn-primary-custom btn-sm" style="background:var(--warning);color:#333;padding:.3rem .6rem;" onclick="quickAccountantDecision('${j.jobId}','ส่งกลับแก้ไข')" title="ส่งกลับแก้ไข">
         <span class="material-icons" style="font-size:.9rem;">undo</span>
       </button>
     </div>`;
@@ -1662,14 +1671,14 @@ function renderPurchasingJobs() {
       <div class="d-flex justify-content-between align-items-center">
         <span style="font-size:.78rem;color:var(--gray-500);">${j.userName} • ${formatDate(j.createdAt)}</span>
         ${j.status === 'รอตรวจสอบ' ? `<div class="d-flex gap-1" onclick="event.stopPropagation()">
-          <button class="btn-sm-icon" style="background:#E8F5E9;color:#2E7D32;" onclick="quickPurchasingDecision('${j.jobId}','รอการอนุมัติ')"><span class="material-icons">check</span></button>
-          <button class="btn-sm-icon" style="background:#FFF8E1;color:#F57F17;" onclick="quickPurchasingDecision('${j.jobId}','ส่งกลับแก้ไข')"><span class="material-icons">undo</span></button>
+          <button class="btn-sm-icon" style="background:#E8F5E9;color:#2E7D32;" onclick="quickAccountantDecision('${j.jobId}','รอการอนุมัติ')"><span class="material-icons">check</span></button>
+          <button class="btn-sm-icon" style="background:#FFF8E1;color:#F57F17;" onclick="quickAccountantDecision('${j.jobId}','ส่งกลับแก้ไข')"><span class="material-icons">undo</span></button>
         </div>` : ''}
       </div>
     </div>`).join('');
 }
 
-function quickPurchasingDecision(jobId, decision) {
+function quickAccountantDecision(jobId, decision) {
   if (decision === 'ส่งกลับแก้ไข') {
     document.getElementById('mgr-note-jobid').value    = jobId;
     document.getElementById('mgr-note-decision').value = decision;
@@ -1679,11 +1688,11 @@ function quickPurchasingDecision(jobId, decision) {
     btn.style.background = 'var(--warning)'; btn.style.color = '#333';
     showModal('modalManagerNote');
   } else {
-    _submitPurchasingDecision(jobId, decision, '');
+    _submitAccountantDecision(jobId, decision, '');
   }
 }
 
-async function _submitPurchasingDecision(jobId, decision, note) {
+async function _submitAccountantDecision(jobId, decision, note) {
   showLoading(true);
   const res = await gasCall('updateStatus', {
     jobId, status: decision, note: note || '',
@@ -1694,7 +1703,7 @@ async function _submitPurchasingDecision(jobId, decision, note) {
     showToast(decision === 'รอการอนุมัติ' ? '✅ ส่งให้ผู้บริหารแล้ว' : '↩️ ส่งกลับให้หัวหน้าแล้ว');
     sessionStorage.removeItem('_repairData');
     await loadData(true);
-    renderPurchasingJobs();
+    renderAccountantJobs();
   } else {
     showToast('เกิดข้อผิดพลาด: ' + (res.message || ''), 'error');
   }
@@ -1705,28 +1714,31 @@ async function _submitPurchasingDecision(jobId, decision, note) {
    ============================================================ */
 /* ซ่อน/ล็อค option admin สำหรับ supervisor */
 function _syncAdminRoleOption(targetUser) {
-  const isCallerAdmin = currentUser && currentUser.role === 'admin';
+  const callerRole    = currentUser?.role;
+  const isCallerAdmin = callerRole === 'admin';
+  const isCallerManager = ['admin','manager'].includes(callerRole);
   const sel = document.getElementById('u-role');
   const adminOpt      = sel ? sel.querySelector('option[value="admin"]') : null;
-  const purchasingOpt = sel ? sel.querySelector('option[value="purchasing"]') : null;
+  const accountantOpt = sel ? sel.querySelector('option[value="accountant"]') : null;
   if (!adminOpt) return;
-  if (isCallerAdmin) {
-    // admin เห็นและเลือกได้ทุก role
-    adminOpt.disabled = false;
-    adminOpt.style.display = '';
-    if (purchasingOpt) { purchasingOpt.disabled = false; purchasingOpt.style.display = ''; }
-    sel.disabled = false;
+
+  // admin option: admin เท่านั้น
+  adminOpt.disabled     = !isCallerAdmin;
+  adminOpt.style.display = isCallerAdmin ? '' : 'none';
+
+  // accountant option: manager+ เท่านั้น
+  if (accountantOpt) {
+    accountantOpt.disabled     = !isCallerManager;
+    accountantOpt.style.display = isCallerManager ? '' : 'none';
+  }
+
+  // lock dropdown ถ้า target เป็น role ที่สูงกว่าผู้เรียก
+  if (targetUser) {
+    const blocked = (!isCallerAdmin && targetUser.role === 'admin') ||
+                    (!isCallerManager && targetUser.role === 'accountant');
+    sel.disabled = blocked;
   } else {
-    // supervisor: ซ่อน option admin และ purchasing
-    adminOpt.disabled = true;
-    adminOpt.style.display = 'none';
-    if (purchasingOpt) { purchasingOpt.disabled = true; purchasingOpt.style.display = 'none'; }
-    // ถ้า target เป็น admin/purchasing → lock ทั้ง dropdown
-    if (targetUser && ['admin','purchasing'].includes(targetUser.role)) {
-      sel.disabled = true;
-    } else {
-      sel.disabled = false;
-    }
+    sel.disabled = false;
   }
 }
 
@@ -2138,7 +2150,7 @@ async function exportCSV() {
   if (btn) { btn.disabled = true; btn.innerHTML = '<span class="material-icons" style="font-size:1rem;">hourglass_empty</span> กำลัง Export...'; }
   showLoading(true);
 
-  const isAdmin = ['admin','supervisor','purchasing','manager'].includes(currentUser.role);
+  const isAdmin = ['admin','supervisor','accountant','manager'].includes(currentUser.role);
   const res = await gasCall('exportJobs', {
     lineUid: currentUser.lineUid,
     isAdmin,
