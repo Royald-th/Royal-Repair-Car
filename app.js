@@ -1720,9 +1720,9 @@ function _syncAdminRoleOption(targetUser) {
     // supervisor: ซ่อน option admin และ purchasing
     adminOpt.disabled = true;
     adminOpt.style.display = 'none';
-    if (purchasingOpt) { purchasingOpt.disabled = false; purchasingOpt.style.display = ''; }
+    if (purchasingOpt) { purchasingOpt.disabled = true; purchasingOpt.style.display = 'none'; }
     // ถ้า target เป็น admin/purchasing → lock ทั้ง dropdown
-    if (targetUser && ['admin'].includes(targetUser.role)) {
+    if (targetUser && ['admin','purchasing'].includes(targetUser.role)) {
       sel.disabled = true;
     } else {
       sel.disabled = false;
