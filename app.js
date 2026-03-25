@@ -426,8 +426,8 @@ function renderRepairTable() {
         <td>
           <button class="btn-sm-icon" style="background:var(--info-light);color:var(--info);" title="รายละเอียด" onclick="openDetail('${j.jobId}')"><span class="material-icons">visibility</span></button>
           ${['admin','supervisor'].includes(currentUser.role) ? `
-          ${(currentUser.role==='admin' ? j.status!=='ไม่อนุมัติ' : ['รอดำเนินการ','ส่งกลับแก้ไข'].includes(j.status)) ? `<button class="btn-sm-icon ms-1" style="background:var(--accent-light);color:var(--accent);" title="แก้ไข" onclick="openEditRepair('${j.jobId}')"><span class="material-icons">edit</span></button>` : ''}
-          ${j.status !== 'เสร็จสิ้น' ? `<button class="btn-sm-icon ms-1" style="background:var(--primary-xlight);color:var(--primary);" title="เปลี่ยนสถานะ" onclick="openStatusModal('${j.jobId}')"><span class="material-icons">update</span></button>` : ''}
+          ${(currentUser.role==='admin' ? j.status!=='ไม่อนุมัติ' : (currentUser.role==='accountant' ? false : ['รอดำเนินการ','ส่งกลับแก้ไข'].includes(j.status))) ? `<button class="btn-sm-icon ms-1" style="background:var(--accent-light);color:var(--accent);" title="แก้ไข" onclick="openEditRepair('${j.jobId}')"><span class="material-icons">edit</span></button>` : ''}
+          ${(j.status !== 'เสร็จสิ้น' && (currentUser.role !== 'accountant' || j.status === 'รอตรวจสอบ')) ? `<button class="btn-sm-icon ms-1" style="background:var(--primary-xlight);color:var(--primary);" title="เปลี่ยนสถานะ" onclick="openStatusModal('${j.jobId}')"><span class="material-icons">update</span></button>` : ''}
           <button class="btn-sm-icon ms-1" style="background:var(--danger-light);color:var(--danger);" title="ลบรายการ" onclick="confirmDeleteJob('${j.jobId}','${j.plate}')"><span class="material-icons">delete</span></button>
           ` : currentUser.role === 'manager' ? `
           ${j.status === 'รอการอนุมัติ' ? `
@@ -496,8 +496,8 @@ function jobCard(j) {
     adminBtns = `
     <div class="d-flex gap-1 mt-2 justify-content-end" onclick="event.stopPropagation()">
       <button class="btn-sm-icon" style="background:var(--info-light);color:var(--info);" onclick="openDetail('${j.jobId}')" title="รายละเอียด"><span class="material-icons">visibility</span></button>
-      ${(currentUser.role==='admin' ? j.status!=='ไม่อนุมัติ' : ['รอดำเนินการ','ส่งกลับแก้ไข'].includes(j.status)) ? `<button class="btn-sm-icon" style="background:var(--accent-light);color:var(--accent);" onclick="openEditRepair('${j.jobId}')" title="แก้ไข"><span class="material-icons">edit</span></button>` : ''}
-      ${j.status !== 'เสร็จสิ้น' ? `<button class="btn-sm-icon" style="background:var(--primary-xlight);color:var(--primary);" onclick="openStatusModal('${j.jobId}')" title="เปลี่ยนสถานะ"><span class="material-icons">update</span></button>` : ''}
+      ${(currentUser.role==='admin' ? j.status!=='ไม่อนุมัติ' : (currentUser.role==='accountant' ? false : ['รอดำเนินการ','ส่งกลับแก้ไข'].includes(j.status))) ? `<button class="btn-sm-icon" style="background:var(--accent-light);color:var(--accent);" onclick="openEditRepair('${j.jobId}')" title="แก้ไข"><span class="material-icons">edit</span></button>` : ''}
+      ${(j.status !== 'เสร็จสิ้น' && (currentUser.role !== 'accountant' || j.status === 'รอตรวจสอบ')) ? `<button class="btn-sm-icon" style="background:var(--primary-xlight);color:var(--primary);" onclick="openStatusModal('${j.jobId}')" title="เปลี่ยนสถานะ"><span class="material-icons">update</span></button>` : ''}
       <button class="btn-sm-icon" style="background:var(--danger-light);color:var(--danger);" onclick="confirmDeleteJob('${j.jobId}','${j.plate}')" title="ลบ"><span class="material-icons">delete</span></button>
     </div>`;
   } else if (isManager) {
@@ -1430,7 +1430,7 @@ function openDetail(jobId) {
       footer.innerHTML = pdfBtn + logBtn + statusBtn;
     } else {
       footer.innerHTML = pdfBtn + logBtn + `
-        ${(currentUser.role==='admin' ? j.status!=='ไม่อนุมัติ' : ['รอดำเนินการ','ส่งกลับแก้ไข'].includes(j.status)) ? `<button class="btn-outline-custom btn-sm" onclick="closeModal('modalDetail');openEditRepair('${j.jobId}')"><span class="material-icons" style="font-size:.9rem;">edit</span> แก้ไข</button>` : ''}
+        ${(currentUser.role==='admin' ? j.status!=='ไม่อนุมัติ' : (currentUser.role==='accountant' ? false : ['รอดำเนินการ','ส่งกลับแก้ไข'].includes(j.status))) ? `<button class="btn-outline-custom btn-sm" onclick="closeModal('modalDetail');openEditRepair('${j.jobId}')"><span class="material-icons" style="font-size:.9rem;">edit</span> แก้ไข</button>` : ''}
         <button class="btn-primary-custom btn-sm" onclick="closeModal('modalDetail');openStatusModal('${j.jobId}')"><span class="material-icons" style="font-size:.9rem;">update</span> เปลี่ยนสถานะ</button>`;
     }
   } else if (isManager && j.status === 'รอการอนุมัติ') {
@@ -1671,8 +1671,8 @@ function renderAccountantJobs() {
       <div class="d-flex justify-content-between align-items-center">
         <span style="font-size:.78rem;color:var(--gray-500);">${j.userName} • ${formatDate(j.createdAt)}</span>
         ${j.status === 'รอตรวจสอบ' ? `<div class="d-flex gap-1" onclick="event.stopPropagation()">
-          <button class="btn-sm-icon" style="background:#E8F5E9;color:#2E7D32;" onclick="quickAccountantDecision('${j.jobId}','รอการอนุมัติ')"><span class="material-icons">check</span></button>
-          <button class="btn-sm-icon" style="background:#FFF8E1;color:#F57F17;" onclick="quickAccountantDecision('${j.jobId}','ส่งกลับแก้ไข')"><span class="material-icons">undo</span></button>
+          <button class="btn-primary-custom btn-sm" style="background:var(--success);padding:.3rem .6rem;" onclick="quickAccountantDecision('${j.jobId}','รอการอนุมัติ')"><span class="material-icons" style="font-size:.9rem;">check</span></button>
+          <button class="btn-primary-custom btn-sm" style="background:var(--warning);color:#333;padding:.3rem .6rem;" onclick="quickAccountantDecision('${j.jobId}','ส่งกลับแก้ไข')"><span class="material-icons" style="font-size:.9rem;">undo</span></button>
         </div>` : ''}
       </div>
     </div>`).join('');
@@ -1716,6 +1716,7 @@ async function _submitAccountantDecision(jobId, decision, note) {
 function _syncAdminRoleOption(targetUser) {
   const callerRole    = currentUser?.role;
   const isCallerAdmin = callerRole === 'admin';
+  const isCallerSupervisor = ['admin','supervisor','manager'].includes(callerRole);
   const isCallerManager = ['admin','manager'].includes(callerRole);
   const sel = document.getElementById('u-role');
   const adminOpt      = sel ? sel.querySelector('option[value="admin"]') : null;
@@ -1726,10 +1727,10 @@ function _syncAdminRoleOption(targetUser) {
   adminOpt.disabled     = !isCallerAdmin;
   adminOpt.style.display = isCallerAdmin ? '' : 'none';
 
-  // accountant option: manager+ เท่านั้น
+  // accountant option: supervisor+ ทำได้
   if (accountantOpt) {
-    accountantOpt.disabled     = !isCallerManager;
-    accountantOpt.style.display = isCallerManager ? '' : 'none';
+    accountantOpt.disabled     = !isCallerSupervisor;
+    accountantOpt.style.display = isCallerSupervisor ? '' : 'none';
   }
 
   // lock dropdown ถ้า target เป็น role ที่สูงกว่าผู้เรียก
