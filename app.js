@@ -1619,7 +1619,7 @@ function renderAccountantJobs() {
     (j.detail||'').toLowerCase().includes(q)
   );
   jobs = [...jobs].sort((a,b) => {
-    const sortVal = document.getElementById('acc-sort')?.value || 'newest';
+    const sortVal = document.getElementById('acc-sort')?.value || 'oldest';
     const ta = new Date(a.createdAt).getTime();
     const tb = new Date(b.createdAt).getTime();
     return sortVal === 'oldest' ? ta - tb : tb - ta;
@@ -1738,10 +1738,9 @@ function _syncAdminRoleOption(targetUser) {
     accountantOpt.style.display = isCallerSupervisor ? '' : 'none';
   }
 
-  // lock dropdown ถ้า target เป็น role ที่สูงกว่าผู้เรียก
+  // lock dropdown เฉพาะ admin (supervisor เปลี่ยน role accountant ได้ทุก role)
   if (targetUser) {
-    const blocked = (!isCallerAdmin && targetUser.role === 'admin') ||
-                    (!isCallerManager && targetUser.role === 'accountant');
+    const blocked = (!isCallerAdmin && targetUser.role === 'admin');
     sel.disabled = blocked;
   } else {
     sel.disabled = false;
