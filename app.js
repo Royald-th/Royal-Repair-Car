@@ -146,7 +146,7 @@ function bootApp() {
   document.getElementById('form-lineuid').textContent = currentUser.dept || '-';
 
   // Sidebar menus
-  if (['admin','supervisor','manager'].includes(role)) {
+  if (['admin','supervisor'].includes(role)) {
     document.getElementById('admin-menu').style.display = 'block';
   }
   if (['admin','manager'].includes(role)) {
@@ -228,7 +228,7 @@ function _renderAll() {
   renderStats();
   renderRecentJobs();
   renderRepairTable();
-  if (['admin','supervisor','manager'].includes(role)) { renderUserList(); renderVehicleList(); }
+  if (['admin','supervisor'].includes(role)) { renderUserList(); renderVehicleList(); }
   // อัปเดต badge รออนุมัติ
   if (isManager) {
     const count = allJobs.filter(j => j.status === 'รอการอนุมัติ').length;
@@ -1618,7 +1618,12 @@ function renderAccountantJobs() {
     (j.jobId||'').toLowerCase().includes(q) ||
     (j.detail||'').toLowerCase().includes(q)
   );
-  jobs = [...jobs].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+  jobs = [...jobs].sort((a,b) => {
+    const sortVal = document.getElementById('acc-sort')?.value || 'newest';
+    const ta = new Date(a.createdAt).getTime();
+    const tb = new Date(b.createdAt).getTime();
+    return sortVal === 'oldest' ? ta - tb : tb - ta;
+  });
 
   const tbody = document.getElementById('pur-jobs-tbody');
   const cards = document.getElementById('pur-jobs-cards');

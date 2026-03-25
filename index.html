@@ -283,6 +283,7 @@
         <div class="filter-pills" id="status-pills">
           <div class="filter-pill active" data-status="">ทั้งหมด</div>
           <div class="filter-pill" data-status="รอดำเนินการ">รอดำเนินการ</div>
+          <div class="filter-pill" data-status="รอตรวจสอบ">รอตรวจสอบ</div>
           <div class="filter-pill" data-status="อนุมัติ">อนุมัติ</div>
           <div class="filter-pill" data-status="กำลังซ่อม">กำลังซ่อม</div>
           <div class="filter-pill" data-status="ส่งกลับแก้ไข">ส่งกลับแก้ไข</div>
@@ -373,7 +374,15 @@
 
         <!-- Search -->
         <div class="mb-3">
-          <input type="text" class="form-control" id="pur-search" placeholder="🔍 ค้นหา เลขที่งาน / ทะเบียน / ชื่อ..." oninput="renderAccountantJobs()">
+          <div class="d-flex gap-2 flex-wrap align-items-center mb-2">
+            <div style="flex:1;min-width:160px;">
+              <input type="text" class="form-control" id="pur-search" placeholder="🔍 ค้นหา เลขที่งาน / ทะเบียน / ชื่อ..." oninput="renderAccountantJobs()">
+            </div>
+            <select class="form-select" style="width:auto;min-width:140px;font-size:.85rem;" id="acc-sort" onchange="renderAccountantJobs()">
+              <option value="newest">ใหม่สุดก่อน</option>
+              <option value="oldest">เก่าสุดก่อน</option>
+            </select>
+          </div>
         </div>
 
         <!-- Desktop Table -->
