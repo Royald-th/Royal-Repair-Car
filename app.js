@@ -1400,7 +1400,7 @@ function openDetail(jobId) {
       <span class="badge-status ${statusClass(j.status)}" style="font-size:.85rem;">${j.status}</span>
     </div>
     ${j.note ? `<div class="alert" style="background:#FFF8E1;border:1px solid #FFE082;border-radius:8px;padding:.65rem 1rem;font-size:.85rem;margin-bottom:.5rem;">
-      <span style="font-weight:700;color:#F57F17;">📝 หมายเหตุ หัวหน้าจัดส่ง:</span> ${j.note}</div>` : ''}
+      <span style="font-weight:700;color:#F57F17;">📝 หมายเหตุ หัวหน้างาน:</span> ${j.note}</div>` : ''}
     ${j.accountantNote ? `<div class="alert" style="background:#E3F2FD;border:1px solid #90CAF9;border-radius:8px;padding:.65rem 1rem;font-size:.85rem;margin-bottom:.5rem;">
       <span style="font-weight:700;color:#1565C0;">🔍 หมายเหตุ ฝ่ายบัญชี:</span> ${j.accountantNote}</div>` : ''}
     ${j.managerNote ? `<div class="alert" style="background:#F3E5F5;border:1px solid #CE93D8;border-radius:8px;padding:.65rem 1rem;font-size:.85rem;margin-bottom:.5rem;">
@@ -2537,7 +2537,7 @@ async function printJobPDF(jobId) {
         <div class="sec-title">📝 หมายเหตุ</div>
         ${j.note
           ? `<div class="note-box" style="border-left-color:#F9A825;">${j.note}</div>`
-          : `<div class="detail-text" style="color:#aaa;font-style:italic;">ไม่มีหมายเหตุ หัวหน้าจัดส่ง</div>`}
+          : `<div class="detail-text" style="color:#aaa;font-style:italic;">ไม่มีหมายเหตุ หัวหน้างาน</div>`}
         ${j.accountantNote ? `<div class="note-box" style="margin-top:4px;background:#E3F2FD;border-left-color:#1565C0;">
           <span style="font-weight:700;color:#1565C0;font-size:9px;">🔍 บัญชี:</span> ${j.accountantNote}</div>` : ''}
         ${j.managerNote ? `<div class="note-box" style="margin-top:4px;background:#F3E5F5;border-left-color:#6A1B9A;">
