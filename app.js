@@ -1399,8 +1399,12 @@ function openDetail(jobId) {
       </div>
       <span class="badge-status ${statusClass(j.status)}" style="font-size:.85rem;">${j.status}</span>
     </div>
-    ${j.note ? `<div class="alert" style="background:var(--warning-light);border:1px solid #FFE082;border-radius:8px;padding:.65rem 1rem;font-size:.85rem;margin-bottom:1rem;">
-      <strong>📝 หมายเหตุ:</strong> ${j.note}</div>` : ''}
+    ${j.note ? `<div class="alert" style="background:#FFF8E1;border:1px solid #FFE082;border-radius:8px;padding:.65rem 1rem;font-size:.85rem;margin-bottom:.5rem;">
+      <span style="font-weight:700;color:#F57F17;">📝 หมายเหตุ Supervisor:</span> ${j.note}</div>` : ''}
+    ${j.accountantNote ? `<div class="alert" style="background:#E3F2FD;border:1px solid #90CAF9;border-radius:8px;padding:.65rem 1rem;font-size:.85rem;margin-bottom:.5rem;">
+      <span style="font-weight:700;color:#1565C0;">🔍 หมายเหตุ ฝ่ายบัญชี:</span> ${j.accountantNote}</div>` : ''}
+    ${j.managerNote ? `<div class="alert" style="background:#F3E5F5;border:1px solid #CE93D8;border-radius:8px;padding:.65rem 1rem;font-size:.85rem;margin-bottom:.5rem;">
+      <span style="font-weight:700;color:#6A1B9A;">👔 หมายเหตุ ผู้บริหาร:</span> ${j.managerNote}</div>` : ''}
     ${['ผู้แจ้ง','เลขทะเบียน','เลขไมล์','อาการที่พบ','ประเมินค่าใช้จ่าย','สถานที่ซ่อม','วันที่แจ้ง'].map((label,i) => {
       const vals = [j.userName,j.plate,Number(j.mileage).toLocaleString()+' กม.',j.detail,(j.estimate?Number(j.estimate).toLocaleString()+' บาท':'-'),j.location,formatDate(j.createdAt)];
       return `<div class="detail-row"><div class="detail-label">${label}</div><div class="detail-value">${vals[i]}</div></div>`;
@@ -1518,7 +1522,15 @@ function openStatusModal(jobId) {
 
   document.getElementById('status-job-id').value = jobId;
   document.getElementById('new-status').value = j.status;
-  document.getElementById('status-note').value = j.note || '';
+  // แสดงหมายเหตุเดิมตาม role ผู้เปลี่ยนสถานะ
+  const noteField = document.getElementById('status-note');
+  if (currentUser.role === 'accountant') {
+    noteField.placeholder = 'หมายเหตุฝ่ายบัญชี (จะบันทึกลงช่อง accountantNote)';
+    noteField.value = j.accountantNote || '';
+  } else {
+    noteField.placeholder = 'หมายเหตุ / เหตุผล...';
+    noteField.value = j.note || '';
+  }
   document.getElementById('actual-cost').value = '';
   document.getElementById('bill-preview').innerHTML = '<span class="material-icons" style="font-size:2rem;color:var(--gray-300);">receipt</span><div class="placeholder-text">คลิกเพื่อแนบบิล</div>';
   toggleCompleteSection();
@@ -1554,7 +1566,14 @@ async function submitStatusChange() {
     }
   }
 
-  const res = await gasCall('updateStatus', { jobId, status, note, actualCost: cost, billUrl, billViewUrl, adminUid: currentUser.lineUid });
+  // accountant ส่ง accountantNote, supervisor/admin ส่ง note ปกติ
+  const statusPayload = { jobId, status, actualCost: cost, billUrl, billViewUrl, adminUid: currentUser.lineUid };
+  if (currentUser.role === 'accountant') {
+    statusPayload.accountantNote = note;  // บันทึกลง col M
+  } else {
+    statusPayload.note = note;            // บันทึกลง col L (supervisor note)
+  }
+  const res = await gasCall('updateStatus', statusPayload);
   showLoading(false);
   if (res.status === 'ok') {
     showToast('อัปเดตสถานะสำเร็จ');
@@ -1689,6 +1708,7 @@ function quickAccountantDecision(jobId, decision) {
     document.getElementById('mgr-note-decision').value = decision;
     document.getElementById('mgr-note-text').value     = '';
     document.getElementById('mgr-note-title').textContent = '↩️ ส่งกลับให้หัวหน้าแก้ไข';
+    document.getElementById('mgr-note-text').placeholder = 'หมายเหตุฝ่ายบัญชี (ระบุเหตุผลที่ส่งกลับ)';
     const btn = document.getElementById('mgr-note-confirm-btn');
     btn.style.background = 'var(--warning)'; btn.style.color = '#333';
     showModal('modalManagerNote');
@@ -1700,7 +1720,8 @@ function quickAccountantDecision(jobId, decision) {
 async function _submitAccountantDecision(jobId, decision, note) {
   showLoading(true);
   const res = await gasCall('updateStatus', {
-    jobId, status: decision, note: note || '',
+    jobId, status: decision,
+    accountantNote: note || '',   // บันทึกลง col M (accountantNote)
     adminUid: currentUser.lineUid,
   });
   showLoading(false);
@@ -2515,8 +2536,12 @@ async function printJobPDF(jobId) {
       <div>
         <div class="sec-title">📝 หมายเหตุ</div>
         ${j.note
-          ? `<div class="note-box">${j.note}</div>`
-          : `<div class="detail-text" style="color:#aaa;font-style:italic;">ไม่มีหมายเหตุ</div>`}
+          ? `<div class="note-box" style="border-left-color:#F9A825;">${j.note}</div>`
+          : `<div class="detail-text" style="color:#aaa;font-style:italic;">ไม่มีหมายเหตุ Supervisor</div>`}
+        ${j.accountantNote ? `<div class="note-box" style="margin-top:4px;background:#E3F2FD;border-left-color:#1565C0;">
+          <span style="font-weight:700;color:#1565C0;font-size:9px;">🔍 บัญชี:</span> ${j.accountantNote}</div>` : ''}
+        ${j.managerNote ? `<div class="note-box" style="margin-top:4px;background:#F3E5F5;border-left-color:#6A1B9A;">
+          <span style="font-weight:700;color:#6A1B9A;font-size:9px;">👔 ผู้บริหาร:</span> ${j.managerNote}</div>` : ''}
         ${j.actualCost ? `
         <div style="margin-top:6px;">
           <div class="sec-title">💰 ค่าใช้จ่ายจริง</div>
