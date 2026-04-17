@@ -3,7 +3,7 @@
    ============================================================ */
 const CONFIG = {
   LIFF_ID:    '2009307051-5UV6LT8a',   // LIFF ID จาก LINE Developers
-  GAS_URL:    'https://script.google.com/macros/s/AKfycbxXMkVqqmTvvCeYTq58wYb7Vl8QrVKoUXgiqEqv3FgvoTfrH6tA3UCxLznWpFBO5U_7Aw/exec',   // URL จาก Deploy > Web App ใน GAS
+  GAS_URL:    'https://script.google.com/macros/s/AKfycbwsijsvOSiBl2-2VD7UCwqTvzWt1Sdy8Lfah5lO_AO1cFsCHl2DY1n5tm47NbA9MNevOQ/exec',   // URL จาก Deploy > Web App ใน GAS
   API_SECRET: 'UJ&8m@+<KL#S9z1$gB!6', // ต้องตรงกับ API_SECRET ใน Code.gs
 };
 
