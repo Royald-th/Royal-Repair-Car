@@ -3,7 +3,7 @@
    ============================================================ */
 const CONFIG = {
   LIFF_ID:    '2009307051-5UV6LT8a',   // LIFF ID จาก LINE Developers
-  GAS_URL:    'https://script.google.com/macros/s/AKfycbwsijsvOSiBl2-2VD7UCwqTvzWt1Sdy8Lfah5lO_AO1cFsCHl2DY1n5tm47NbA9MNevOQ/exec',   // URL จาก Deploy > Web App ใน GAS
+  GAS_URL:    'https://script.google.com/macros/s/AKfycbxXMkVqqmTvvCeYTq58wYb7Vl8QrVKoUXgiqEqv3FgvoTfrH6tA3UCxLznWpFBO5U_7Aw/exec',   // URL จาก Deploy > Web App ใน GAS
   API_SECRET: 'UJ&8m@+<KL#S9z1$gB!6', // ต้องตรงกับ API_SECRET ใน Code.gs
 };
 
@@ -1399,18 +1399,15 @@ function openDetail(jobId) {
       </div>
       <span class="badge-status ${statusClass(j.status)}" style="font-size:.85rem;">${j.status}</span>
     </div>
-    ${j.note ? `<div class="alert" style="background:#FFF8E1;border:1px solid #FFE082;border-radius:8px;padding:.65rem 1rem;font-size:.85rem;margin-bottom:.5rem;">
-      <span style="font-weight:700;color:#F57F17;">📝 หมายเหตุ หัวหน้างาน:</span> ${j.note}</div>` : ''}
-    ${j.accountantNote ? `<div class="alert" style="background:#E3F2FD;border:1px solid #90CAF9;border-radius:8px;padding:.65rem 1rem;font-size:.85rem;margin-bottom:.5rem;">
-      <span style="font-weight:700;color:#1565C0;">🔍 หมายเหตุ ฝ่ายบัญชี:</span> ${j.accountantNote}</div>` : ''}
-    ${j.managerNote ? `<div class="alert" style="background:#F3E5F5;border:1px solid #CE93D8;border-radius:8px;padding:.65rem 1rem;font-size:.85rem;margin-bottom:.5rem;">
-      <span style="font-weight:700;color:#6A1B9A;">👔 หมายเหตุ ผู้บริหาร:</span> ${j.managerNote}</div>` : ''}
+    ${j.note ? `<div class="alert" style="background:var(--warning-light);border:1px solid #FFE082;border-radius:8px;padding:.65rem 1rem;font-size:.85rem;margin-bottom:1rem;">
+      <strong>📝 หมายเหตุ:</strong> ${j.note}</div>` : ''}
     ${['ผู้แจ้ง','เลขทะเบียน','เลขไมล์','อาการที่พบ','ประเมินค่าใช้จ่าย','สถานที่ซ่อม','วันที่แจ้ง'].map((label,i) => {
       const vals = [j.userName,j.plate,Number(j.mileage).toLocaleString()+' กม.',j.detail,(j.estimate?Number(j.estimate).toLocaleString()+' บาท':'-'),j.location,formatDate(j.createdAt)];
       return `<div class="detail-row"><div class="detail-label">${label}</div><div class="detail-value">${vals[i]}</div></div>`;
     }).join('')}
     ${j.actualCost ? `<div class="detail-row"><div class="detail-label">ค่าใช้จ่ายจริง</div><div class="detail-value text-success fw-bold">${Number(j.actualCost).toLocaleString()} บาท</div></div>` : ''}
     ${renderThumbRow(parseUrls(j.imageUrl), '📷 รูปประกอบ', j.viewUrl)}
+    ${renderThumbRow(parseUrls(j.estimateImageUrl), '💰 ใบประเมินราคา', j.estimateViewUrl)}
     ${renderThumbRow(parseUrls(j.billUrl), '🧾 ใบเสร็จ / บิล', j.billViewUrl)}
   `;
   const footer = document.getElementById('detail-footer');
@@ -1499,11 +1496,11 @@ function openStatusModal(jobId) {
       { v:'รอการอนุมัติ', l:'รอการอนุมัติ' },
       { v:'อนุมัติ',       l:'อนุมัติ ✅' },
       { v:'ไม่อนุมัติ',   l:'ไม่อนุมัติ ❌' },
-      { v:'ส่งกลับแก้ไข', l:'ส่งกลับแก้ไข ↩️' },
+      { v:'ส่งกลับแก้ไข', l:'ส่งกลับแก้ไข' },
     ],
     admin: [
       { v:'รอดำเนินการ',       l:'รอดำเนินการ' },
-      { v:'รอตรวจสอบ',     l:'รอตรวจสอบ (ฝ่ายบัญชี)' },
+      { v:'รอตรวจสอบ',     l:'📊 รอตรวจสอบ (ฝ่ายบัญชี)' },
       { v:'รอการอนุมัติ', l:'รอการอนุมัติ' },
       { v:'อนุมัติ',           l:'อนุมัติ' },
       { v:'ไม่อนุมัติ',       l:'ไม่อนุมัติ' },
@@ -1522,57 +1519,82 @@ function openStatusModal(jobId) {
 
   document.getElementById('status-job-id').value = jobId;
   document.getElementById('new-status').value = j.status;
-  // แสดงหมายเหตุเดิมตาม role ผู้เปลี่ยนสถานะ
-  const noteField = document.getElementById('status-note');
-  if (currentUser.role === 'accountant') {
-    noteField.placeholder = 'หมายเหตุฝ่ายบัญชี (จะบันทึกลงช่อง accountantNote)';
-    noteField.value = j.accountantNote || '';
-  } else {
-    noteField.placeholder = 'หมายเหตุ / เหตุผล...';
-    noteField.value = j.note || '';
-  }
+  document.getElementById('status-note').value = j.note || '';
   document.getElementById('actual-cost').value = '';
   document.getElementById('bill-preview').innerHTML = '<span class="material-icons" style="font-size:2rem;color:var(--gray-300);">receipt</span><div class="placeholder-text">คลิกเพื่อแนบบิล</div>';
+  // reset estimate section
+  const estPreview = document.getElementById('estimate-preview');
+  if (estPreview) estPreview.innerHTML = '<span class="material-icons" style="font-size:2rem;color:var(--gray-300);">attach_money</span><div class="placeholder-text">คลิกเพื่อแนบใบประเมินราคา (ถ้ามี)</div>';
+  const estInput = document.getElementById('estimate-image');
+  if (estInput) estInput.value = '';
   toggleCompleteSection();
   showModal('modalStatus');
 }
 
 document.getElementById('new-status').addEventListener('change', toggleCompleteSection);
 function toggleCompleteSection() {
-  document.getElementById('complete-section').style.display = document.getElementById('new-status').value === 'เสร็จสิ้น' ? 'block' : 'none';
+  const sv = document.getElementById('new-status').value;
+  // complete-section: แสดงเมื่อ เสร็จสิ้น
+  document.getElementById('complete-section').style.display = sv === 'เสร็จสิ้น' ? 'block' : 'none';
+  // estimate-section: แสดงเมื่อ รอตรวจสอบ (supervisor ส่งให้บัญชี)
+  const estSec = document.getElementById('estimate-section');
+  if (estSec) {
+    const show = sv === 'รอตรวจสอบ' && ['supervisor','admin'].includes(currentUser?.role);
+    estSec.style.display = show ? 'block' : 'none';
+  }
 }
 
 async function submitStatusChange() {
-  const jobId   = document.getElementById('status-job-id').value;
-  const status  = document.getElementById('new-status').value;
-  const note    = document.getElementById('status-note').value.trim();
-  const cost    = document.getElementById('actual-cost').value.trim();
+  const jobId     = document.getElementById('status-job-id').value;
+  const status    = document.getElementById('new-status').value;
+  const note      = document.getElementById('status-note').value.trim();
+  const cost      = document.getElementById('actual-cost').value.trim();
   const billFiles = document.getElementById('bill-image').files;
+  const estInput  = document.getElementById('estimate-image');
+  const estFiles  = estInput ? estInput.files : null;
+
   if (status === 'เสร็จสิ้น') {
     if (!cost || isNaN(cost)) { showToast('กรุณากรอกค่าใช้จ่ายจริง', 'error'); return; }
     if (!billFiles.length) { showToast('กรุณาแนบบิล/ใบเสร็จ', 'error'); return; }
   }
 
   showLoading(true);
+
+  // Upload บิล/ใบเสร็จ (เสร็จสิ้น)
   let billUrl = ''; let billViewUrl = '';
   if (billFiles.length > 0) {
     try {
       const results = await uploadMultiImages(billFiles, 'bill', jobId);
-      const billUrls = results.map(r => r.url).filter(Boolean);
-      billUrl     = JSON.stringify(billUrls);
+      billUrl     = JSON.stringify(results.map(r => r.url).filter(Boolean));
       billViewUrl = results[0]?.viewUrl || '';
     } catch(e) {
       showLoading(false); showToast('อัปโหลดบิลไม่สำเร็จ: ' + e.message, 'error'); return;
     }
   }
 
-  // accountant ส่ง accountantNote, supervisor/admin ส่ง note ปกติ
-  const statusPayload = { jobId, status, actualCost: cost, billUrl, billViewUrl, adminUid: currentUser.lineUid };
-  if (currentUser.role === 'accountant') {
-    statusPayload.accountantNote = note;  // บันทึกลง col M
-  } else {
-    statusPayload.note = note;            // บันทึกลง col L (supervisor note)
+  // Upload ใบประเมินราคา (supervisor ส่งให้บัญชี)
+  let estimateImageUrl = ''; let estimateViewUrl = '';
+  if (estFiles && estFiles.length > 0 && status === 'รอตรวจสอบ') {
+    try {
+      const estResults = await uploadMultiImages(estFiles, 'estimate', jobId);
+      estimateImageUrl = JSON.stringify(estResults.map(r => r.url).filter(Boolean));
+      estimateViewUrl  = estResults[0]?.viewUrl || '';
+    } catch(e) {
+      showLoading(false); showToast('อัปโหลดใบประเมินไม่สำเร็จ: ' + e.message, 'error'); return;
+    }
   }
+
+  const statusPayload = {
+    jobId, status, actualCost: cost, billUrl, billViewUrl,
+    estimateImageUrl, estimateViewUrl,
+    adminUid: currentUser.lineUid,
+  };
+  if (currentUser.role === 'accountant') {
+    statusPayload.accountantNote = note;
+  } else {
+    statusPayload.note = note;
+  }
+
   const res = await gasCall('updateStatus', statusPayload);
   showLoading(false);
   if (res.status === 'ok') {
@@ -1708,7 +1730,6 @@ function quickAccountantDecision(jobId, decision) {
     document.getElementById('mgr-note-decision').value = decision;
     document.getElementById('mgr-note-text').value     = '';
     document.getElementById('mgr-note-title').textContent = '↩️ ส่งกลับให้หัวหน้าแก้ไข';
-    document.getElementById('mgr-note-text').placeholder = 'หมายเหตุฝ่ายบัญชี (ระบุเหตุผลที่ส่งกลับ)';
     const btn = document.getElementById('mgr-note-confirm-btn');
     btn.style.background = 'var(--warning)'; btn.style.color = '#333';
     showModal('modalManagerNote');
@@ -1720,8 +1741,7 @@ function quickAccountantDecision(jobId, decision) {
 async function _submitAccountantDecision(jobId, decision, note) {
   showLoading(true);
   const res = await gasCall('updateStatus', {
-    jobId, status: decision,
-    accountantNote: note || '',   // บันทึกลง col M (accountantNote)
+    jobId, status: decision, note: note || '',
     adminUid: currentUser.lineUid,
   });
   showLoading(false);
@@ -2523,6 +2543,7 @@ async function printJobPDF(jobId) {
           <tr><td class="lbl">เลขไมล์</td><td class="val">${Number(j.mileage).toLocaleString()} กม.</td></tr>
           <tr><td class="lbl">สถานที่ซ่อม</td><td class="val">${j.location||'-'}</td></tr>
           <tr><td class="lbl">ราคาประเมิน</td><td class="val">${j.estimate ? Number(j.estimate).toLocaleString()+' บาท' : '-'}</td></tr>
+          ${j.estimateViewUrl ? `<tr><td class="lbl">ใบประเมิน</td><td class="val"><a href="${j.estimateViewUrl}" style="color:#2E7D32;font-size:9px;">📄 ดูใบประเมินราคา</a></td></tr>` : ''}
         </table>
       </div>
     </div>
@@ -2536,12 +2557,8 @@ async function printJobPDF(jobId) {
       <div>
         <div class="sec-title">📝 หมายเหตุ</div>
         ${j.note
-          ? `<div class="note-box" style="border-left-color:#F9A825;">${j.note}</div>`
-          : `<div class="detail-text" style="color:#aaa;font-style:italic;">ไม่มีหมายเหตุ หัวหน้างาน</div>`}
-        ${j.accountantNote ? `<div class="note-box" style="margin-top:4px;background:#E3F2FD;border-left-color:#1565C0;">
-          <span style="font-weight:700;color:#1565C0;font-size:9px;">🔍 บัญชี:</span> ${j.accountantNote}</div>` : ''}
-        ${j.managerNote ? `<div class="note-box" style="margin-top:4px;background:#F3E5F5;border-left-color:#6A1B9A;">
-          <span style="font-weight:700;color:#6A1B9A;font-size:9px;">👔 ผู้บริหาร:</span> ${j.managerNote}</div>` : ''}
+          ? `<div class="note-box">${j.note}</div>`
+          : `<div class="detail-text" style="color:#aaa;font-style:italic;">ไม่มีหมายเหตุ</div>`}
         ${j.actualCost ? `
         <div style="margin-top:6px;">
           <div class="sec-title">💰 ค่าใช้จ่ายจริง</div>
@@ -2556,11 +2573,12 @@ async function printJobPDF(jobId) {
     </div>
 
     <!-- แถว 3: รูปภาพแนบ (ถ้ามี) -->
-    ${(parseUrls(j.imageUrl).length || parseUrls(j.billUrl).length) ? `
+    ${(parseUrls(j.imageUrl).length || parseUrls(j.estimateImageUrl).length || parseUrls(j.billUrl).length) ? `
     <div>
       <div class="sec-title">📎 เอกสารแนบ</div>
       <div class="img-row">
         ${parseUrls(j.imageUrl).map((u,i) => `<div class="img-box"><div class="img-lbl" style="background:#E3F2FD;color:#1565C0;">📷 รูปประกอบ${parseUrls(j.imageUrl).length>1?' ('+(i+1)+')':''}</div><img src="${u}" onerror="this.parentElement.style.display='none'"></div>`).join('')}
+        ${parseUrls(j.estimateImageUrl).map((u,i) => `<div class="img-box"><div class="img-lbl" style="background:#E8F5E9;color:#2E7D32;">💰 ใบประเมินราคา${parseUrls(j.estimateImageUrl).length>1?' ('+(i+1)+')':''}</div><img src="${u}" onerror="this.parentElement.style.display='none'"></div>`).join('')}
         ${parseUrls(j.billUrl).map((u,i) => `<div class="img-box"><div class="img-lbl" style="background:#FFF8E1;color:#E65100;">🧾 บิล/ใบเสร็จ${parseUrls(j.billUrl).length>1?' ('+(i+1)+')':''}</div><img src="${u}" onerror="this.parentElement.style.display='none'"></div>`).join('')}
       </div>
     </div>` : ''}

@@ -894,6 +894,26 @@
           <label class="form-label">หมายเหตุ</label>
           <textarea class="form-control" id="status-note" rows="2" placeholder="บันทึกหมายเหตุ..."></textarea>
         </div>
+        <!-- Estimate section (shown when supervisor ส่งงานให้บัญชี) -->
+        <div id="estimate-section" style="display:none;">
+          <hr>
+          <p class="fw-bold mb-2" style="color:#2E7D32;">💰 แนบใบประเมินราคา (ถ้ามี)</p>
+          <div class="mb-3">
+            <label class="form-label" style="font-size:.88rem;">
+              ใบประเมินราคา
+              <span style="font-size:.78rem;color:var(--gray-500);">(เลือกได้หลายรูป — ไม่บังคับ)</span>
+            </label>
+            <div class="img-preview-box" onclick="document.getElementById('estimate-image').click()" style="min-height:80px;">
+              <input type="file" id="estimate-image" accept="image/*" class="d-none" multiple
+                     onchange="previewMultiImage(this,'estimate-preview')">
+              <div id="estimate-preview" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center;min-height:60px;">
+                <span class="material-icons" style="font-size:2rem;color:var(--gray-300);">attach_money</span>
+                <div class="placeholder-text">คลิกเพื่อแนบใบประเมินราคา</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Complete form (shown only when เสร็จสิ้น) -->
         <div id="complete-section" style="display:none;">
           <hr>
@@ -1062,7 +1082,7 @@
       <input type="hidden" id="mgr-note-jobid">
       <input type="hidden" id="mgr-note-decision">
       <div style="margin-bottom:1rem;">
-        <label id="mgr-note-label" style="display:block;font-size:.85rem;font-weight:600;color:var(--gray-700);margin-bottom:.4rem;">
+        <label style="display:block;font-size:.85rem;font-weight:600;color:var(--gray-700);margin-bottom:.4rem;">
           หมายเหตุ / เหตุผล <span style="color:var(--gray-400);font-size:.78rem;font-weight:400;">(ไม่บังคับ)</span>
         </label>
         <textarea id="mgr-note-text" rows="3" placeholder="ระบุเหตุผลหรือหมายเหตุ..."
