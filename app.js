@@ -2549,8 +2549,7 @@ async function printJobPDF(jobId) {
           <tr><td class="lbl">เลขทะเบียน</td><td class="val" style="font-size:13px;font-weight:700;">${j.plate}</td></tr>
           <tr><td class="lbl">เลขไมล์</td><td class="val">${Number(j.mileage).toLocaleString()} กม.</td></tr>
           <tr><td class="lbl">สถานที่ซ่อม</td><td class="val">${j.location||'-'}</td></tr>
-          <tr><td class="lbl">ราคาประเมิน</td><td class="val">${j.estimate ? Number(j.estimate).toLocaleString()+' บาท' : '-'}</td></tr>
-          ${j.estimateViewUrl ? `<tr><td class="lbl">ใบประเมิน</td><td class="val"><a href="${j.estimateViewUrl}" style="color:#2E7D32;font-size:9px;">📄 ดูใบประเมินราคา</a></td></tr>` : ''}
+          <tr><td class="lbl">ราคาประเมิน</td><td class="val">${j.estimate ? Number(j.estimate).toLocaleString()+' บาท' : '-'}</td></tr> 
         </table>
       </div>
     </div>
