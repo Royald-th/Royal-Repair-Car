@@ -897,10 +897,21 @@
         <!-- Estimate section (shown when supervisor ส่งงานให้บัญชี) -->
         <div id="estimate-section" style="display:none;">
           <hr>
-          <p class="fw-bold mb-2" style="color:#2E7D32;">💰 แนบใบประเมินราคา (ถ้ามี)</p>
+          <p class="fw-bold mb-2" style="color:#2E7D32;">💰 ส่งให้ฝ่ายบัญชีตรวจสอบ</p>
+          <div class="mb-3">
+            <label class="form-label">
+              ราคาประเมิน (บาท)
+              <span style="font-size:.78rem;color:var(--gray-500);">(ไม่บังคับ)</span>
+            </label>
+            <div class="input-group">
+              <span class="input-group-text">฿</span>
+              <input type="number" class="form-control" id="status-estimate-cost"
+                     placeholder="0" min="0">
+            </div>
+          </div>
           <div class="mb-3">
             <label class="form-label" style="font-size:.88rem;">
-              ใบประเมินราคา
+              แนบใบประเมินราคา
               <span style="font-size:.78rem;color:var(--gray-500);">(เลือกได้หลายรูป — ไม่บังคับ)</span>
             </label>
             <div class="img-preview-box" onclick="document.getElementById('estimate-image').click()" style="min-height:80px;">
