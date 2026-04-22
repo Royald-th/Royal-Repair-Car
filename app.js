@@ -1523,6 +1523,8 @@ function openStatusModal(jobId) {
   document.getElementById('actual-cost').value = '';
   document.getElementById('bill-preview').innerHTML = '<span class="material-icons" style="font-size:2rem;color:var(--gray-300);">receipt</span><div class="placeholder-text">คลิกเพื่อแนบบิล</div>';
   // reset estimate section
+  const estCostField = document.getElementById('status-estimate-cost');
+  if (estCostField) estCostField.value = (j && j.estimate) ? j.estimate : '';
   const estPreview = document.getElementById('estimate-preview');
   if (estPreview) estPreview.innerHTML = '<span class="material-icons" style="font-size:2rem;color:var(--gray-300);">attach_money</span><div class="placeholder-text">คลิกเพื่อแนบใบประเมินราคา (ถ้ามี)</div>';
   const estInput = document.getElementById('estimate-image');
@@ -1550,8 +1552,9 @@ async function submitStatusChange() {
   const note      = document.getElementById('status-note').value.trim();
   const cost      = document.getElementById('actual-cost').value.trim();
   const billFiles = document.getElementById('bill-image').files;
-  const estInput  = document.getElementById('estimate-image');
-  const estFiles  = estInput ? estInput.files : null;
+  const estInput     = document.getElementById('estimate-image');
+  const estFiles     = estInput ? estInput.files : null;
+  const estimateCost = document.getElementById('status-estimate-cost')?.value.trim() || '';
 
   if (status === 'เสร็จสิ้น') {
     if (!cost || isNaN(cost)) { showToast('กรุณากรอกค่าใช้จ่ายจริง', 'error'); return; }
@@ -1589,6 +1592,10 @@ async function submitStatusChange() {
     estimateImageUrl, estimateViewUrl,
     adminUid: currentUser.lineUid,
   };
+  // ถ้า supervisor กรอก estimate ตอนส่งงานให้บัญชี → บันทึกลง col G
+  if (status === 'รอตรวจสอบ' && estimateCost !== '') {
+    statusPayload.estimate = estimateCost;
+  }
   if (currentUser.role === 'accountant') {
     statusPayload.accountantNote = note;
   } else {
