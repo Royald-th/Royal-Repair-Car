@@ -1399,12 +1399,8 @@ function openDetail(jobId) {
       </div>
       <span class="badge-status ${statusClass(j.status)}" style="font-size:.85rem;">${j.status}</span>
     </div>
-    ${j.note ? `<div class="alert" style="background:#FFF8E1;border:1px solid #FFE082;border-radius:8px;padding:.65rem 1rem;font-size:.85rem;margin-bottom:.5rem;">
-      <span style="font-weight:700;color:#F57F17;">📝 หมายเหตุ Supervisor:</span> ${j.note}</div>` : ''}
-    ${j.accountantNote ? `<div class="alert" style="background:#E3F2FD;border:1px solid #90CAF9;border-radius:8px;padding:.65rem 1rem;font-size:.85rem;margin-bottom:.5rem;">
-      <span style="font-weight:700;color:#1565C0;">🔍 หมายเหตุ ฝ่ายบัญชี:</span> ${j.accountantNote}</div>` : ''}
-    ${j.managerNote ? `<div class="alert" style="background:#F3E5F5;border:1px solid #CE93D8;border-radius:8px;padding:.65rem 1rem;font-size:.85rem;margin-bottom:.5rem;">
-      <span style="font-weight:700;color:#6A1B9A;">👔 หมายเหตุ ผู้บริหาร:</span> ${j.managerNote}</div>` : ''}
+    ${j.note ? `<div class="alert" style="background:var(--warning-light);border:1px solid #FFE082;border-radius:8px;padding:.65rem 1rem;font-size:.85rem;margin-bottom:1rem;">
+      <strong>📝 หมายเหตุ:</strong> ${j.note}</div>` : ''}
     ${['ผู้แจ้ง','เลขทะเบียน','เลขไมล์','อาการที่พบ','ประเมินค่าใช้จ่าย','สถานที่ซ่อม','วันที่แจ้ง'].map((label,i) => {
       const vals = [j.userName,j.plate,Number(j.mileage).toLocaleString()+' กม.',j.detail,(j.estimate?Number(j.estimate).toLocaleString()+' บาท':'-'),j.location,formatDate(j.createdAt)];
       return `<div class="detail-row"><div class="detail-label">${label}</div><div class="detail-value">${vals[i]}</div></div>`;
@@ -1522,21 +1518,11 @@ function openStatusModal(jobId) {
   sel.innerHTML = opts.map(o => `<option value="${o.v}">${o.l}</option>`).join('');
 
   document.getElementById('status-job-id').value = jobId;
-  // set ค่า default เป็น option แรกของ role นั้น (ไม่ใช่ status ปัจจุบัน)
-  // เพื่อให้ toggleCompleteSection/estimate-section แสดงผลถูกต้องทันที
-  document.getElementById('new-status').value = opts[0].v;
-  // pre-fill note ตาม role: accountant เห็น accountantNote, อื่นๆ เห็น supervisor note
-  if (currentUser.role === 'accountant') {
-    document.getElementById('status-note').value = j.accountantNote || '';
-  } else {
-    document.getElementById('status-note').value = j.note || '';
-  }
+  document.getElementById('new-status').value = j.status;
+  document.getElementById('status-note').value = j.note || '';
   document.getElementById('actual-cost').value = '';
-  // reset bill — ต้อง clear ทั้ง preview และ FileList
-  const billInput = document.getElementById('bill-image');
-  if (billInput) billInput.value = '';
   document.getElementById('bill-preview').innerHTML = '<span class="material-icons" style="font-size:2rem;color:var(--gray-300);">receipt</span><div class="placeholder-text">คลิกเพื่อแนบบิล</div>';
-  // reset estimate — ต้อง clear ทั้ง input, preview, และ cost field
+  // reset estimate section
   const estCostField = document.getElementById('status-estimate-cost');
   if (estCostField) estCostField.value = (j && j.estimate) ? j.estimate : '';
   const estPreview = document.getElementById('estimate-preview');
@@ -2086,14 +2072,7 @@ function removePreviewImage(btn, inputId, removeIdx) {
   const dt = new DataTransfer();
   Array.from(input.files).forEach((f, i) => { if (i !== removeIdx) dt.items.add(f); });
   input.files = dt.files;
-  // ใช้ data-preview attribute ที่ติดไว้บน input element
-  // fallback ตาม id เดิม (backward compat)
-  const previewTarget = input.dataset.preview
-    || (input.id === 'f-image'       ? 'repair-img-preview'
-      : input.id === 'bill-image'    ? 'bill-preview'
-      : input.id === 'estimate-image' ? 'estimate-preview'
-      : 'bill-preview');
-  previewMultiImage(input, previewTarget);
+  previewMultiImage(input, input.id === 'f-image' ? 'repair-img-preview' : 'bill-preview');
 }
 
 function viewImage(url) {
@@ -2570,8 +2549,7 @@ async function printJobPDF(jobId) {
           <tr><td class="lbl">เลขทะเบียน</td><td class="val" style="font-size:13px;font-weight:700;">${j.plate}</td></tr>
           <tr><td class="lbl">เลขไมล์</td><td class="val">${Number(j.mileage).toLocaleString()} กม.</td></tr>
           <tr><td class="lbl">สถานที่ซ่อม</td><td class="val">${j.location||'-'}</td></tr>
-          <tr><td class="lbl">ราคาประเมิน</td><td class="val">${j.estimate ? Number(j.estimate).toLocaleString()+' บาท' : '-'}</td></tr>
-          ${j.estimateViewUrl ? `<tr><td class="lbl">ใบประเมิน</td><td class="val"><a href="${j.estimateViewUrl}" style="color:#2E7D32;font-size:9px;">📄 ดูใบประเมินราคา</a></td></tr>` : ''}
+          <tr><td class="lbl">ราคาประเมิน</td><td class="val">${j.estimate ? Number(j.estimate).toLocaleString()+' บาท' : '-'}</td></tr> 
         </table>
       </div>
     </div>
