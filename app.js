@@ -2963,7 +2963,7 @@ async function printMonthlyReport() {
   const month  = parseInt(document.getElementById('report-month').value);
   const monthName = ['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
                      'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'][month];
-
+ 
   // แจ้งเตือนถ้าดูปีก่อนหน้าที่อาจถูก archive
   const thisYear = new Date().getFullYear();
   if (year < thisYear) {
@@ -2981,25 +2981,25 @@ async function printMonthlyReport() {
   const totalCost = jobs.reduce((s,j) => s+(parseFloat(j.actualCost)||0), 0);
   const done = jobs.filter(j=>j.status==='เสร็จสิ้น').length;
   const pending = jobs.filter(j=>j.status==='รอดำเนินการ').length;
-
+ 
   // capture chart images
   const statusImg = document.getElementById('chart-status')?.toDataURL('image/png') || '';
   const dailyImg  = document.getElementById('chart-daily')?.toDataURL('image/png')  || '';
   const printDate = new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
-
+ 
   // top users
   const userMap = {};
   jobs.forEach(j => { const n=j.userName||'ไม่ระบุ'; userMap[n]=(userMap[n]||0)+1; });
   const topUsers = Object.entries(userMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
-
+ 
   const html = `\u003c!DOCTYPE html>\u003chtml lang="th"><head><meta charset="UTF-8">
 <title>รายงานประจำเดือน ${monthName} ${year+543}</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=Prompt:wght@600;700&display=swap" rel="stylesheet">
 <style>
 @page { size:A4 portrait; margin:0; }
 *{box-sizing:border-box;margin:0;padding:0;}
-html,body{width:210mm;height:297mm;overflow:hidden;font-family:'Sarabun',sans-serif;font-size:11px;color:#222;background:#fff;}
-.page{width:210mm;height:297mm;display:flex;flex-direction:column;}
+html,body{width:210mm;min-height:297mm;font-family:'Sarabun',sans-serif;font-size:11px;color:#222;background:#fff;}
+.page{width:210mm;min-height:297mm;display:flex;flex-direction:column;}
 .hd{background:linear-gradient(135deg,#7F0000,#B71C1C);color:#fff;padding:12px 20px;flex-shrink:0;}
 .hd h1{font-family:'Prompt',sans-serif;font-size:16px;font-weight:700;}
 .hd p{font-size:10px;opacity:.85;margin-top:2px;}
@@ -3034,7 +3034,7 @@ td{padding:3.5px 6px;font-size:9.5px;border-bottom:1px solid #f0f0f0;}
     <div class="chart-box"><h3>🍩 สัดส่วนสถานะ</h3>${statusImg?`<img src="${statusImg}">`:''}</div>
     <div class="chart-box"><h3>📊 แจ้งซ่อมรายวัน</h3>${dailyImg?`<img src="${dailyImg}">`:''}</div>
   </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:1;min-height:0;">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
     <div>
       <div class="sec-title">🏆 ผู้แจ้งซ่อมสูงสุด</div>
       <table><thead><tr><th>#</th><th>ชื่อ</th><th>จำนวน</th></tr></thead><tbody>
@@ -3042,17 +3042,45 @@ td{padding:3.5px 6px;font-size:9.5px;border-bottom:1px solid #f0f0f0;}
       </tbody></table>
     </div>
     <div>
-      <div class="sec-title">📋 รายการล่าสุด</div>
-      <table><thead><tr><th>เลขงาน</th><th>ทะเบียน</th><th>สถานะ</th><th>ค่าใช้จ่าย</th></tr></thead><tbody>
-      ${[...jobs].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,10).map(j=>`
-        <tr><td style="font-weight:700;">${j.jobId}</td><td>${j.plate}</td><td>${j.status}</td><td>${j.actualCost?Number(j.actualCost).toLocaleString()+' ฿':'-'}</td></tr>`).join('')}
+      <div class="sec-title">🔧 สรุปทุกสถานะ</div>
+      <table><thead><tr><th>สถานะ</th><th style="text-align:right;">จำนวน</th></tr></thead><tbody>
+      ${['รอดำเนินการ','รอตรวจสอบ','รอการอนุมัติ','อนุมัติ','กำลังซ่อม','เสร็จสิ้น','ไม่อนุมัติ','ส่งกลับแก้ไข'].map(s=>{
+        const cnt=jobs.filter(j=>j.status===s).length; if(!cnt) return '';
+        const color=s==='เสร็จสิ้น'?'#1B5E20':s==='ไม่อนุมัติ'?'#B71C1C':s==='อนุมัติ'||s==='กำลังซ่อม'?'#2E7D32':'#555';
+        return `<tr><td>${s}</td><td style="text-align:right;font-weight:700;color:${color};">${cnt}</td></tr>`;
+      }).join('')}
       </tbody></table>
     </div>
+  </div>
+  <div>
+    <div class="sec-title">✅ รายการแจ้งซ่อมที่เสร็จสิ้น (${jobs.filter(j=>j.status==='เสร็จสิ้น').length} รายการ)</div>
+    ${jobs.filter(j=>j.status==='เสร็จสิ้น').length === 0
+      ? `<div style="text-align:center;padding:12px;color:#999;font-size:10px;">ไม่มีรายการเสร็จสิ้นในเดือนนี้</div>`
+      : `<table><thead><tr>
+          <th>#</th><th>เลขงาน</th><th>ทะเบียน</th><th>ผู้แจ้ง</th>
+          <th>อาการ</th><th style="text-align:right;">ประเมิน (฿)</th><th style="text-align:right;">จริง (฿)</th>
+        </tr></thead><tbody>
+        ${[...jobs].filter(j=>j.status==='เสร็จสิ้น')
+          .sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt))
+          .map((j,i)=>`<tr style="background:${i%2?'#fafafa':'#fff'};">
+            <td style="color:#999;">${i+1}</td>
+            <td style="font-weight:700;color:#283593;">${j.jobId}</td>
+            <td>${j.plate}</td>
+            <td>${j.userName||'-'}</td>
+            <td style="max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${j.detail||'-'}</td>
+            <td style="text-align:right;">${j.estimate?Number(j.estimate).toLocaleString():'-'}</td>
+            <td style="text-align:right;font-weight:700;color:#1B5E20;">${j.actualCost?Number(j.actualCost).toLocaleString():'-'}</td>
+          </tr>`).join('')}
+        <tr style="background:#E8F5E9;font-weight:700;">
+          <td colspan="6" style="text-align:right;color:#1B5E20;">รวมค่าใช้จ่ายจริง</td>
+          <td style="text-align:right;color:#1B5E20;">${jobs.filter(j=>j.status==='เสร็จสิ้น').reduce((s,j)=>s+(parseFloat(j.actualCost)||0),0).toLocaleString()} ฿</td>
+        </tr>
+        </tbody></table>`}
   </div>
 </div>
 <div class="ft"><span>รายงานประจำเดือน ${monthName} ${year+543} | ระบบแจ้งซ่อมรถยนต์</span><span>พิมพ์: ${printDate}</span></div>
 </div><script>window.onload=function(){window.print();}<\/script>\u003c/body>\u003c/html>`;
-
+ 
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   const monthName2 = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.',
                       'ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][month];
