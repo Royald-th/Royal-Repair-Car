@@ -13,7 +13,7 @@
  *  เพื่อบังคับให้ผู้ใช้ได้โค้ดใหม่ ไม่ใช่ไฟล์เก่าที่ค้างอยู่ใน cache
  * ============================================================ */
 
-const CACHE_VERSION   = 'v1';
+const CACHE_VERSION   = 'v2';
 const APP_SHELL_CACHE = `repair-app-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE    = `repair-runtime-${CACHE_VERSION}`;
 
