@@ -2119,8 +2119,13 @@ function renderThumbRow(urls, label, viewUrl = '') {
   return `<div class="mt-2"><div class="form-label mb-1">${label}</div><div class="d-flex align-items-center gap-2 flex-wrap">${thumbs}${driveLink}</div></div>`;
 }
 
-/* Compress รูปก่อน upload — resize ให้ไม่เกิน maxW/maxH และ quality 0.8 */
-function compressImage(file, maxW = 1920, maxH = 1920, quality = 0.88) {
+/* Compress รูปก่อน upload — resize ให้ไม่เกิน maxW/maxH และ quality ตามที่กำหนด
+   เวอร์ชันนี้เน้นความคมชัดสูงสุด (2048px @ 0.92) ลด JPEG artifact/แตกเป็นบล็อกให้เหลือน้อยที่สุด
+   พร้อม adaptive guard กันไฟล์ใหญ่เกินไปในกรณีรูปต้นฉบับความละเอียดสูงมาก */
+function compressImage(file, maxW = 2048, maxH = 2048, quality = 0.92) {
+  const MAX_KB = 3000;        // เพดานขนาดไฟล์หลัง compress (กัน payload บวม/อัปโหลดช้าเกินไป)
+  const MIN_QUALITY = 0.8;    // quality ต่ำสุดที่ยอมลดลงไปได้ — สูงพอที่จะไม่เห็นรอยแตกเป็นบล็อก
+
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onerror = reject;
@@ -2136,18 +2141,29 @@ function compressImage(file, maxW = 1920, maxH = 1920, quality = 0.88) {
         }
         const canvas = document.createElement('canvas');
         canvas.width = w; canvas.height = h;
-        
         const ctx = canvas.getContext('2d');
-        // เพิ่มความคมชัดเนียนสวยระหว่างการย่อขนาด (Resampling)
+        // ใช้ smoothing คุณภาพสูงตอน resize — ลดความเบลอที่เกิดจาก downscale แบบหยาบ
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(img, 0, 0, w, h);
 
-        const mime = 'image/jpeg';
-        const dataUrl = canvas.toDataURL(mime, quality);
-        const b64 = dataUrl.split(',')[1];
-        const kb  = Math.round(b64.length * 0.75 / 1024);
-        console.log(`Compressed: ${img.width}x${img.height} → ${w}x${h} | ~${kb} KB`);
+        const mime = 'image/jpeg'; // force JPEG — PNG ใหญ่กว่า 3-5x ไม่จำเป็นสำหรับรูปซ่อมรถ
+
+        // ลอง quality ที่กำหนดก่อน ถ้าไฟล์ยังใหญ่เกิน MAX_KB ค่อยๆ ลด quality ลงทีละ 0.03
+        // ลดทีละน้อยกว่าเดิม (0.03 แทน 0.05) เพื่อรักษาความคมชัดให้นานที่สุดก่อนถึง MIN_QUALITY
+        let q = quality;
+        let dataUrl = canvas.toDataURL(mime, q);
+        let b64 = dataUrl.split(',')[1];
+        let kb  = Math.round(b64.length * 0.75 / 1024);
+
+        while (kb > MAX_KB && q > MIN_QUALITY) {
+          q = Math.max(MIN_QUALITY, q - 0.03);
+          dataUrl = canvas.toDataURL(mime, q);
+          b64 = dataUrl.split(',')[1];
+          kb  = Math.round(b64.length * 0.75 / 1024);
+        }
+
+        console.log(`Compressed: ${img.width}x${img.height} → ${w}x${h} | q=${q.toFixed(2)} | ~${kb} KB`);
         resolve({ b64, mime, filename: file.name });
       };
       img.src = e.target.result;
@@ -2155,7 +2171,6 @@ function compressImage(file, maxW = 1920, maxH = 1920, quality = 0.88) {
     reader.readAsDataURL(file);
   });
 }
-
 function toBase64(file) {
   return new Promise((res,rej) => {
     const r = new FileReader();
