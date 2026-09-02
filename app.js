@@ -2120,7 +2120,7 @@ function renderThumbRow(urls, label, viewUrl = '') {
 }
 
 /* Compress รูปก่อน upload — resize ให้ไม่เกิน maxW/maxH และ quality 0.8 */
-function compressImage(file, maxW = 800, maxH = 800, quality = 0.72) {
+function compressImage(file, maxW = 1920, maxH = 1920, quality = 0.88) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onerror = reject;
@@ -2136,8 +2136,14 @@ function compressImage(file, maxW = 800, maxH = 800, quality = 0.72) {
         }
         const canvas = document.createElement('canvas');
         canvas.width = w; canvas.height = h;
-        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        const mime = 'image/jpeg'; // force JPEG — PNG ใหญ่กว่า 3-5x ไม่จำเป็นสำหรับรูปซ่อมรถ
+        
+        const ctx = canvas.getContext('2d');
+        // เพิ่มความคมชัดเนียนสวยระหว่างการย่อขนาด (Resampling)
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, w, h);
+
+        const mime = 'image/jpeg';
         const dataUrl = canvas.toDataURL(mime, quality);
         const b64 = dataUrl.split(',')[1];
         const kb  = Math.round(b64.length * 0.75 / 1024);
