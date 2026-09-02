@@ -2123,8 +2123,8 @@ function renderThumbRow(urls, label, viewUrl = '') {
    เวอร์ชันนี้เน้นความคมชัดสูงสุด (2048px @ 0.92) ลด JPEG artifact/แตกเป็นบล็อกให้เหลือน้อยที่สุด
    พร้อม adaptive guard กันไฟล์ใหญ่เกินไปในกรณีรูปต้นฉบับความละเอียดสูงมาก */
 function compressImage(file, maxW = 2048, maxH = 2048, quality = 0.92) {
-  const MAX_KB = 3000;        // เพดานขนาดไฟล์หลัง compress (กัน payload บวม/อัปโหลดช้าเกินไป)
-  const MIN_QUALITY = 0.8;    // quality ต่ำสุดที่ยอมลดลงไปได้ — สูงพอที่จะไม่เห็นรอยแตกเป็นบล็อก
+  const MAX_KB = 9000;        // เพดานขนาดไฟล์หลัง compress (กัน payload บวม/อัปโหลดช้าเกินไป)
+  const MIN_QUALITY = 1;    // quality ต่ำสุดที่ยอมลดลงไปได้ — สูงพอที่จะไม่เห็นรอยแตกเป็นบล็อก
 
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
