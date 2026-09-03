@@ -1039,14 +1039,24 @@
   </div>
 </div>
 
-<!-- ===== MODAL: IMAGE VIEWER ===== -->
+<!-- ===== MODAL: IMAGE VIEWER (รองรับ pinch-zoom / double-tap / เมาส์ลาก) ===== -->
 <div class="modal fade" id="modalImage" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content" style="background:transparent;border:none;box-shadow:none;">
-      <div class="text-end mb-2">
-        <button class="btn-close-white" onclick="closeModal('modalImage')" style="background:rgba(0,0,0,.5);"><span class="material-icons" style="font-size:1rem;">close</span></button>
+      <div class="mb-2" style="display:flex;justify-content:space-between;align-items:center;">
+        <button id="image-zoom-reset" onclick="resetImageZoom()"
+                style="display:none;align-items:center;gap:4px;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:20px;padding:.35rem .8rem;font-size:.8rem;">
+          <span class="material-icons" style="font-size:1rem;">zoom_out</span> รีเซ็ตซูม
+        </button>
+        <button class="btn-close-white" onclick="closeModal('modalImage')" style="background:rgba(0,0,0,.5);margin-left:auto;"><span class="material-icons" style="font-size:1rem;">close</span></button>
       </div>
-      <img id="modal-img-src" src="" style="width:100%;border-radius:var(--radius);">
+      <div id="image-zoom-wrap" style="overflow:hidden;touch-action:none;border-radius:var(--radius);position:relative;max-height:78vh;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.15);">
+        <img id="modal-img-src" src=""
+             style="max-width:100%;max-height:78vh;width:auto;height:auto;object-fit:contain;display:block;cursor:grab;user-select:none;-webkit-user-drag:none;">
+      </div>
+      <div class="text-center mt-2" style="font-size:.72rem;color:rgba(255,255,255,.65);">
+        📱 บีบนิ้ว/ดับเบิลแท็ปเพื่อซูม &nbsp;·&nbsp; 🖱️ เลื่อนล้อ/ดับเบิลคลิกเพื่อซูม
+      </div>
     </div>
   </div>
 </div>
