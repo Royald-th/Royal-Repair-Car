@@ -2096,10 +2096,160 @@ function removePreviewImage(btn, inputId, removeIdx) {
   previewMultiImage(input, previewTarget);
 }
 
+/* เปิดรูปแบบเต็มจอใน modalImage
+   หมายเหตุ: imageUrl ที่เก็บไว้เป็น Google Drive thumbnail แบบ sz=w1200 (คมพอสำหรับ thumbnail เล็กและ PDF)
+   ตรงนี้ยกระดับเป็น sz=w1600 อีกชั้นสำหรับ modal เต็มจอโดยเฉพาะ เพื่อความคมชัดสูงสุดตอนซูมดู */
 function viewImage(url) {
-  document.getElementById('modal-img-src').src = url;
+  const hiResUrl = url.replace(/([?&]sz=w)\d+/, '$11600');
+  if (typeof resetImageZoomSilent === 'function') resetImageZoomSilent(); // เคลียร์ค่าซูม/ลากค้างจากรูปก่อนหน้า
+  document.getElementById('modal-img-src').src = hiResUrl;
   showModal('modalImage');
 }
+
+/* ============================================================
+   IMAGE ZOOM VIEWER — pinch-zoom / double-tap / เมาส์ลาก / เลื่อนล้อ
+   ใช้กับ #modal-img-src ภายใน #image-zoom-wrap (modalImage เท่านั้น)
+   ============================================================ */
+(function initImageZoom() {
+  const MIN_SCALE = 1, MAX_SCALE = 4, DOUBLE_TAP_SCALE = 2.5;
+  let scale = 1, originX = 0, originY = 0;
+  let startDist = 0, startScale = 1;
+  let isPanning = false, panStartX = 0, panStartY = 0, panOriginX = 0, panOriginY = 0;
+  let lastTapTime = 0;
+  let mouseDown = false, mouseStartX = 0, mouseStartY = 0, mouseOriginX = 0, mouseOriginY = 0;
+
+  function els() {
+    return {
+      wrap: document.getElementById('image-zoom-wrap'),
+      img:  document.getElementById('modal-img-src'),
+      btn:  document.getElementById('image-zoom-reset'),
+    };
+  }
+
+  function apply(withTransition) {
+    const { img, btn } = els();
+    if (!img) return;
+    img.style.transition = withTransition ? 'transform .2s ease' : 'none';
+    img.style.transform  = `translate(${originX}px, ${originY}px) scale(${scale})`;
+    img.style.cursor = scale > 1.02 ? 'grab' : 'zoom-in';
+    if (btn) btn.style.display = scale > 1.02 ? 'flex' : 'none';
+  }
+
+  function clampPan() {
+    const { wrap, img } = els();
+    if (!wrap || !img) return;
+    const wrapRect = wrap.getBoundingClientRect();
+    const maxX = Math.max(0, (img.offsetWidth  * scale - wrapRect.width)  / 2);
+    const maxY = Math.max(0, (img.offsetHeight * scale - wrapRect.height) / 2);
+    originX = Math.min(maxX, Math.max(-maxX, originX));
+    originY = Math.min(maxY, Math.max(-maxY, originY));
+  }
+
+  function dist(t1, t2) {
+    return Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+  }
+
+  // เรียกจากปุ่ม "รีเซ็ตซูม" ในหน้าเว็บ (มี transition นุ่มๆ)
+  window.resetImageZoom = function () {
+    scale = 1; originX = 0; originY = 0;
+    apply(true);
+  };
+  // เรียกตอนเปิดรูปใหม่ผ่าน viewImage() — เคลียร์ค่าทันทีไม่มี transition ค้าง
+  window.resetImageZoomSilent = function () {
+    scale = 1; originX = 0; originY = 0;
+    apply(false);
+  };
+
+  function onTouchStart(e) {
+    if (e.touches.length === 2) {
+      startDist = dist(e.touches[0], e.touches[1]);
+      startScale = scale;
+      isPanning = false;
+    } else if (e.touches.length === 1) {
+      const now = Date.now();
+      if (now - lastTapTime < 300) {
+        // double-tap toggle ซูม
+        if (scale > 1.02) window.resetImageZoom();
+        else { scale = DOUBLE_TAP_SCALE; clampPan(); apply(true); }
+        lastTapTime = 0;
+        return;
+      }
+      lastTapTime = now;
+      if (scale > 1.02) {
+        isPanning = true;
+        panStartX = e.touches[0].clientX; panStartY = e.touches[0].clientY;
+        panOriginX = originX; panOriginY = originY;
+      }
+    }
+  }
+
+  function onTouchMove(e) {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      const d = dist(e.touches[0], e.touches[1]);
+      scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, startScale * (d / startDist)));
+      clampPan(); apply(false);
+    } else if (e.touches.length === 1 && isPanning) {
+      e.preventDefault();
+      originX = panOriginX + (e.touches[0].clientX - panStartX);
+      originY = panOriginY + (e.touches[0].clientY - panStartY);
+      clampPan(); apply(false);
+    }
+  }
+
+  function onTouchEnd(e) {
+    if (e.touches.length === 0) {
+      isPanning = false;
+      if (scale < MIN_SCALE + 0.01) window.resetImageZoom();
+    }
+  }
+
+  function onWheel(e) {
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 0.2 : -0.2;
+    scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale + delta));
+    clampPan(); apply(false);
+  }
+
+  function onMouseDown(e) {
+    if (scale <= 1.02) return;
+    e.preventDefault();
+    mouseDown = true;
+    mouseStartX = e.clientX; mouseStartY = e.clientY;
+    mouseOriginX = originX; mouseOriginY = originY;
+    const { img } = els(); if (img) img.style.cursor = 'grabbing';
+  }
+  function onMouseMove(e) {
+    if (!mouseDown) return;
+    originX = mouseOriginX + (e.clientX - mouseStartX);
+    originY = mouseOriginY + (e.clientY - mouseStartY);
+    clampPan(); apply(false);
+  }
+  function onMouseUp() {
+    mouseDown = false;
+    const { img } = els(); if (img) img.style.cursor = scale > 1.02 ? 'grab' : 'zoom-in';
+  }
+
+  function onDblClick() {
+    if (scale > 1.02) window.resetImageZoom();
+    else { scale = DOUBLE_TAP_SCALE; clampPan(); apply(true); }
+  }
+
+  // Element ถูก render อยู่ใน DOM ตั้งแต่โหลดหน้าแรกแล้ว (อยู่ก่อน <script src="app.js"> ใน index.html)
+  const { wrap, img } = els();
+  if (wrap && img) {
+    wrap.addEventListener('touchstart', onTouchStart, { passive: true });
+    wrap.addEventListener('touchmove',  onTouchMove,  { passive: false });
+    wrap.addEventListener('touchend',   onTouchEnd,   { passive: true });
+    wrap.addEventListener('wheel',      onWheel,      { passive: false });
+    img.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+    img.addEventListener('dblclick', onDblClick);
+  }
+})();
+
+
 
 /* parse imageUrl / billUrl ที่อาจเป็น JSON array หรือ string เดิม */
 function parseUrls(raw) {
@@ -2124,7 +2274,7 @@ function renderThumbRow(urls, label, viewUrl = '') {
    พร้อม adaptive guard กันไฟล์ใหญ่เกินไปในกรณีรูปต้นฉบับความละเอียดสูงมาก */
 function compressImage(file, maxW = 2048, maxH = 2048, quality = 0.92) {
   const MAX_KB = 3000;        // เพดานขนาดไฟล์หลัง compress (กัน payload บวม/อัปโหลดช้าเกินไป)
-  const MIN_QUALITY = 0.85;    // quality ต่ำสุดที่ยอมลดลงไปได้ — สูงพอที่จะไม่เห็นรอยแตกเป็นบล็อก
+  const MIN_QUALITY = 0.8;    // quality ต่ำสุดที่ยอมลดลงไปได้ — สูงพอที่จะไม่เห็นรอยแตกเป็นบล็อก
 
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -2171,6 +2321,7 @@ function compressImage(file, maxW = 2048, maxH = 2048, quality = 0.92) {
     reader.readAsDataURL(file);
   });
 }
+
 function toBase64(file) {
   return new Promise((res,rej) => {
     const r = new FileReader();
@@ -2984,7 +3135,7 @@ async function printMonthlyReport() {
   const month  = parseInt(document.getElementById('report-month').value);
   const monthName = ['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
                      'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'][month];
- 
+
   // แจ้งเตือนถ้าดูปีก่อนหน้าที่อาจถูก archive
   const thisYear = new Date().getFullYear();
   if (year < thisYear) {
@@ -3002,17 +3153,17 @@ async function printMonthlyReport() {
   const totalCost = jobs.reduce((s,j) => s+(parseFloat(j.actualCost)||0), 0);
   const done = jobs.filter(j=>j.status==='เสร็จสิ้น').length;
   const pending = jobs.filter(j=>j.status==='รอดำเนินการ').length;
- 
+
   // capture chart images
   const statusImg = document.getElementById('chart-status')?.toDataURL('image/png') || '';
   const dailyImg  = document.getElementById('chart-daily')?.toDataURL('image/png')  || '';
   const printDate = new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
- 
+
   // top users
   const userMap = {};
   jobs.forEach(j => { const n=j.userName||'ไม่ระบุ'; userMap[n]=(userMap[n]||0)+1; });
   const topUsers = Object.entries(userMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
- 
+
   const html = `\u003c!DOCTYPE html>\u003chtml lang="th"><head><meta charset="UTF-8">
 <title>รายงานประจำเดือน ${monthName} ${year+543}</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=Prompt:wght@600;700&display=swap" rel="stylesheet">
@@ -3101,7 +3252,7 @@ td{padding:3.5px 6px;font-size:9.5px;border-bottom:1px solid #f0f0f0;}
 </div>
 <div class="ft"><span>รายงานประจำเดือน ${monthName} ${year+543} | ระบบแจ้งซ่อมรถยนต์</span><span>พิมพ์: ${printDate}</span></div>
 </div><script>window.onload=function(){window.print();}<\/script>\u003c/body>\u003c/html>`;
- 
+
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   const monthName2 = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.',
                       'ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][month];
