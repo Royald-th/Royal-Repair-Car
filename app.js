@@ -2274,7 +2274,7 @@ function renderThumbRow(urls, label, viewUrl = '') {
    พร้อม adaptive guard กันไฟล์ใหญ่เกินไปในกรณีรูปต้นฉบับความละเอียดสูงมาก */
 function compressImage(file, maxW = 2048, maxH = 2048, quality = 0.92) {
   const MAX_KB = 3000;        // เพดานขนาดไฟล์หลัง compress (กัน payload บวม/อัปโหลดช้าเกินไป)
-  const MIN_QUALITY = 0.8;    // quality ต่ำสุดที่ยอมลดลงไปได้ — สูงพอที่จะไม่เห็นรอยแตกเป็นบล็อก
+  const MIN_QUALITY = 0.85;    // quality ต่ำสุดที่ยอมลดลงไปได้ — สูงพอที่จะไม่เห็นรอยแตกเป็นบล็อก
 
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
